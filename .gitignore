@@ -1,0 +1,7 @@
+# Ignorar dependencias de Node
+node_modules/
+dist/
+.history/
+
+# Ignorar variables de entorno con tus claves de Postgres
+.env
