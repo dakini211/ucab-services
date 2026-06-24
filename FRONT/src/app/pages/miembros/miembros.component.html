@@ -1,0 +1,400 @@
+<div class="layout" [class.sidebar-collapsed]="sidebarCollapsed()">
+
+  <!-- ═══════════════ SIDEBAR ═══════════════ -->
+  <aside class="sidebar" role="navigation" aria-label="Menú principal">
+    <div class="sidebar-header">
+      <div class="logo-block">
+        <div class="logo-icon">
+          <svg viewBox="0 0 40 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 2L8 12V28C8 36 14 43 20 46C26 43 32 36 32 28V12L20 2Z" fill="#E63946" opacity="0.9"/>
+            <path d="M14 18V30M20 14V30M26 18V30" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M11 30H29" stroke="#FFD700" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="logo-text" *ngIf="!sidebarCollapsed()">
+          <span class="logo-title">UCAB</span>
+          <span class="logo-subtitle">UNIVERSIDAD CATÓLICA<br>ANDRÉS BELLO</span>
+        </div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <ul class="nav-list" role="list">
+        <li *ngFor="let item of navItems" class="nav-item">
+          <button
+            class="nav-btn"
+            [class.active]="currentRoute() === item.id"
+            (click)="navigate(item)"
+            [id]="'nav-' + item.id"
+            [title]="item.label"
+            [attr.aria-current]="currentRoute() === item.id ? 'page' : null"
+          >
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path [attr.d]="item.icon"/>
+            </svg>
+            <span class="nav-label" *ngIf="!sidebarCollapsed()">{{ item.label }}</span>
+          </button>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-footer" *ngIf="!sidebarCollapsed()">
+      <div class="brand-footer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="brand-icon"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <div>
+          <p class="brand-name">UCAB-Services</p>
+          <p class="brand-sub">Plataforma oficial</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══════════════ MAIN ═══════════════ -->
+  <div class="main-wrapper">
+
+    <!-- Topbar -->
+    <header class="topbar" role="banner">
+      <button class="toggle-btn" id="btn-toggle-sidebar" (click)="toggleSidebar()" aria-label="Colapsar menú">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="topbar-right">
+        <button class="notif-btn" id="btn-notificaciones" aria-label="Notificaciones">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          <span class="badge-notif">3</span>
+        </button>
+        <div class="user-menu-wrapper">
+          <div class="user-menu" id="user-menu" role="button" tabindex="0">
+            <div class="user-avatar">{{ userInitials() }}</div>
+            <div class="user-info">
+              <span class="user-name">{{ userName() }}</span>
+              <span class="user-email">{{ userEmail() }}</span>
+            </div>
+            <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <button class="logout-btn" (click)="logout()" id="btn-logout" title="Cerrar sesión">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <main class="page-content" role="main">
+
+      <!-- Page Header -->
+      <section class="page-header-section">
+        <div class="page-header-info">
+          <h1 class="page-title">Gestión de miembros</h1>
+          <p class="page-subtitle">Administra los miembros de la comunidad universitaria.</p>
+          <div class="title-underline"></div>
+        </div>
+      </section>
+
+      <!-- Filters bar -->
+      <section class="filters-section" aria-label="Filtros de búsqueda">
+        <div class="search-box">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input
+            id="input-buscar"
+            type="text"
+            class="search-input"
+            placeholder="Buscar por nombre, cédula o correo..."
+            [value]="searchQuery()"
+            (input)="onSearch($any($event.target).value)"
+            aria-label="Buscar miembro"
+          />
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label" for="filter-tipo">Tipo de vinculación</label>
+          <select
+            id="filter-tipo"
+            class="filter-select"
+            [ngModel]="filterTipo()"
+            (ngModelChange)="filterTipo.set($event); onFilterChange()"
+          >
+            <option value="todos">Todos</option>
+            <option value="Estudiante">Estudiante</option>
+            <option value="Docente">Docente</option>
+            <option value="Personal Administrativo">Personal Administrativo</option>
+            <option value="Egresado">Egresado</option>
+            <option value="Preparador">Preparador</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label" for="filter-estado">Estado de cuenta</label>
+          <select
+            id="filter-estado"
+            class="filter-select"
+            [ngModel]="filterEstado()"
+            (ngModelChange)="filterEstado.set($event); onFilterChange()"
+          >
+            <option value="todos">Todos</option>
+            <option value="activa">Activo</option>
+            <option value="suspendida">Suspendido</option>
+            <option value="bloqueada">Bloqueado</option>
+          </select>
+        </div>
+
+        <button class="btn-clear-filters" id="btn-limpiar-filtros" (click)="clearFilters()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+          Limpiar filtros
+        </button>
+      </section>
+
+      <!-- Table -->
+      <section class="table-section">
+        <div class="table-wrapper" role="region" aria-label="Tabla de miembros">
+          <div *ngIf="isLoading()" class="table-loading">
+            <div class="spinner"></div>
+            <span>Cargando miembros...</span>
+          </div>
+
+          <table *ngIf="!isLoading()" class="data-table" role="table" aria-label="Lista de miembros">
+            <thead>
+              <tr>
+                <th scope="col">Cédula</th>
+                <th scope="col">Nombre</th>
+                <th scope="col">Correo</th>
+                <th scope="col">Tipo de vinculación</th>
+                <th scope="col">Estado de cuenta</th>
+                <th scope="col" class="col-acciones">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="miembros().length === 0">
+                <td colspan="6" class="empty-row">No se encontraron miembros.</td>
+              </tr>
+              <tr *ngFor="let m of miembros(); let i = index; trackBy: trackById" class="table-row">
+                <td class="col-cedula">{{ m.cedula }}</td>
+                <td class="col-nombre">{{ m.nombre }}</td>
+                <td class="col-correo">{{ m.correo }}</td>
+                <td class="col-tipo">{{ m.tipo_vinculacion }}</td>
+                <td class="col-estado">
+                  <span class="estado-badge" [ngClass]="getEstadoBadgeClass(m.estado_cuenta)">
+                    {{ getEstadoLabel(m.estado_cuenta) }}
+                  </span>
+                </td>
+                <td class="col-acciones">
+                  <div class="action-btns">
+                    <button class="action-btn btn-view" [id]="'btn-ver-' + m.id" (click)="openView(m)" title="Ver detalle">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                    <button class="action-btn btn-edit" [id]="'btn-editar-' + m.id" (click)="openEdit(m)" title="Editar">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </button>
+                    <button
+                      class="action-btn btn-deactivate"
+                      [id]="'btn-estado-' + m.id"
+                      (click)="openDeactivate(m)"
+                      [title]="m.estado_cuenta === 'activa' ? 'Suspender' : 'Activar'"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-bar" *ngIf="!isLoading() && miembros().length > 0">
+          <span class="showing-info">Mostrando {{ showingFrom() }} a {{ showingTo() }} de {{ total() }} miembros</span>
+
+          <div class="pagination-controls">
+            <button class="page-btn" id="btn-primera-pagina" (click)="firstPage()" [disabled]="currentPage() === 1" aria-label="Primera página">«</button>
+            <button class="page-btn" id="btn-anterior-pagina" (click)="prevPage()" [disabled]="currentPage() === 1" aria-label="Página anterior">‹</button>
+
+            <ng-container *ngFor="let p of pages()">
+              <button
+                *ngIf="isNumber(p)"
+                class="page-btn"
+                [class.active]="p === currentPage()"
+                [id]="'btn-pagina-' + p"
+                (click)="goToPage(p)"
+              >{{ p }}</button>
+              <span *ngIf="!isNumber(p)" class="page-ellipsis">...</span>
+            </ng-container>
+
+            <button class="page-btn" id="btn-siguiente-pagina" (click)="nextPage()" [disabled]="currentPage() === totalPages()" aria-label="Página siguiente">›</button>
+            <button class="page-btn" id="btn-ultima-pagina" (click)="lastPage()" [disabled]="currentPage() === totalPages()" aria-label="Última página">»</button>
+          </div>
+
+          <div class="page-size-control">
+            <span>Mostrar</span>
+            <select id="select-por-pagina" class="page-size-select" [ngModel]="pageSize()" (ngModelChange)="onPageSizeChange($event)">
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+            </select>
+            <span>por página</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer features -->
+      <footer class="page-footer">
+        <div class="features-row">
+          <div class="feature-item">
+            <svg class="feature-icon text-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+            <div><p class="feature-title">Seguro</p><p class="feature-desc">Tus datos están protegidos con altos estándares.</p></div>
+          </div>
+          <div class="feature-item">
+            <svg class="feature-icon text-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+            <div><p class="feature-title">Confiable</p><p class="feature-desc">Servicios diseñados para la comunidad universitaria.</p></div>
+          </div>
+          <div class="feature-item">
+            <svg class="feature-icon text-purple" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            <div><p class="feature-title">Conectados</p><p class="feature-desc">Una plataforma, muchos servicios.</p></div>
+          </div>
+          <div class="feature-item">
+            <svg class="feature-icon text-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.67A2 2 0 012 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 8.72A16 16 0 0015.29 17.1l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+            <div><p class="feature-title">Soporte</p><p class="feature-desc">Atención rápida y eficiente cuando lo necesites.</p></div>
+          </div>
+        </div>
+        <div class="footer-copyright">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          UCAB-Services es una plataforma oficial de la Universidad Católica Andrés Bello.
+        </div>
+      </footer>
+    </main>
+  </div><!-- /main-wrapper -->
+</div><!-- /layout -->
+
+<!-- ═══════════════ MODAL VER ═══════════════ -->
+<div class="modal-overlay" *ngIf="modalMode() === 'view'" (click)="closeModal()" role="dialog" aria-modal="true" aria-label="Detalle de miembro">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Detalle del miembro</h2>
+      <button class="modal-close" (click)="closeModal()" id="btn-cerrar-modal-ver" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" *ngIf="selectedMiembro() as m">
+      <div class="detail-avatar">{{ m.nombre.split(' ').slice(0,2).map(p => p[0]).join('').toUpperCase() }}</div>
+      <div class="detail-grid">
+        <div class="detail-item"><span class="detail-label">Cédula</span><span class="detail-value">{{ m.cedula }}</span></div>
+        <div class="detail-item"><span class="detail-label">Nombre completo</span><span class="detail-value">{{ m.nombre }}</span></div>
+        <div class="detail-item"><span class="detail-label">Correo</span><span class="detail-value">{{ m.correo }}</span></div>
+        <div class="detail-item"><span class="detail-label">Teléfono</span><span class="detail-value">{{ m.telefono ?? 'No registrado' }}</span></div>
+        <div class="detail-item"><span class="detail-label">Tipo de vinculación</span><span class="detail-value">{{ m.tipo_vinculacion }}</span></div>
+        <div class="detail-item">
+          <span class="detail-label">Estado de cuenta</span>
+          <span class="estado-badge" [ngClass]="getEstadoBadgeClass(m.estado_cuenta)">{{ getEstadoLabel(m.estado_cuenta) }}</span>
+        </div>
+        <div class="detail-item"><span class="detail-label">Sesiones totales</span><span class="detail-value">{{ m.total_sesiones }}</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" id="btn-cerrar-detalle" (click)="closeModal()">Cerrar</button>
+      <button class="btn-primary" id="btn-editar-desde-ver" (click)="openEdit(selectedMiembro()!)">Editar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL EDITAR ═══════════════ -->
+<div class="modal-overlay" *ngIf="modalMode() === 'edit'" (click)="closeModal()" role="dialog" aria-modal="true">
+  <div class="modal-card modal-lg" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Editar miembro</h2>
+      <button class="modal-close" (click)="closeModal()" [id]="'btn-cerrar-modal-' + modalMode()" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <form [formGroup]="miembroForm" class="form-grid" (ngSubmit)="saveMiembro()" id="form-miembro">
+        <div class="form-group">
+          <label for="f-cedula">Cédula de identidad *</label>
+          <input id="f-cedula" type="number" class="form-input" formControlName="cedula_identidad" placeholder="28001001" />
+          <span class="field-error" *ngIf="miembroForm.get('cedula_identidad')?.invalid && miembroForm.get('cedula_identidad')?.touched">Cédula requerida.</span>
+        </div>
+        <div class="form-group">
+          <label for="f-correo">Correo institucional *</label>
+          <input id="f-correo" type="email" class="form-input" formControlName="correo_institucional" placeholder="c.ramirez@ucab.edu.ve" />
+          <span class="field-error" *ngIf="miembroForm.get('correo_institucional')?.invalid && miembroForm.get('correo_institucional')?.touched">Correo inválido.</span>
+        </div>
+        <div class="form-group">
+          <label for="f-primer-nombre">Primer nombre *</label>
+          <input id="f-primer-nombre" type="text" class="form-input" formControlName="primer_nombre" placeholder="Carlos" />
+          <span class="field-error" *ngIf="miembroForm.get('primer_nombre')?.invalid && miembroForm.get('primer_nombre')?.touched">Campo requerido.</span>
+        </div>
+        <div class="form-group">
+          <label for="f-segundo-nombre">Segundo nombre</label>
+          <input id="f-segundo-nombre" type="text" class="form-input" formControlName="segundo_nombre" placeholder="Andrés" />
+        </div>
+        <div class="form-group">
+          <label for="f-primer-apellido">Primer apellido *</label>
+          <input id="f-primer-apellido" type="text" class="form-input" formControlName="primer_apellido" placeholder="Ramírez" />
+          <span class="field-error" *ngIf="miembroForm.get('primer_apellido')?.invalid && miembroForm.get('primer_apellido')?.touched">Campo requerido.</span>
+        </div>
+        <div class="form-group">
+          <label for="f-segundo-apellido">Segundo apellido</label>
+          <input id="f-segundo-apellido" type="text" class="form-input" formControlName="segundo_apellido" placeholder="Torres" />
+        </div>
+        <div class="form-group">
+          <label for="f-fecha">Fecha de nacimiento *</label>
+          <input id="f-fecha" type="date" class="form-input" formControlName="fecha_nacimiento" />
+          <span class="field-error" *ngIf="miembroForm.get('fecha_nacimiento')?.invalid && miembroForm.get('fecha_nacimiento')?.touched">Campo requerido.</span>
+        </div>
+        <div class="form-group">
+          <label for="f-telefono">Teléfono</label>
+          <input id="f-telefono" type="text" class="form-input" formControlName="telefono" placeholder="0414-1234567" />
+        </div>
+        <div class="form-group form-full">
+          <label for="f-direccion">Dirección de habitación</label>
+          <input id="f-direccion" type="text" class="form-input" formControlName="direccion_habitacion" placeholder="Urb. La Castellana..." />
+        </div>
+        <div class="form-group">
+          <label for="f-estado">Estado de cuenta</label>
+          <select id="f-estado" class="form-input" formControlName="estado_cuenta">
+            <option value="activa">Activa</option>
+            <option value="suspendida">Suspendida</option>
+            <option value="bloqueada">Bloqueada</option>
+          </select>
+        </div>
+      </form>
+
+      <p class="form-error-msg" *ngIf="formError()">{{ formError() }}</p>
+      <p class="form-success-msg" *ngIf="formSuccess()">{{ formSuccess() }}</p>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" id="btn-cancelar-form" (click)="closeModal()">Cancelar</button>
+      <button class="btn-primary" id="btn-guardar-miembro" (click)="saveMiembro()" [disabled]="isSaving()">
+        {{ isSaving() ? 'Guardando...' : 'Guardar cambios' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL CONFIRMAR ESTADO ═══════════════ -->
+<div class="modal-overlay" *ngIf="modalMode() === 'deactivate'" (click)="closeModal()" role="dialog" aria-modal="true">
+  <div class="modal-card modal-sm" (click)="$event.stopPropagation()">
+    <div class="modal-header modal-header-warn">
+      <div class="warn-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <h2 class="modal-title">{{ selectedMiembro()?.estado_cuenta === 'activa' ? 'Suspender miembro' : 'Activar miembro' }}</h2>
+    </div>
+    <div class="modal-body">
+      <p class="confirm-text">
+        ¿Estás seguro de que deseas
+        <strong>{{ selectedMiembro()?.estado_cuenta === 'activa' ? 'suspender' : 'reactivar' }}</strong>
+        la cuenta de <strong>{{ selectedMiembro()?.nombre }}</strong>?
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" id="btn-cancelar-estado" (click)="closeModal()">Cancelar</button>
+      <button
+        class="btn-danger"
+        id="btn-confirmar-estado"
+        (click)="confirmDeactivate()"
+        [disabled]="isSaving()"
+      >{{ isSaving() ? 'Procesando...' : (selectedMiembro()?.estado_cuenta === 'activa' ? 'Sí, suspender' : 'Sí, activar') }}</button>
+    </div>
+  </div>
+</div>

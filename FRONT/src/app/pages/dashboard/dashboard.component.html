@@ -1,0 +1,398 @@
+<div class="dashboard-layout" [class.sidebar-collapsed]="sidebarCollapsed()">
+
+  <!-- ╔══════════════════════════════════════════════════════╗
+       ║  SIDEBAR                                             ║
+       ╚══════════════════════════════════════════════════════╝ -->
+  <aside class="sidebar" id="main-sidebar" role="navigation" aria-label="Menú principal">
+
+    <!-- Logo -->
+    <div class="sidebar-logo">
+      <div class="logo-mark" aria-hidden="true">
+        <svg viewBox="0 0 80 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="24" cy="38" rx="10" ry="22" fill="#F5C400" opacity="0.95"/>
+          <ellipse cx="40" cy="28" rx="10" ry="28" fill="#1A56A4" opacity="0.95"/>
+          <ellipse cx="56" cy="38" rx="10" ry="22" fill="#2FA84F" opacity="0.95"/>
+          <ellipse cx="32" cy="34" rx="8" ry="18" fill="#1A56A4" opacity="0.7"/>
+          <ellipse cx="48" cy="34" rx="8" ry="18" fill="#2FA84F" opacity="0.7"/>
+        </svg>
+      </div>
+      <div class="logo-text">
+        <span class="logo-name">UCAB</span>
+        <span class="logo-institution">UNIVERSIDAD CATÓLICA<br>ANDRÉS BELLO</span>
+      </div>
+    </div>
+
+    <!-- Cathedral decoration -->
+    <div class="sidebar-cathedral" aria-hidden="true"></div>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+      <ul role="list">
+        @for (item of navItems; track item.id) {
+          <li>
+            <button
+              class="nav-item"
+              [class.active]="currentRoute() === item.id"
+              (click)="navigate(item)"
+              [id]="'nav-' + item.id"
+              [attr.aria-current]="currentRoute() === item.id ? 'page' : null"
+            >
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                     stroke-linecap="round" stroke-linejoin="round">
+                  <path [attr.d]="item.icon"/>
+                </svg>
+              </span>
+              <span class="nav-label">{{ item.label }}</span>
+            </button>
+          </li>
+        }
+      </ul>
+    </nav>
+
+    <!-- Sidebar footer -->
+    <div class="sidebar-footer">
+      <span class="footer-shield" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </span>
+      <div>
+        <p class="footer-app">UCAB-Services</p>
+        <p class="footer-sub">Plataforma oficial</p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ╔══════════════════════════════════════════════════════╗
+       ║  MAIN AREA                                           ║
+       ╚══════════════════════════════════════════════════════╝ -->
+  <div class="main-area">
+
+    <!-- ── Top Bar ─────────────────────────────────────────── -->
+    <header class="topbar" role="banner">
+      <button
+        class="hamburger-btn"
+        (click)="toggleSidebar()"
+        id="sidebar-toggle-btn"
+        aria-label="Alternar menú lateral"
+        [attr.aria-expanded]="!sidebarCollapsed()"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6"  x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+
+      <div class="topbar-right">
+        <!-- Notifications -->
+        <button class="notif-btn" id="notifications-btn" aria-label="Notificaciones">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          @if (notificacionesCount() > 0) {
+            <span class="notif-badge" aria-label="{{ notificacionesCount() }} notificaciones">
+              {{ notificacionesCount() }}
+            </span>
+          }
+        </button>
+
+        <!-- User menu -->
+        <div class="user-menu-wrapper">
+          <div class="user-menu" id="user-menu" role="button" tabindex="0" aria-haspopup="true">
+            <div class="user-avatar" aria-hidden="true">
+              {{ getUserInitials() }}
+            </div>
+            <div class="user-info">
+              <span class="user-name">{{ user()?.nombre ?? 'Usuario' }}</span>
+              <span class="user-email">{{ user()?.email ?? '' }}</span>
+            </div>
+            <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </div>
+          <button
+            class="logout-btn"
+            (click)="logout()"
+            id="btn-logout"
+            aria-label="Cerrar sesión"
+            title="Cerrar sesión"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ── Page Content ────────────────────────────────────── -->
+    <main class="page-content" id="main-content" role="main">
+
+      <!-- Welcome Section -->
+      <section class="welcome-section" aria-label="Bienvenida">
+        <div>
+          <h1 class="welcome-title">Bienvenido, {{ user()?.nombre ?? 'Usuario' }}</h1>
+          <p class="welcome-subtitle">Aquí tienes un resumen de la actividad en la plataforma.</p>
+          <div class="welcome-accent" aria-hidden="true"></div>
+        </div>
+      </section>
+
+      <!-- Stats Grid -->
+      <section class="stats-grid" aria-label="Estadísticas generales">
+
+        <!-- Card: Miembros -->
+        <article class="stat-card" id="stat-miembros">
+          <div class="stat-icon stat-icon--blue" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+              <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+          </div>
+          <p class="stat-number">{{ formatNumber(stats().totalMiembros) }}</p>
+          <p class="stat-label">Miembros registrados</p>
+          <button class="stat-link" (click)="navigateTo('/miembros')" id="link-miembros">
+            Ver miembros
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </article>
+
+        <!-- Card: Servicios -->
+        <article class="stat-card" id="stat-servicios">
+          <div class="stat-icon stat-icon--blue" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+              <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+          </div>
+          <p class="stat-number">{{ formatNumber(stats().totalServicios) }}</p>
+          <p class="stat-label">Servicios disponibles</p>
+          <button class="stat-link" (click)="navigateTo('/servicios')" id="link-servicios">
+            Ver servicios
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </article>
+
+        <!-- Card: Solicitudes -->
+        <article class="stat-card" id="stat-solicitudes">
+          <div class="stat-icon stat-icon--blue" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+              <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+            </svg>
+          </div>
+          <p class="stat-number">{{ formatNumber(stats().solicitudesActivas) }}</p>
+          <p class="stat-label">Solicitudes activas</p>
+          <button class="stat-link" (click)="navigateTo('/tramites')" id="link-solicitudes">
+            Ver solicitudes
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </article>
+
+        <!-- Card: Pagos -->
+        <article class="stat-card" id="stat-pagos">
+          <div class="stat-icon stat-icon--blue" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8v1m0 7v1"/>
+            </svg>
+          </div>
+          <p class="stat-number">{{ formatNumber(stats().pagosPendientes) }}</p>
+          <p class="stat-label">Pagos pendientes</p>
+          <button class="stat-link" (click)="navigateTo('/finanzas')" id="link-pagos">
+            Ver pagos
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </article>
+
+        <!-- Card: Última conexión -->
+        <article class="stat-card stat-card--last-login" id="stat-ultima-conexion">
+          <div class="stat-icon stat-icon--gray" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+          <p class="last-login-label">Última conexión</p>
+          <p class="last-login-time">Hoy, 08:24 a.m.</p>
+          <p class="last-login-date">15 de mayo de 2025</p>
+        </article>
+
+      </section>
+
+      <!-- Two-column section -->
+      <section class="two-col-section" aria-label="Panel de actividad y accesos">
+
+        <!-- ── Recent Activity ────────────────────────────── -->
+        <div class="activity-panel">
+          <div class="panel-header">
+            <h2 class="panel-title">Actividad reciente</h2>
+            <button class="link-btn" (click)="navigateTo('/actividad')" id="btn-ver-todas">Ver todas</button>
+          </div>
+
+          @if (isLoading()) {
+            <div class="loading-placeholder" aria-live="polite" aria-label="Cargando actividad...">
+              @for (i of [1,2,3,4,5]; track i) {
+                <div class="skeleton-item">
+                  <div class="skeleton-icon"></div>
+                  <div class="skeleton-content">
+                    <div class="skeleton-line short"></div>
+                    <div class="skeleton-line long"></div>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <ul class="activity-list" role="list">
+              @for (item of actividad(); track item.id) {
+                <li class="activity-item" [id]="'activity-' + item.id">
+                  <div class="activity-icon-wrap" [class]="'activity-icon-wrap--' + item.tipo" aria-hidden="true">
+                    @switch (item.tipo) {
+                      @case ('solicitud') {
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                          <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                      }
+                      @case ('miembro') {
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                          <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                      }
+                      @case ('aprobacion') {
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                      }
+                      @case ('pago') {
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                          <circle cx="12" cy="12" r="10"/>
+                          <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8v1m0 7v1"/>
+                        </svg>
+                      }
+                      @case ('reservacion') {
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                          <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                        </svg>
+                      }
+                    }
+                  </div>
+                  <div class="activity-body">
+                    <p class="activity-title">{{ item.titulo }}</p>
+                    <p class="activity-desc">{{ item.descripcion }}</p>
+                  </div>
+                  <div class="activity-time">
+                    <span class="activity-date">{{ item.fecha }},</span>
+                    <span class="activity-hour">{{ item.hora }}</span>
+                  </div>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+
+        <!-- ── Quick Access ───────────────────────────────── -->
+        <div class="quick-access-panel">
+          <h2 class="panel-title">Accesos rápidos</h2>
+
+          <div class="quick-grid" role="list">
+            @for (item of quickAccessItems; track item.id) {
+              <button
+                class="quick-btn"
+                (click)="navigateTo(item.route)"
+                [id]="'quick-' + item.id"
+                role="listitem"
+              >
+                <span class="quick-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                       stroke-linecap="round" stroke-linejoin="round">
+                    <path [attr.d]="item.icon"/>
+                  </svg>
+                </span>
+                <span class="quick-label">{{ item.label }}</span>
+              </button>
+            }
+          </div>
+
+          <!-- Help card -->
+          <div class="help-card" role="complementary" aria-label="Centro de ayuda">
+            <div class="help-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+              </svg>
+            </div>
+            <div class="help-body">
+              <p class="help-title">¿Necesitas ayuda?</p>
+              <p class="help-desc">Consulta nuestras guías y preguntas frecuentes.</p>
+              <button class="help-link" (click)="navigateTo('/ayuda')" id="btn-ayuda">
+                Ir al centro de ayuda
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                  <polyline points="12 5 19 12 12 19"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ── Footer bar ────────────────────────────────────── -->
+      <footer class="dashboard-footer" role="contentinfo">
+        <div class="footer-features">
+          <div class="footer-feature">
+            <span class="ff-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/>
+              </svg>
+            </span>
+            <div>
+              <p class="ff-title">Sistema seguro</p>
+              <p class="ff-desc">Tus datos están protegidos</p>
+            </div>
+          </div>
+          <div class="footer-feature">
+            <span class="ff-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+            </span>
+            <div>
+              <p class="ff-title">Confiable</p>
+              <p class="ff-desc">Servicios diseñados para ti</p>
+            </div>
+          </div>
+          <div class="footer-feature">
+            <span class="ff-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <path d="M9 3v18M15 3v18M3 9h18M3 15h18"/>
+              </svg>
+            </span>
+            <div>
+              <p class="ff-title">Conectados</p>
+              <p class="ff-desc">Una plataforma, muchos servicios</p>
+            </div>
+          </div>
+          <div class="footer-feature">
+            <span class="ff-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/>
+              </svg>
+            </span>
+            <div>
+              <p class="ff-title">Soporte</p>
+              <p class="ff-desc">Atención rápida y eficiente</p>
+            </div>
+          </div>
+        </div>
+        <p class="footer-copyright">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          UCAB-Services es una plataforma oficial de la Universidad Católica Andrés Bello.
+        </p>
+      </footer>
+
+    </main>
+  </div>
+</div>

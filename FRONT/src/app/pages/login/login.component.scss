@@ -1,0 +1,633 @@
+/* ========================================================
+   UCAB-Services — Login Component Styles
+   Angular 21 | SCSS
+   ======================================================== */
+
+/* ── Design Tokens ──────────────────────────────────────── */
+$ucab-blue-deep:   #0D2C5B;
+$ucab-blue:        #1A3A6B;
+$ucab-blue-mid:    #1A56A4;
+$ucab-yellow:      #F5C400;
+$ucab-green:       #2FA84F;
+$ucab-white:       #FFFFFF;
+$ucab-gray-light:  #F4F6FA;
+$ucab-gray:        #8A95A5;
+$ucab-gray-border: #D8DEE9;
+$ucab-text:        #1E2A3A;
+$ucab-text-muted:  #5A6678;
+$error-color:      #D93025;
+$success-color:    #1E8C45;
+
+$font-sans: 'Inter', 'Segoe UI', system-ui, sans-serif;
+$radius-md: 12px;
+$radius-lg: 20px;
+$shadow-card: 0 4px 32px rgba(13, 44, 91, 0.10), 0 1px 4px rgba(13,44,91,0.06);
+$transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+
+/* ── Host reset ─────────────────────────────────────────── */
+:host {
+  display: block;
+  font-family: $font-sans;
+}
+
+/* ── Page layout ────────────────────────────────────────── */
+.login-page {
+  display: flex;
+  min-height: 100vh;
+  background: $ucab-gray-light;
+  overflow: hidden;
+}
+
+/* ╔══════════════════════════════════════════════════════╗
+   ║  SIDEBAR                                             ║
+   ╚══════════════════════════════════════════════════════╝ */
+.sidebar {
+  position: relative;
+  width: 340px;
+  min-width: 300px;
+  background: linear-gradient(175deg, $ucab-blue-deep 0%, $ucab-blue 55%, #0A2348 100%);
+  color: $ucab-white;
+  display: flex;
+  flex-direction: column;
+  padding: 44px 36px 32px;
+  overflow: hidden;
+  z-index: 1;
+
+  /* Curva decorativa derecha */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: -60px;
+    width: 120px;
+    height: 100%;
+    background: inherit;
+    border-radius: 0 40px 40px 0;
+    z-index: -1;
+  }
+
+  &__top {
+    position: relative;
+    z-index: 2;
+  }
+
+  &__logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+
+    .logo-icon {
+      width: 52px;
+      height: 60px;
+      flex-shrink: 0;
+
+      svg {
+        width: 100%;
+        height: 100%;
+        filter: drop-shadow(0 2px 8px rgba(245, 196, 0, 0.3));
+      }
+    }
+
+    .logo-text {
+      font-size: 2.4rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: $ucab-white;
+    }
+  }
+
+  &__institution {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.85);
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+
+  &__motto {
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.75);
+    font-style: italic;
+    margin-bottom: 0;
+  }
+
+  &__divider {
+    width: 40px;
+    height: 3px;
+    background: $ucab-yellow;
+    border-radius: 2px;
+    margin: 14px 0 20px;
+  }
+
+  &__cathedral-overlay {
+    position: absolute;
+    inset: 0;
+    /* Simula arquitectura con gradiente + patrón */
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 340 500'%3E%3Cg fill='none' stroke='rgba(255,255,255,0.06)' stroke-width='1'%3E%3Crect x='100' y='200' width='140' height='200'/%3E%3Crect x='130' y='160' width='80' height='50'/%3E%3Crect x='80' y='220' width='30' height='80'/%3E%3Crect x='230' y='220' width='30' height='80'/%3E%3Cpath d='M170 160 L170 110'/%3E%3Ccircle cx='170' cy='105' r='8'/%3E%3Crect x='155' y='240' width='30' height='50'/%3E%3Crect x='120' y='245' width='20' height='35'/%3E%3Crect x='200' y='245' width='20' height='35'/%3E%3C/g%3E%3C/svg%3E") center 55% / 90% auto no-repeat,
+      linear-gradient(to bottom, transparent 40%, rgba(10, 35, 72, 0.6) 100%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  &__features {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    position: relative;
+    z-index: 2;
+    margin-top: auto;
+    padding-top: 24px;
+  }
+
+  &__footer {
+    position: relative;
+    z-index: 2;
+    margin-top: 28px;
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.6;
+  }
+}
+
+/* Feature items */
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 20px;
+
+  &:last-child { margin-bottom: 0; }
+}
+
+.feature-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px;
+
+  svg {
+    width: 100%;
+    height: 100%;
+    color: rgba(255,255,255,0.9);
+  }
+}
+
+.feature-text {
+  strong {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: $ucab-white;
+    margin-bottom: 3px;
+  }
+
+  p {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.65);
+    line-height: 1.5;
+    margin: 0;
+  }
+}
+
+/* ╔══════════════════════════════════════════════════════╗
+   ║  MAIN PANEL                                          ║
+   ╚══════════════════════════════════════════════════════╝ */
+.login-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 48px 32px;
+  background: $ucab-gray-light;
+  overflow: hidden;
+
+  &__content {
+    width: 100%;
+    max-width: 480px;
+    position: relative;
+    z-index: 2;
+  }
+}
+
+/* Decoraciones */
+.dots-decoration {
+  position: absolute;
+  &.top-right {
+    top: 24px;
+    right: 24px;
+    width: 120px;
+    height: 100px;
+    opacity: 0.7;
+  }
+
+  svg { width: 100%; height: 100%; }
+}
+
+.curve-decoration {
+  position: absolute;
+  &.bottom-right {
+    bottom: -80px;
+    right: -80px;
+    width: 240px;
+    height: 240px;
+    border: 40px solid rgba(26, 86, 164, 0.06);
+    border-radius: 50%;
+    pointer-events: none;
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset: -60px;
+      border: 30px solid rgba(26, 86, 164, 0.04);
+      border-radius: 50%;
+    }
+  }
+}
+
+/* ── Login Header ────────────────────────────────────────── */
+.login-header {
+  text-align: center;
+  margin-bottom: 32px;
+
+  &__title {
+    font-size: 2.4rem;
+    font-weight: 800;
+    color: $ucab-blue;
+    letter-spacing: -0.02em;
+    margin: 0 0 8px;
+    line-height: 1.1;
+  }
+
+  &__subtitle {
+    font-size: 0.95rem;
+    color: $ucab-text-muted;
+    margin: 0 0 14px;
+  }
+
+  &__accent {
+    width: 36px;
+    height: 3px;
+    background: $ucab-yellow;
+    border-radius: 2px;
+    margin: 0 auto;
+  }
+}
+
+/* ── Login Card ─────────────────────────────────────────── */
+.login-card {
+  background: $ucab-white;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+  padding: 36px 40px 32px;
+  border: 1px solid rgba(216, 222, 233, 0.5);
+
+  &__avatar {
+    width: 64px;
+    height: 64px;
+    background: #EEF3FB;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 28px;
+    padding: 14px;
+    box-shadow: 0 0 0 6px rgba(26, 86, 164, 0.06);
+
+    svg { width: 100%; height: 100%; }
+  }
+}
+
+/* ── Alerts ─────────────────────────────────────────────── */
+.alert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: $radius-md;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 20px;
+  animation: slideIn 0.2s ease;
+
+  svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+  &--error {
+    background: #FFF0EF;
+    color: $error-color;
+    border: 1px solid rgba(217, 48, 37, 0.2);
+  }
+
+  &--success {
+    background: #EDFBF3;
+    color: $success-color;
+    border: 1px solid rgba(30, 140, 69, 0.2);
+  }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Form ───────────────────────────────────────────────── */
+.form-group {
+  margin-bottom: 20px;
+
+  &--error .input-wrapper {
+    .form-input { border-color: $error-color; }
+    .input-icon svg { stroke: $error-color; }
+  }
+}
+
+.form-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: $ucab-text;
+  margin-bottom: 8px;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 14px;
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+
+  svg {
+    width: 100%;
+    height: 100%;
+    stroke: $ucab-gray;
+    transition: stroke $transition;
+  }
+}
+
+.form-input {
+  width: 100%;
+  padding: 13px 44px 13px 42px;
+  border: 1.5px solid $ucab-gray-border;
+  border-radius: $radius-md;
+  font-size: 0.9rem;
+  font-family: $font-sans;
+  color: $ucab-text;
+  background: $ucab-white;
+  transition: border-color $transition, box-shadow $transition;
+  outline: none;
+  box-sizing: border-box;
+
+  &::placeholder { color: $ucab-gray; }
+
+  &:focus {
+    border-color: $ucab-blue-mid;
+    box-shadow: 0 0 0 3px rgba(26, 86, 164, 0.12);
+
+    & + .input-icon svg,
+    ~ .input-icon svg { stroke: $ucab-blue-mid; }
+  }
+
+  &:focus ~ .input-icon svg {
+    stroke: $ucab-blue-mid;
+  }
+}
+
+/* Fix: icon should change color on input focus */
+.input-wrapper:focus-within .input-icon svg {
+  stroke: $ucab-blue-mid;
+}
+
+.input-toggle-btn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  color: $ucab-gray;
+  border-radius: 6px;
+  transition: color $transition, background $transition;
+
+  svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+  }
+
+  &:hover {
+    color: $ucab-blue-mid;
+    background: rgba(26, 86, 164, 0.07);
+  }
+}
+
+.form-error {
+  display: block;
+  font-size: 0.78rem;
+  color: $error-color;
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+/* ── Buttons ────────────────────────────────────────────── */
+.btn-primary {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, $ucab-blue 0%, $ucab-blue-deep 100%);
+  color: $ucab-white;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: $font-sans;
+  border: none;
+  border-radius: $radius-md;
+  cursor: pointer;
+  transition: all $transition;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 8px;
+  letter-spacing: 0.02em;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0);
+    transition: background $transition;
+  }
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(13, 44, 91, 0.35);
+
+    &::before { background: rgba(255,255,255,0.06); }
+  }
+
+  &:active:not(:disabled) { transform: translateY(0); }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+}
+
+.btn-forgot {
+  display: block;
+  margin: 18px auto 0;
+  background: none;
+  border: none;
+  color: $ucab-blue-mid;
+  font-size: 0.88rem;
+  font-weight: 600;
+  font-family: $font-sans;
+  cursor: pointer;
+  transition: color $transition;
+  padding: 4px 8px;
+  border-radius: 6px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+
+  &:hover { color: $ucab-blue-deep; }
+}
+
+/* ── Spinner ─────────────────────────────────────────────── */
+.spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgba(255,255,255,0.35);
+  border-top-color: $ucab-white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Divider ─────────────────────────────────────────────── */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0 16px;
+  color: $ucab-gray-border;
+  font-size: 0.78rem;
+  color: $ucab-gray;
+
+  &::before, &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: $ucab-gray-border;
+  }
+}
+
+/* ── External access ─────────────────────────────────────── */
+.external-access {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: $ucab-gray-light;
+  border: 1px solid $ucab-gray-border;
+  border-radius: $radius-md;
+  cursor: pointer;
+  transition: border-color $transition, background $transition;
+
+  &:hover {
+    border-color: $ucab-blue-mid;
+    background: rgba(26, 86, 164, 0.04);
+  }
+
+  &__icon {
+    width: 20px;
+    height: 20px;
+    color: $ucab-gray;
+    flex-shrink: 0;
+
+    svg { width: 100%; height: 100%; stroke: currentColor; }
+  }
+
+  &__text {
+    font-size: 0.85rem;
+    color: $ucab-text-muted;
+    font-weight: 500;
+  }
+}
+
+/* ── Official Note ───────────────────────────────────────── */
+.official-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 24px;
+  padding: 14px 20px;
+
+  &__icon {
+    width: 20px;
+    height: 20px;
+    color: $ucab-gray;
+    flex-shrink: 0;
+
+    svg { width: 100%; height: 100%; stroke: currentColor; }
+  }
+
+  &__text {
+    font-size: 0.8rem;
+    color: $ucab-text-muted;
+    line-height: 1.5;
+    margin: 0;
+  }
+}
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .login-page { flex-direction: column; }
+
+  .sidebar {
+    width: 100%;
+    min-width: unset;
+    padding: 32px 28px 28px;
+
+    &::after { display: none; }
+
+    &__cathedral-overlay { display: none; }
+    &__features { padding-top: 20px; }
+  }
+
+  .login-main { padding: 32px 20px; }
+
+  .login-card { padding: 28px 24px; }
+
+  .login-header__title { font-size: 1.9rem; }
+}
+
+@media (max-width: 480px) {
+  .login-card { padding: 24px 18px; }
+  .login-header__title { font-size: 1.6rem; }
+  .btn-primary { padding: 13px; }
+}
