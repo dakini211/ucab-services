@@ -10,6 +10,9 @@ async function bootstrap() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
+  (BigInt.prototype as any).toJSON = function () {
+    return this.toString();
+  };
 
   await app.listen(3000); // Tu backend correrá en el puerto 3000
 }
