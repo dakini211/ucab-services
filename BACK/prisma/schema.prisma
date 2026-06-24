@@ -1,0 +1,474 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model acompanante {
+  id_miembro         BigInt
+  id_servicio        Int
+  fecha_de_creacion  DateTime           @db.Timestamp(6)
+  ci                 String             @db.VarChar(20)
+  nombre             String             @db.VarChar(150)
+  activo             String             @db.VarChar(50)
+  solicitud_servicio solicitud_servicio @relation(fields: [id_miembro, id_servicio, fecha_de_creacion], references: [id_miembro, id_servicio, fecha_de_creacion], onDelete: Cascade, onUpdate: NoAction, map: "fk_acompanante_solicitud")
+
+  @@id([id_miembro, id_servicio, fecha_de_creacion, ci], map: "pk_acompanante")
+}
+
+model administrativo {
+  id_miembro            BigInt        @id
+  carga_horaria_semanal Int
+  unidad_presupuestaria String        @db.VarChar(100)
+  personal_ucab         personal_ucab @relation(fields: [id_miembro], references: [id_miembro], onDelete: Cascade, onUpdate: NoAction, map: "fk_administrativo_personal")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model billetera_digital {
+  uid        String  @id @db.VarChar(100)
+  id_miembro BigInt  @unique
+  saldo      Decimal @default(0.00) @db.Decimal(15, 2)
+  miembro    miembro @relation(fields: [id_miembro], references: [id_miembro], onDelete: Cascade, onUpdate: NoAction, map: "fk_billetera_miembro")
+}
+
+model cargo_mayor {
+  cedula   String   @id @db.VarChar(15)
+  estudios String   @db.VarChar(150)
+  familiar familiar @relation(fields: [cedula], references: [cedula], onDelete: Cascade, onUpdate: NoAction, map: "fk_mayor_familiar")
+}
+
+model cargo_menor {
+  cedula            String   @id @db.VarChar(15)
+  vacunacion        String?
+  educacion_inicial String?  @db.VarChar(150)
+  familiar          familiar @relation(fields: [cedula], references: [cedula], onDelete: Cascade, onUpdate: NoAction, map: "fk_menor_familiar")
+}
+
+model criptomoneda {
+  numero_de_control String      @db.VarChar(50)
+  fecha_operacion   DateTime    @db.Timestamp(6)
+  dxid              String      @unique @db.VarChar(255)
+  red               String      @db.VarChar(50)
+  billetera         String      @db.VarChar(255)
+  tasa              Decimal     @db.Decimal(20, 8)
+  metodo_pago       metodo_pago @relation(fields: [numero_de_control, fecha_operacion], references: [numero_de_control, fecha_operacion], onDelete: Cascade, onUpdate: NoAction, map: "fk_cripto_metodo")
+
+  @@id([numero_de_control, fecha_operacion], map: "pk_cripto")
+}
+
+model edificacion {
+  nombre_edificacion String           @db.VarChar(50)
+  direccion_interna  String
+  nombre_sede        String           @db.VarChar(150)
+  sede               sede             @relation(fields: [nombre_sede], references: [nombre_sede], onDelete: Cascade, onUpdate: NoAction, map: "fk_edificacion")
+  espacio_fisico     espacio_fisico[]
+
+  @@id([nombre_edificacion, direccion_interna], map: "pk_edificacion")
+}
+
+model efectivo {
+  numero_de_control String      @db.VarChar(50)
+  fecha_operacion   DateTime    @db.Timestamp(6)
+  monto             Decimal     @db.Decimal(15, 2)
+  tasa              Decimal     @db.Decimal(20, 8)
+  metodo_pago       metodo_pago @relation(fields: [numero_de_control, fecha_operacion], references: [numero_de_control, fecha_operacion], onDelete: Cascade, onUpdate: NoAction, map: "fk_efectivo_metodo")
+
+  @@id([numero_de_control, fecha_operacion], map: "pk_efectivo")
+}
+
+model egresado {
+  id_miembro      BigInt  @id
+  a_o_graduacion  Int     @map("año_graduacion")
+  titulo_obtenido String  @db.VarChar(150)
+  promedio_final  Decimal @db.Decimal(4, 2)
+  miembro         miembro @relation(fields: [id_miembro], references: [id_miembro], onDelete: Cascade, onUpdate: NoAction, map: "fk_egresado_miembro")
+}
+
+model entidad_prestadora {
+  nombre_entidad       String                @id @db.VarChar(150)
+  categoria            String                @db.VarChar(100)
+  ajuste               String?               @db.VarChar(255)
+  entidad_propia       entidad_propia?
+  opera                opera?
+  organizacion_externa organizacion_externa?
+  publica              publica[]
+}
+
+model entidad_propia {
+  nombre_entidad     String             @id @db.VarChar(150)
+  cod_presupuestario String             @db.VarChar(50)
+  dir_oficina        String
+  entidad_prestadora entidad_prestadora @relation(fields: [nombre_entidad], references: [nombre_entidad], onDelete: Cascade, onUpdate: NoAction, map: "fk_propia_prestadora")
+
+  @@unique([cod_presupuestario, dir_oficina], map: "id_entidad_propia")
+}
+
+model espacio_fisico {
+  nro                    Int
+  nombre_edificacion     String                 @db.VarChar(50)
+  direccion_interna      String
+  tipo_inmobiliario      String                 @db.VarChar(50)
+  capacidad_maxima_aforo Int
+  edificacion            edificacion            @relation(fields: [nombre_edificacion, direccion_interna], references: [nombre_edificacion, direccion_interna], onDelete: Cascade, onUpdate: NoAction, map: "fk_espacio_edificacion")
+  historial_reservas     historial_reservas[]
+  recurso_tecnologicos   recurso_tecnologicos[]
+
+  @@id([nombre_edificacion, direccion_interna, nro], map: "pk_espacio_fisico")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model estudiante {
+  id_miembro      BigInt      @id
+  promedio        Decimal     @default(0.00) @db.Decimal(4, 2)
+  uc_aprobadas    Int         @default(0)
+  semestre_actual Int
+  escuela         String      @db.VarChar(100)
+  facultad        String      @db.VarChar(100)
+  tipo_beca       String?     @db.VarChar(30)
+  miembro         miembro     @relation(fields: [id_miembro], references: [id_miembro], onDelete: Cascade, onUpdate: NoAction, map: "fk_estudiante_miembro")
+  preparador      preparador?
+}
+
+model factura {
+  numero_de_control String        @id(map: "pk_factura") @db.VarChar(50)
+  fecha_de_emision  DateTime      @default(now()) @db.Timestamp(6)
+  estatus           String        @db.VarChar(50)
+  id_miembro        BigInt
+  id_servicio       Int
+  fecha_de_creacion DateTime      @db.Timestamp(6)
+  nro_de_folio      String        @db.VarChar(50)
+  folio             folio         @relation(fields: [id_miembro, id_servicio, fecha_de_creacion, nro_de_folio], references: [id_miembro, id_servicio, fecha_de_creacion, nro_de_folio], map: "fk_factura_folio")
+  metodo_pago       metodo_pago[]
+
+  @@unique([id_miembro, id_servicio, fecha_de_creacion, nro_de_folio], map: "uq_factura_folio")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model familiar {
+  cedula           String        @id @db.VarChar(15)
+  id_personal_ucab BigInt
+  nombre_familiar  String        @db.VarChar(100)
+  parentesco       String        @db.VarChar(50)
+  edad_familiar    Int
+  fecha_de_inicio  DateTime      @db.Date
+  fecha_de_fin     DateTime?     @db.Date
+  cargo_mayor      cargo_mayor?
+  cargo_menor      cargo_menor?
+  personal_ucab    personal_ucab @relation(fields: [id_personal_ucab], references: [id_miembro], onDelete: Cascade, onUpdate: NoAction, map: "fk_familiar_personal")
+}
+
+model folio {
+  id_miembro         BigInt
+  id_servicio        Int
+  fecha_de_creacion  DateTime           @db.Timestamp(6)
+  nro_de_folio       String             @db.VarChar(50)
+  estado             String             @db.VarChar(50)
+  fecha_inicio_mes   DateTime           @db.Date
+  fecha_fin_mes      DateTime?          @db.Date
+  factura            factura?
+  solicitud_servicio solicitud_servicio @relation(fields: [id_miembro, id_servicio, fecha_de_creacion], references: [id_miembro, id_servicio, fecha_de_creacion], onDelete: Cascade, map: "fk_folio_solicitud")
+  items_consumo      items_consumo[]
+
+  @@id([id_miembro, id_servicio, fecha_de_creacion, nro_de_folio], map: "pk_folio")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model historial_contrasena {
+  id_miembro   BigInt
+  fecha_inicio DateTime  @default(now()) @db.Timestamp(6)
+  contrasena   String    @db.VarChar(255)
+  fecha_fin    DateTime? @db.Timestamp(6)
+  miembro      miembro   @relation(fields: [id_miembro], references: [id_miembro], onDelete: Cascade, onUpdate: NoAction, map: "fk_hist_contrasena_miembro")
+
+  @@id([id_miembro, fecha_inicio], map: "pk_historial_contrasena")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model historial_miembro {
+  id_miembro   BigInt
+  fecha_inicio DateTime  @default(now()) @db.Timestamp(6)
+  fecha_fin    DateTime? @db.Timestamp(6)
+  miembro      miembro   @relation(fields: [id_miembro], references: [id_miembro], onDelete: Cascade, onUpdate: NoAction, map: "fk_historial_miembro")
+
+  @@id([id_miembro, fecha_inicio], map: "pk_historial_miembro")
+}
+
+model historial_reservas {
+  id_servicio        Int
+  nro                Int
+  nombre_edificacion String         @db.VarChar(50)
+  direccion_interna  String
+  fecha_reserva      DateTime       @db.Date
+  hora_inicio        DateTime       @db.Time(6)
+  hora_fin           DateTime       @db.Time(6)
+  servicio           servicio       @relation(fields: [id_servicio], references: [id_servicio], onDelete: Cascade, onUpdate: NoAction, map: "fk_historial_reserva_servicio")
+  espacio_fisico     espacio_fisico @relation(fields: [nombre_edificacion, direccion_interna, nro], references: [nombre_edificacion, direccion_interna, nro], onDelete: Cascade, onUpdate: NoAction, map: "fk_historial_reservas_espacio")
+
+  @@id([id_servicio, nro, nombre_edificacion, direccion_interna, fecha_reserva], map: "pk_historial_reservas")
+}
+
+model historial_sesiones {
+  id_miembro         BigInt
+  identificador_uuid BigInt    @default(autoincrement())
+  lugar_conexion     String
+  direccion_ip       String    @db.VarChar(45)
+  fecha_inicio       DateTime  @db.Date
+  hora_inicio        DateTime? @db.Time(0)
+  hora_fin           DateTime? @db.Time(0)
+  miembro            miembro   @relation(fields: [id_miembro], references: [id_miembro], onDelete: Cascade, onUpdate: NoAction, map: "fk_hist_sesiones_miembro")
+
+  @@id([id_miembro, identificador_uuid], map: "pk_historial_sesiones")
+}
+
+model historico_tarifa {
+  id_servicio   Int
+  fecha_inicio  DateTime @db.Date
+  tarifa_precio Decimal  @db.Decimal(10, 2)
+  servicio      servicio @relation(fields: [id_servicio], references: [id_servicio], onDelete: Cascade, onUpdate: NoAction, map: "fk_historico_tarifa_servicio")
+
+  @@id([id_servicio, fecha_inicio], map: "pk_historico_tarifa")
+}
+
+model items_consumo {
+  id_miembro        BigInt
+  id_servicio       Int
+  fecha_de_creacion DateTime @db.Timestamp(6)
+  nro_de_folio      String   @db.VarChar(50)
+  concepto          String   @db.VarChar(150)
+  cantidad          Int
+  impuesto_ley      Decimal  @db.Decimal(5, 2)
+  precio_unitario   Decimal  @db.Decimal(15, 2)
+  folio             folio    @relation(fields: [id_miembro, id_servicio, fecha_de_creacion, nro_de_folio], references: [id_miembro, id_servicio, fecha_de_creacion, nro_de_folio], onDelete: Cascade, map: "fk_items_folio")
+
+  @@id([id_miembro, id_servicio, fecha_de_creacion, nro_de_folio, concepto], map: "pk_items_consumo")
+}
+
+model metodo_pago {
+  numero_de_control String        @db.VarChar(50)
+  fecha_operacion   DateTime      @db.Timestamp(6)
+  criptomoneda      criptomoneda?
+  efectivo          efectivo?
+  factura           factura       @relation(fields: [numero_de_control], references: [numero_de_control], onDelete: Cascade, onUpdate: NoAction, map: "fk_metodo_factura")
+  obtiene           obtiene?
+  pago_movil        pago_movil?
+  tai               tai?
+  tarjeta           tarjeta?
+  zelle             zelle?
+
+  @@id([numero_de_control, fecha_operacion], map: "pk_metodo_pago")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model miembro {
+  id_miembro           BigInt                 @id @default(autoincrement())
+  cedula_identidad     Int                    @unique
+  primer_nombre        String                 @db.VarChar(50)
+  segundo_nombre       String?                @db.VarChar(50)
+  primer_apellido      String                 @db.VarChar(50)
+  segundo_apellido     String?                @db.VarChar(50)
+  fecha_nacimiento     DateTime               @db.Date
+  telefono             String                 @db.VarChar(20)
+  correo_institucional String                 @unique @db.VarChar(100)
+  direccion_habitacion String
+  total_sesiones       Int                    @default(0)
+  estado_cuenta        String                 @default("activa") @db.VarChar(15)
+  billetera_digital    billetera_digital?
+  egresado             egresado?
+  estudiante           estudiante?
+  historial_contrasena historial_contrasena[]
+  historial_miembro    historial_miembro[]
+  historial_sesiones   historial_sesiones[]
+  oferta               oferta[]
+  personal_ucab        personal_ucab?
+  solicitud_servicio   solicitud_servicio[]
+}
+
+model obtiene {
+  numero_de_control String      @db.VarChar(50)
+  fecha_operacion   DateTime    @db.Timestamp(6)
+  moneda_origen     String      @db.VarChar(10)
+  moneda_destino    String      @db.VarChar(10)
+  fecha_vigencia    DateTime    @db.Timestamp(6)
+  metodo_pago       metodo_pago @relation(fields: [numero_de_control, fecha_operacion], references: [numero_de_control, fecha_operacion], onDelete: Cascade, onUpdate: NoAction, map: "fk_obtiene_metodo")
+  tasa_cambio       tasa_cambio @relation(fields: [moneda_origen, moneda_destino, fecha_vigencia], references: [moneda_origen, moneda_destino, fecha_vigencia], onUpdate: NoAction, map: "fk_obtiene_tasa")
+
+  @@id([numero_de_control, fecha_operacion, moneda_origen, moneda_destino, fecha_vigencia], map: "pk_obtiene")
+  @@unique([numero_de_control, fecha_operacion], map: "uq_metodo_unica_tasa")
+}
+
+model oferta {
+  nombre_entidad String         @db.VarChar(150)
+  cargo          String         @db.VarChar(100)
+  id_miembro     BigInt
+  miembro        miembro        @relation(fields: [id_miembro], references: [id_miembro], onDelete: Cascade, onUpdate: NoAction, map: "fk_oferta_miembro")
+  oferta_laboral oferta_laboral @relation(fields: [nombre_entidad, cargo], references: [nombre_entidad, cargo], onDelete: Cascade, onUpdate: NoAction, map: "fk_oferta_oferta_laboral")
+
+  @@id([nombre_entidad, cargo, id_miembro], map: "pk_oferta")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model oferta_laboral {
+  nombre_entidad       String               @db.VarChar(150)
+  cargo                String               @db.VarChar(100)
+  responsabilidades    String
+  beneficios           String
+  perfil_buscado       String
+  fecha_oferta         DateTime             @db.Date
+  estatus_vacante      String               @default("disponible") @db.VarChar(15)
+  oferta               oferta[]
+  organizacion_externa organizacion_externa @relation(fields: [nombre_entidad], references: [nombre_entidad], onDelete: Cascade, onUpdate: NoAction, map: "fk_oferta_organizacion")
+
+  @@id([nombre_entidad, cargo], map: "pk_oferta_laboral")
+}
+
+model opera {
+  nombre_entidad     String             @id @db.VarChar(150)
+  nombre_sede        String             @db.VarChar(150)
+  entidad_prestadora entidad_prestadora @relation(fields: [nombre_entidad], references: [nombre_entidad], onDelete: Cascade, onUpdate: NoAction, map: "fk_opera_prestadora")
+  sede               sede               @relation(fields: [nombre_sede], references: [nombre_sede], onUpdate: NoAction, map: "fk_opera_sede")
+}
+
+model organizacion_externa {
+  nombre_entidad       String             @id @db.VarChar(150)
+  rif                  String             @unique @db.VarChar(20)
+  razon_social         String             @db.VarChar(150)
+  precio_institucional Decimal            @db.Decimal(10, 2)
+  fecha_contrato       DateTime           @db.Date
+  contacto_lega        String             @db.VarChar(150)
+  oferta_laboral       oferta_laboral[]
+  entidad_prestadora   entidad_prestadora @relation(fields: [nombre_entidad], references: [nombre_entidad], onDelete: Cascade, onUpdate: NoAction, map: "fk_externa_prestadora")
+}
+
+model pago_movil {
+  numero_de_control String      @db.VarChar(50)
+  fecha_operacion   DateTime    @db.Timestamp(6)
+  telefono_emisor   String      @db.VarChar(20)
+  banco             String      @db.VarChar(50)
+  referencia        String      @unique @db.VarChar(50)
+  metodo_pago       metodo_pago @relation(fields: [numero_de_control, fecha_operacion], references: [numero_de_control, fecha_operacion], onDelete: Cascade, onUpdate: NoAction, map: "fk_pm_metodo")
+
+  @@id([numero_de_control, fecha_operacion], map: "pk_pago_movil")
+}
+
+model personal_ucab {
+  id_miembro     BigInt          @id
+  administrativo administrativo?
+  familiar       familiar[]
+  miembro        miembro         @relation(fields: [id_miembro], references: [id_miembro], onDelete: Cascade, onUpdate: NoAction, map: "fk_personal_miembro")
+  profesor       profesor?
+}
+
+model preparador {
+  id_miembro      BigInt     @id
+  tipo_asignatura String     @db.VarChar(100)
+  horas_ayudantia Int
+  estudiante      estudiante @relation(fields: [id_miembro], references: [id_miembro], onDelete: Cascade, onUpdate: NoAction, map: "fk_preparador_estudiante")
+}
+
+model profesor {
+  id_miembro            BigInt        @id
+  codigo_investigador   String?       @db.VarChar(50)
+  escalafon_docente     String        @db.VarChar(50)
+  carga_horaria_semanal Int
+  personal_ucab         personal_ucab @relation(fields: [id_miembro], references: [id_miembro], onDelete: Cascade, onUpdate: NoAction, map: "fk_profesor_personal")
+}
+
+model publica {
+  id_servicio        Int                @id(map: "pk_publica")
+  nombre_entidad     String             @db.VarChar(150)
+  entidad_prestadora entidad_prestadora @relation(fields: [nombre_entidad], references: [nombre_entidad], onDelete: Cascade, onUpdate: NoAction, map: "fk_publica_entidad_prestadora")
+  servicio           servicio           @relation(fields: [id_servicio], references: [id_servicio], onDelete: Cascade, onUpdate: NoAction, map: "fk_publica_servicio")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model recurso_tecnologicos {
+  descripcion          String         @db.VarChar(100)
+  nombre_edificacion   String         @db.VarChar(50)
+  direccion_interna    String
+  nro                  Int
+  estado_mantenimiento String         @default("operativo") @db.VarChar(15)
+  espacio_fisico       espacio_fisico @relation(fields: [nombre_edificacion, direccion_interna, nro], references: [nombre_edificacion, direccion_interna, nro], onDelete: Cascade, onUpdate: NoAction, map: "fk_recurso_espacio")
+
+  @@id([nombre_edificacion, direccion_interna, nro, descripcion], map: "pk_recurso_tecnologico")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model sede {
+  nombre_sede String        @id @db.VarChar(150)
+  tarifa_min  Decimal       @db.Decimal(10, 2)
+  tarifa_max  Decimal       @db.Decimal(10, 2)
+  edificacion edificacion[]
+  opera       opera[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model servicio {
+  id_servicio        Int                  @id
+  nombre_servicio    String               @db.VarChar(100)
+  descripcion        String?
+  costo              Decimal              @db.Decimal(10, 2)
+  historial_reservas historial_reservas[]
+  historico_tarifa   historico_tarifa[]
+  publica            publica?
+  solicitud_servicio solicitud_servicio[]
+}
+
+model solicitud_servicio {
+  id_miembro        BigInt
+  id_servicio       Int
+  fecha_de_creacion DateTime      @db.Timestamp(6)
+  estado            String        @db.VarChar(50)
+  resolucion        String?
+  acompanante       acompanante[]
+  folio             folio[]
+  miembro           miembro       @relation(fields: [id_miembro], references: [id_miembro], onDelete: Cascade, onUpdate: NoAction, map: "fk_solicitud_miembro")
+  servicio          servicio      @relation(fields: [id_servicio], references: [id_servicio], onUpdate: NoAction, map: "fk_solicitud_servicio")
+
+  @@id([id_miembro, id_servicio, fecha_de_creacion], map: "pk_solicitud_servicio")
+}
+
+model tai {
+  numero_de_control String      @db.VarChar(50)
+  fecha_operacion   DateTime    @db.Timestamp(6)
+  uid               String      @db.VarChar(100)
+  pos               String      @db.VarChar(50)
+  remanente         Decimal     @db.Decimal(15, 2)
+  metodo_pago       metodo_pago @relation(fields: [numero_de_control, fecha_operacion], references: [numero_de_control, fecha_operacion], onDelete: Cascade, onUpdate: NoAction, map: "fk_tai_metodo")
+
+  @@id([numero_de_control, fecha_operacion], map: "pk_tai")
+}
+
+model tarjeta {
+  numero_de_control String      @db.VarChar(50)
+  fecha_operacion   DateTime    @db.Timestamp(6)
+  nro_tarjeta       String      @db.VarChar(20)
+  vencimiento       String      @db.VarChar(5)
+  compania          String      @db.VarChar(50)
+  red               String      @db.VarChar(20)
+  metodo_pago       metodo_pago @relation(fields: [numero_de_control, fecha_operacion], references: [numero_de_control, fecha_operacion], onDelete: Cascade, onUpdate: NoAction, map: "fk_tarjeta_metodo")
+
+  @@id([numero_de_control, fecha_operacion], map: "pk_tarjeta")
+}
+
+model tasa_cambio {
+  moneda_origen  String    @db.VarChar(10)
+  moneda_destino String    @db.VarChar(10)
+  fecha_vigencia DateTime  @db.Timestamp(6)
+  valor_tasa     Decimal   @db.Decimal(20, 8)
+  obtiene        obtiene[]
+
+  @@id([moneda_origen, moneda_destino, fecha_vigencia], map: "pk_tasa_cambio")
+}
+
+model zelle {
+  numero_de_control String      @db.VarChar(50)
+  fecha_operacion   DateTime    @db.Timestamp(6)
+  correo            String      @db.VarChar(150)
+  nombre            String      @db.VarChar(150)
+  confirmacion      String      @unique @db.VarChar(100)
+  metodo_pago       metodo_pago @relation(fields: [numero_de_control, fecha_operacion], references: [numero_de_control, fecha_operacion], onDelete: Cascade, onUpdate: NoAction, map: "fk_zelle_metodo")
+
+  @@id([numero_de_control, fecha_operacion], map: "pk_zelle")
+}
