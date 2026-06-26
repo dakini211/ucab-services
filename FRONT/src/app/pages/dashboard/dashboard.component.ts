@@ -223,8 +223,13 @@ export class DashboardComponent implements OnInit {
 
   /* ── Navigation ─────────────────────────────────────────── */
   navigate(item: NavItem): void {
-    this.currentRoute.set(item.id);
-    this.router.navigate([item.route]);
+    const implementedRoutes = ['/dashboard', '/miembros'];
+    if (implementedRoutes.includes(item.route)) {
+      this.currentRoute.set(item.id);
+      this.router.navigate([item.route]);
+    } else {
+      console.warn(`La ruta ${item.route} aún no está implementada.`);
+    }
   }
 
   navigateTo(route: string): void {

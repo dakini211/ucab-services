@@ -11,6 +11,16 @@ export const adminGuard: CanActivateFn = (_route, _state) => {
     return false;
   }
 
-  // Por ahora permitimos a todos ver la página para pruebas
-  return true;
+  try {
+    const user = JSON.parse(userStr);
+    if (user.rol === 'Administrativo' || user.rol === 'Admin') {
+      return true;
+    }
+    // No es admin: lo manda al dashboard
+    router.navigate(['/dashboard']);
+    return false;
+  } catch {
+    router.navigate(['/login']);
+    return false;
+  }
 };
