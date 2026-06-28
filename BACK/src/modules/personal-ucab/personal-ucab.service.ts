@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { CreatePersonalUcabDto } from './dto/create-personal-ucab.dto';
+import { UpdatePersonalUcabDto } from './dto/update-personal-ucab.dto';
 
 @Injectable()
 export class PersonalUcabService {
   constructor(private prisma: PrismaService) {}
 
-  create(createDto: any) {
+  create(createDto: CreatePersonalUcabDto) {
     return this.prisma.personal_ucab.create({ data: createDto });
   }
 
@@ -13,19 +15,18 @@ export class PersonalUcabService {
     return this.prisma.personal_ucab.findMany();
   }
 
-  findOne(id: any) {
-    // TODO: Ajustar si la tabla usa llave primaria compuesta o si el ID no es número
-    return this.prisma.personal_ucab.findUnique({ where: { id_miembro: BigInt(id) } as any });
+  findOne(id_miembro: string | number) {
+    return this.prisma.personal_ucab.findUnique({ where: { id_miembro: BigInt(id_miembro) } });
   }
 
-  update(id: any, updateDto: any) {
+  update(id_miembro: string | number, updateDto: UpdatePersonalUcabDto) {
     return this.prisma.personal_ucab.update({
-      where: { id_miembro: BigInt(id) } as any,
+      where: { id_miembro: BigInt(id_miembro) },
       data: updateDto,
     });
   }
 
-  remove(id: any) {
-    return this.prisma.personal_ucab.delete({ where: { id_miembro: BigInt(id) } as any });
+  remove(id_miembro: string | number) {
+    return this.prisma.personal_ucab.delete({ where: { id_miembro: BigInt(id_miembro) } });
   }
 }

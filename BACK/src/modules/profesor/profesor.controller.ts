@@ -8,8 +8,8 @@ export class ProfesorController {
   constructor(private readonly profesorService: ProfesorService) {}
 
   @Post()
-  create(@Body() createProfesorDto: CreateProfesorDto) {
-    return this.profesorService.create(createProfesorDto);
+  create(@Body() createDto: CreateProfesorDto) {
+    return this.profesorService.create(createDto);
   }
 
   @Get()
@@ -17,18 +17,18 @@ export class ProfesorController {
     return this.profesorService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.profesorService.findOne(+id);
+  @Get(':id_miembro')
+  findOne(@Param('id_miembro') id_miembro: string) {
+    return this.profesorService.findOne(id_miembro);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProfesorDto: UpdateProfesorDto) {
-    return this.profesorService.update(+id, updateProfesorDto);
+  @Patch(':id_miembro')
+  update(@Param('id_miembro') id_miembro: string, @Body() updateDto: UpdateProfesorDto) {
+    return this.profesorService.update(id_miembro, updateDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.profesorService.remove(+id);
+  @Delete(':id_miembro')
+  remove(@Param('id_miembro') id_miembro: string) {
+    return this.profesorService.remove(id_miembro);
   }
 }

@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { CreateCargoMayorDto } from './dto/create-cargo-mayor.dto';
+import { UpdateCargoMayorDto } from './dto/update-cargo-mayor.dto';
 
 @Injectable()
 export class CargoMayorService {
   constructor(private prisma: PrismaService) {}
 
-  create(createDto: any) {
+  create(createDto: CreateCargoMayorDto) {
     return this.prisma.cargo_mayor.create({ data: createDto });
   }
 
@@ -13,19 +15,18 @@ export class CargoMayorService {
     return this.prisma.cargo_mayor.findMany();
   }
 
-  findOne(id: any) {
-    // TODO: Ajustar si la tabla usa llave primaria compuesta o si el ID no es número
-    return this.prisma.cargo_mayor.findUnique({ where: { id_miembro: BigInt(id) } as any });
+  findOne(cedula: number) {
+    return this.prisma.cargo_mayor.findUnique({ where: { cedula } });
   }
 
-  update(id: any, updateDto: any) {
+  update(cedula: number, updateDto: UpdateCargoMayorDto) {
     return this.prisma.cargo_mayor.update({
-      where: { id_miembro: BigInt(id) } as any,
+      where: { cedula },
       data: updateDto,
     });
   }
 
-  remove(id: any) {
-    return this.prisma.cargo_mayor.delete({ where: { id_miembro: BigInt(id) } as any });
+  remove(cedula: number) {
+    return this.prisma.cargo_mayor.delete({ where: { cedula } });
   }
 }

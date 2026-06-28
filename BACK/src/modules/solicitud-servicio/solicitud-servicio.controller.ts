@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Delete } from '@nestjs/common';
 import { SolicitudServicioService } from './solicitud-servicio.service';
 import { CreateSolicitudServicioDto } from './dto/create-solicitud-servicio.dto';
 import { UpdateSolicitudServicioDto } from './dto/update-solicitud-servicio.dto';
@@ -8,8 +8,8 @@ export class SolicitudServicioController {
   constructor(private readonly solicitudServicioService: SolicitudServicioService) {}
 
   @Post()
-  create(@Body() createSolicitudServicioDto: CreateSolicitudServicioDto) {
-    return this.solicitudServicioService.create(createSolicitudServicioDto);
+  create(@Body() createDto: CreateSolicitudServicioDto) {
+    return this.solicitudServicioService.create(createDto);
   }
 
   @Get()
@@ -17,18 +17,21 @@ export class SolicitudServicioController {
     return this.solicitudServicioService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.solicitudServicioService.findOne(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('find')
+  findOne(@Body() keys: any) {
+    return this.solicitudServicioService.findOne(keys);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSolicitudServicioDto: UpdateSolicitudServicioDto) {
-    return this.solicitudServicioService.update(+id, updateSolicitudServicioDto);
+  /** PK compuesta → { keys: {...}, data: {...} } */
+  @Patch()
+  update(@Body() body: { keys: any; data: UpdateSolicitudServicioDto }) {
+    return this.solicitudServicioService.update(body.keys, body.data);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.solicitudServicioService.remove(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('delete')
+  remove(@Body() keys: any) {
+    return this.solicitudServicioService.remove(keys);
   }
 }

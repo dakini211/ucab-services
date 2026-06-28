@@ -17,18 +17,18 @@ export class EntidadPropiaController {
     return this.entidadPropiaService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.entidadPropiaService.findOne(+id);
+  @Get(':nombre_entidad')
+  findOne(@Param('nombre_entidad') nombre_entidad: string) {
+    return this.entidadPropiaService.findOne(nombre_entidad);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateEntidadPropiaDto: UpdateEntidadPropiaDto) {
-    return this.entidadPropiaService.update(+id, updateEntidadPropiaDto);
+  @Patch(':nombre_entidad')
+  update(@Param('nombre_entidad') nombre_entidad: string, @Body() updateEntidadPropiaDto: UpdateEntidadPropiaDto) {
+    return this.entidadPropiaService.update(nombre_entidad, updateEntidadPropiaDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.entidadPropiaService.remove(+id);
+  @Delete(':nombre_entidad')
+  remove(@Param('nombre_entidad') nombre_entidad: string) {
+    return this.entidadPropiaService.remove(nombre_entidad);
   }
 }

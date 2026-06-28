@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Delete } from '@nestjs/common';
 import { CriptomonedaService } from './criptomoneda.service';
 import { CreateCriptomonedaDto } from './dto/create-criptomoneda.dto';
 import { UpdateCriptomonedaDto } from './dto/update-criptomoneda.dto';
@@ -8,8 +8,8 @@ export class CriptomonedaController {
   constructor(private readonly criptomonedaService: CriptomonedaService) {}
 
   @Post()
-  create(@Body() createCriptomonedaDto: CreateCriptomonedaDto) {
-    return this.criptomonedaService.create(createCriptomonedaDto);
+  create(@Body() createDto: CreateCriptomonedaDto) {
+    return this.criptomonedaService.create(createDto);
   }
 
   @Get()
@@ -17,18 +17,21 @@ export class CriptomonedaController {
     return this.criptomonedaService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.criptomonedaService.findOne(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('find')
+  findOne(@Body() keys: any) {
+    return this.criptomonedaService.findOne(keys);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCriptomonedaDto: UpdateCriptomonedaDto) {
-    return this.criptomonedaService.update(+id, updateCriptomonedaDto);
+  /** PK compuesta → { keys: {...}, data: {...} } */
+  @Patch()
+  update(@Body() body: { keys: any; data: UpdateCriptomonedaDto }) {
+    return this.criptomonedaService.update(body.keys, body.data);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.criptomonedaService.remove(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('delete')
+  remove(@Body() keys: any) {
+    return this.criptomonedaService.remove(keys);
   }
 }

@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { CreateEfectivoDto } from './dto/create-efectivo.dto';
+import { UpdateEfectivoDto } from './dto/update-efectivo.dto';
 
 @Injectable()
 export class EfectivoService {
   constructor(private prisma: PrismaService) {}
 
-  create(createDto: any) {
+  create(createDto: CreateEfectivoDto) {
     return this.prisma.efectivo.create({ data: createDto });
   }
 
@@ -13,19 +15,37 @@ export class EfectivoService {
     return this.prisma.efectivo.findMany();
   }
 
-  findOne(id: any) {
-    // TODO: Ajustar si la tabla usa llave primaria compuesta o si el ID no es número
-    return this.prisma.efectivo.findUnique({ where: { id_miembro: BigInt(id) } as any });
+  findOne(keys: { numero_de_control: string; fecha_operacion: string }) {
+    return this.prisma.efectivo.findUnique({
+      where: {
+        numero_de_control_fecha_operacion: {
+          numero_de_control: keys.numero_de_control,
+          fecha_operacion: new Date(keys.fecha_operacion),
+        },
+      },
+    });
   }
 
-  update(id: any, updateDto: any) {
+  update(keys: { numero_de_control: string; fecha_operacion: string }, updateDto: UpdateEfectivoDto) {
     return this.prisma.efectivo.update({
-      where: { id_miembro: BigInt(id) } as any,
+      where: {
+        numero_de_control_fecha_operacion: {
+          numero_de_control: keys.numero_de_control,
+          fecha_operacion: new Date(keys.fecha_operacion),
+        },
+      },
       data: updateDto,
     });
   }
 
-  remove(id: any) {
-    return this.prisma.efectivo.delete({ where: { id_miembro: BigInt(id) } as any });
+  remove(keys: { numero_de_control: string; fecha_operacion: string }) {
+    return this.prisma.efectivo.delete({
+      where: {
+        numero_de_control_fecha_operacion: {
+          numero_de_control: keys.numero_de_control,
+          fecha_operacion: new Date(keys.fecha_operacion),
+        },
+      },
+    });
   }
 }

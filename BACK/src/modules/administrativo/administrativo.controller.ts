@@ -8,8 +8,8 @@ export class AdministrativoController {
   constructor(private readonly administrativoService: AdministrativoService) {}
 
   @Post()
-  create(@Body() createAdministrativoDto: CreateAdministrativoDto) {
-    return this.administrativoService.create(createAdministrativoDto);
+  create(@Body() createDto: CreateAdministrativoDto) {
+    return this.administrativoService.create(createDto);
   }
 
   @Get()
@@ -17,18 +17,18 @@ export class AdministrativoController {
     return this.administrativoService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.administrativoService.findOne(+id);
+  @Get(':id_miembro')
+  findOne(@Param('id_miembro') id_miembro: string) {
+    return this.administrativoService.findOne(id_miembro);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAdministrativoDto: UpdateAdministrativoDto) {
-    return this.administrativoService.update(+id, updateAdministrativoDto);
+  @Patch(':id_miembro')
+  update(@Param('id_miembro') id_miembro: string, @Body() updateDto: UpdateAdministrativoDto) {
+    return this.administrativoService.update(id_miembro, updateDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.administrativoService.remove(+id);
+  @Delete(':id_miembro')
+  remove(@Param('id_miembro') id_miembro: string) {
+    return this.administrativoService.remove(id_miembro);
   }
 }

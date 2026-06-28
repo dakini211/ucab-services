@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { CreateEntidadPropiaDto } from './dto/create-entidad-propia.dto';
+import { UpdateEntidadPropiaDto } from './dto/update-entidad-propia.dto';
 
 @Injectable()
 export class EntidadPropiaService {
   constructor(private prisma: PrismaService) {}
 
-  create(createDto: any) {
+  create(createDto: CreateEntidadPropiaDto) {
     return this.prisma.entidad_propia.create({ data: createDto });
   }
 
@@ -13,19 +15,15 @@ export class EntidadPropiaService {
     return this.prisma.entidad_propia.findMany();
   }
 
-  findOne(id: any) {
-    // TODO: Ajustar si la tabla usa llave primaria compuesta o si el ID no es número
-    return this.prisma.entidad_propia.findUnique({ where: { id_miembro: BigInt(id) } as any });
+  findOne(nombre_entidad: string) {
+    return this.prisma.entidad_propia.findUnique({ where: { nombre_entidad } });
   }
 
-  update(id: any, updateDto: any) {
-    return this.prisma.entidad_propia.update({
-      where: { id_miembro: BigInt(id) } as any,
-      data: updateDto,
-    });
+  update(nombre_entidad: string, updateDto: UpdateEntidadPropiaDto) {
+    return this.prisma.entidad_propia.update({ where: { nombre_entidad }, data: updateDto });
   }
 
-  remove(id: any) {
-    return this.prisma.entidad_propia.delete({ where: { id_miembro: BigInt(id) } as any });
+  remove(nombre_entidad: string) {
+    return this.prisma.entidad_propia.delete({ where: { nombre_entidad } });
   }
 }

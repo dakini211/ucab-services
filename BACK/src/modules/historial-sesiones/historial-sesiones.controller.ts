@@ -1,15 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Delete } from '@nestjs/common';
 import { HistorialSesionesService } from './historial-sesiones.service';
-import { CreateHistorialSesioneDto } from './dto/create-historial-sesione.dto';
-import { UpdateHistorialSesioneDto } from './dto/update-historial-sesione.dto';
+import { CreateHistorialSesionesDto } from './dto/create-historial-sesiones.dto';
+import { UpdateHistorialSesionesDto } from './dto/update-historial-sesiones.dto';
 
 @Controller('historial-sesiones')
 export class HistorialSesionesController {
   constructor(private readonly historialSesionesService: HistorialSesionesService) {}
 
   @Post()
-  create(@Body() createHistorialSesioneDto: CreateHistorialSesioneDto) {
-    return this.historialSesionesService.create(createHistorialSesioneDto);
+  create(@Body() createDto: CreateHistorialSesionesDto) {
+    return this.historialSesionesService.create(createDto);
   }
 
   @Get()
@@ -17,18 +17,21 @@ export class HistorialSesionesController {
     return this.historialSesionesService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.historialSesionesService.findOne(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('find')
+  findOne(@Body() keys: any) {
+    return this.historialSesionesService.findOne(keys);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateHistorialSesioneDto: UpdateHistorialSesioneDto) {
-    return this.historialSesionesService.update(+id, updateHistorialSesioneDto);
+  /** PK compuesta → { keys: {...}, data: {...} } */
+  @Patch()
+  update(@Body() body: { keys: any; data: UpdateHistorialSesionesDto }) {
+    return this.historialSesionesService.update(body.keys, body.data);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.historialSesionesService.remove(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('delete')
+  remove(@Body() keys: any) {
+    return this.historialSesionesService.remove(keys);
   }
 }

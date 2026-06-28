@@ -17,18 +17,18 @@ export class EntidadPrestadoraController {
     return this.entidadPrestadoraService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.entidadPrestadoraService.findOne(+id);
+  @Get(':nombre_entidad')
+  findOne(@Param('nombre_entidad') nombre_entidad: string) {
+    return this.entidadPrestadoraService.findOne(nombre_entidad);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateEntidadPrestadoraDto: UpdateEntidadPrestadoraDto) {
-    return this.entidadPrestadoraService.update(+id, updateEntidadPrestadoraDto);
+  @Patch(':nombre_entidad')
+  update(@Param('nombre_entidad') nombre_entidad: string, @Body() updateEntidadPrestadoraDto: UpdateEntidadPrestadoraDto) {
+    return this.entidadPrestadoraService.update(nombre_entidad, updateEntidadPrestadoraDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.entidadPrestadoraService.remove(+id);
+  @Delete(':nombre_entidad')
+  remove(@Param('nombre_entidad') nombre_entidad: string) {
+    return this.entidadPrestadoraService.remove(nombre_entidad);
   }
 }

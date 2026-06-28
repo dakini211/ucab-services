@@ -1,15 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Delete } from '@nestjs/common';
 import { HistorialReservasService } from './historial-reservas.service';
-import { CreateHistorialReservaDto } from './dto/create-historial-reserva.dto';
-import { UpdateHistorialReservaDto } from './dto/update-historial-reserva.dto';
+import { CreateHistorialReservasDto } from './dto/create-historial-reservas.dto';
+import { UpdateHistorialReservasDto } from './dto/update-historial-reservas.dto';
 
 @Controller('historial-reservas')
 export class HistorialReservasController {
   constructor(private readonly historialReservasService: HistorialReservasService) {}
 
   @Post()
-  create(@Body() createHistorialReservaDto: CreateHistorialReservaDto) {
-    return this.historialReservasService.create(createHistorialReservaDto);
+  create(@Body() createDto: CreateHistorialReservasDto) {
+    return this.historialReservasService.create(createDto);
   }
 
   @Get()
@@ -17,18 +17,21 @@ export class HistorialReservasController {
     return this.historialReservasService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.historialReservasService.findOne(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('find')
+  findOne(@Body() keys: any) {
+    return this.historialReservasService.findOne(keys);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateHistorialReservaDto: UpdateHistorialReservaDto) {
-    return this.historialReservasService.update(+id, updateHistorialReservaDto);
+  /** PK compuesta → { keys: {...}, data: {...} } */
+  @Patch()
+  update(@Body() body: { keys: any; data: UpdateHistorialReservasDto }) {
+    return this.historialReservasService.update(body.keys, body.data);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.historialReservasService.remove(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('delete')
+  remove(@Body() keys: any) {
+    return this.historialReservasService.remove(keys);
   }
 }

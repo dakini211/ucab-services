@@ -11,7 +11,7 @@ model acompanante {
   id_miembro         BigInt
   id_servicio        Int
   fecha_de_creacion  DateTime           @db.Timestamp(6)
-  ci                 String             @db.VarChar(20)
+  ci                 Int
   nombre             String             @db.VarChar(150)
   activo             String             @db.VarChar(50)
   solicitud_servicio solicitud_servicio @relation(fields: [id_miembro, id_servicio, fecha_de_creacion], references: [id_miembro, id_servicio, fecha_de_creacion], onDelete: Cascade, onUpdate: NoAction, map: "fk_acompanante_solicitud")

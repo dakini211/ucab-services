@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { CreateOfertaLaboralDto } from './dto/create-oferta-laboral.dto';
+import { UpdateOfertaLaboralDto } from './dto/update-oferta-laboral.dto';
 
 @Injectable()
 export class OfertaLaboralService {
   constructor(private prisma: PrismaService) {}
 
-  create(createDto: any) {
+  create(createDto: CreateOfertaLaboralDto) {
     return this.prisma.oferta_laboral.create({ data: createDto });
   }
 
@@ -13,19 +15,37 @@ export class OfertaLaboralService {
     return this.prisma.oferta_laboral.findMany();
   }
 
-  findOne(id: any) {
-    // TODO: Ajustar si la tabla usa llave primaria compuesta o si el ID no es número
-    return this.prisma.oferta_laboral.findUnique({ where: { id_miembro: BigInt(id) } as any });
+  findOne(keys: { nombre_entidad: string; cargo: string }) {
+    return this.prisma.oferta_laboral.findUnique({
+      where: {
+        nombre_entidad_cargo: {
+          nombre_entidad: keys.nombre_entidad,
+          cargo: keys.cargo,
+        },
+      },
+    });
   }
 
-  update(id: any, updateDto: any) {
+  update(keys: { nombre_entidad: string; cargo: string }, updateDto: UpdateOfertaLaboralDto) {
     return this.prisma.oferta_laboral.update({
-      where: { id_miembro: BigInt(id) } as any,
+      where: {
+        nombre_entidad_cargo: {
+          nombre_entidad: keys.nombre_entidad,
+          cargo: keys.cargo,
+        },
+      },
       data: updateDto,
     });
   }
 
-  remove(id: any) {
-    return this.prisma.oferta_laboral.delete({ where: { id_miembro: BigInt(id) } as any });
+  remove(keys: { nombre_entidad: string; cargo: string }) {
+    return this.prisma.oferta_laboral.delete({
+      where: {
+        nombre_entidad_cargo: {
+          nombre_entidad: keys.nombre_entidad,
+          cargo: keys.cargo,
+        },
+      },
+    });
   }
 }

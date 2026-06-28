@@ -17,18 +17,18 @@ export class FacturaController {
     return this.facturaService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.facturaService.findOne(+id);
+  @Get(':numero_de_control')
+  findOne(@Param('numero_de_control') numero_de_control: string) {
+    return this.facturaService.findOne(numero_de_control);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateFacturaDto: UpdateFacturaDto) {
-    return this.facturaService.update(+id, updateFacturaDto);
+  @Patch(':numero_de_control')
+  update(@Param('numero_de_control') numero_de_control: string, @Body() updateFacturaDto: UpdateFacturaDto) {
+    return this.facturaService.update(numero_de_control, updateFacturaDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.facturaService.remove(+id);
+  @Delete(':numero_de_control')
+  remove(@Param('numero_de_control') numero_de_control: string) {
+    return this.facturaService.remove(numero_de_control);
   }
 }

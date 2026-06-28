@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { CreateEstudianteDto } from './dto/create-estudiante.dto';
+import { UpdateEstudianteDto } from './dto/update-estudiante.dto';
 
 @Injectable()
 export class EstudianteService {
   constructor(private prisma: PrismaService) {}
 
-  create(createDto: any) {
+  create(createDto: CreateEstudianteDto) {
     return this.prisma.estudiante.create({ data: createDto });
   }
 
@@ -13,19 +15,18 @@ export class EstudianteService {
     return this.prisma.estudiante.findMany();
   }
 
-  findOne(id: any) {
-    // TODO: Ajustar si la tabla usa llave primaria compuesta o si el ID no es número
-    return this.prisma.estudiante.findUnique({ where: { id_miembro: BigInt(id) } as any });
+  findOne(id_miembro: string | number) {
+    return this.prisma.estudiante.findUnique({ where: { id_miembro: BigInt(id_miembro) } });
   }
 
-  update(id: any, updateDto: any) {
+  update(id_miembro: string | number, updateDto: UpdateEstudianteDto) {
     return this.prisma.estudiante.update({
-      where: { id_miembro: BigInt(id) } as any,
+      where: { id_miembro: BigInt(id_miembro) },
       data: updateDto,
     });
   }
 
-  remove(id: any) {
-    return this.prisma.estudiante.delete({ where: { id_miembro: BigInt(id) } as any });
+  remove(id_miembro: string | number) {
+    return this.prisma.estudiante.delete({ where: { id_miembro: BigInt(id_miembro) } });
   }
 }

@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { CreateFacturaDto } from './dto/create-factura.dto';
+import { UpdateFacturaDto } from './dto/update-factura.dto';
 
 @Injectable()
 export class FacturaService {
   constructor(private prisma: PrismaService) {}
 
-  create(createDto: any) {
+  create(createDto: CreateFacturaDto) {
     return this.prisma.factura.create({ data: createDto });
   }
 
@@ -13,19 +15,15 @@ export class FacturaService {
     return this.prisma.factura.findMany();
   }
 
-  findOne(id: any) {
-    // TODO: Ajustar si la tabla usa llave primaria compuesta o si el ID no es número
-    return this.prisma.factura.findUnique({ where: { id_miembro: BigInt(id) } as any });
+  findOne(numero_de_control: string) {
+    return this.prisma.factura.findUnique({ where: { numero_de_control } });
   }
 
-  update(id: any, updateDto: any) {
-    return this.prisma.factura.update({
-      where: { id_miembro: BigInt(id) } as any,
-      data: updateDto,
-    });
+  update(numero_de_control: string, updateDto: UpdateFacturaDto) {
+    return this.prisma.factura.update({ where: { numero_de_control }, data: updateDto });
   }
 
-  remove(id: any) {
-    return this.prisma.factura.delete({ where: { id_miembro: BigInt(id) } as any });
+  remove(numero_de_control: string) {
+    return this.prisma.factura.delete({ where: { numero_de_control } });
   }
 }

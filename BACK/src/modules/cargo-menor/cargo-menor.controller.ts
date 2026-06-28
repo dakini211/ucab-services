@@ -8,8 +8,8 @@ export class CargoMenorController {
   constructor(private readonly cargoMenorService: CargoMenorService) {}
 
   @Post()
-  create(@Body() createCargoMenorDto: CreateCargoMenorDto) {
-    return this.cargoMenorService.create(createCargoMenorDto);
+  create(@Body() createDto: CreateCargoMenorDto) {
+    return this.cargoMenorService.create(createDto);
   }
 
   @Get()
@@ -17,18 +17,18 @@ export class CargoMenorController {
     return this.cargoMenorService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.cargoMenorService.findOne(+id);
+  @Get(':cedula')
+  findOne(@Param('cedula') cedula: string) {
+    return this.cargoMenorService.findOne(+cedula);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCargoMenorDto: UpdateCargoMenorDto) {
-    return this.cargoMenorService.update(+id, updateCargoMenorDto);
+  @Patch(':cedula')
+  update(@Param('cedula') cedula: string, @Body() updateDto: UpdateCargoMenorDto) {
+    return this.cargoMenorService.update(+cedula, updateDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.cargoMenorService.remove(+id);
+  @Delete(':cedula')
+  remove(@Param('cedula') cedula: string) {
+    return this.cargoMenorService.remove(+cedula);
   }
 }

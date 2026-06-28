@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { CreateRecursoTecnologicosDto } from './dto/create-recurso-tecnologicos.dto';
+import { UpdateRecursoTecnologicosDto } from './dto/update-recurso-tecnologicos.dto';
 
 @Injectable()
 export class RecursoTecnologicosService {
   constructor(private prisma: PrismaService) {}
 
-  create(createDto: any) {
+  create(createDto: CreateRecursoTecnologicosDto) {
     return this.prisma.recurso_tecnologicos.create({ data: createDto });
   }
 
@@ -13,19 +15,43 @@ export class RecursoTecnologicosService {
     return this.prisma.recurso_tecnologicos.findMany();
   }
 
-  findOne(id: any) {
-    // TODO: Ajustar si la tabla usa llave primaria compuesta o si el ID no es número
-    return this.prisma.recurso_tecnologicos.findUnique({ where: { id_miembro: BigInt(id) } as any });
+  findOne(keys: { nombre_edificacion: string; direccion_interna: string; nro: number; descripcion: string }) {
+    return this.prisma.recurso_tecnologicos.findUnique({
+      where: {
+        nombre_edificacion_direccion_interna_nro_descripcion: {
+          nombre_edificacion: keys.nombre_edificacion,
+          direccion_interna: keys.direccion_interna,
+          nro: Number(keys.nro),
+          descripcion: keys.descripcion,
+        },
+      },
+    });
   }
 
-  update(id: any, updateDto: any) {
+  update(keys: { nombre_edificacion: string; direccion_interna: string; nro: number; descripcion: string }, updateDto: UpdateRecursoTecnologicosDto) {
     return this.prisma.recurso_tecnologicos.update({
-      where: { id_miembro: BigInt(id) } as any,
+      where: {
+        nombre_edificacion_direccion_interna_nro_descripcion: {
+          nombre_edificacion: keys.nombre_edificacion,
+          direccion_interna: keys.direccion_interna,
+          nro: Number(keys.nro),
+          descripcion: keys.descripcion,
+        },
+      },
       data: updateDto,
     });
   }
 
-  remove(id: any) {
-    return this.prisma.recurso_tecnologicos.delete({ where: { id_miembro: BigInt(id) } as any });
+  remove(keys: { nombre_edificacion: string; direccion_interna: string; nro: number; descripcion: string }) {
+    return this.prisma.recurso_tecnologicos.delete({
+      where: {
+        nombre_edificacion_direccion_interna_nro_descripcion: {
+          nombre_edificacion: keys.nombre_edificacion,
+          direccion_interna: keys.direccion_interna,
+          nro: Number(keys.nro),
+          descripcion: keys.descripcion,
+        },
+      },
+    });
   }
 }

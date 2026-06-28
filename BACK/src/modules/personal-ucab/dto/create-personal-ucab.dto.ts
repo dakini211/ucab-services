@@ -1,1 +1,3 @@
-export class CreatePersonalUcabDto {}
+export class CreatePersonalUcabDto {
+  id_miembro: number;
+}

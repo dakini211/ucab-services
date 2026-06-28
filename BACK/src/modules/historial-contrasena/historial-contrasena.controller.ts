@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Delete } from '@nestjs/common';
 import { HistorialContrasenaService } from './historial-contrasena.service';
 import { CreateHistorialContrasenaDto } from './dto/create-historial-contrasena.dto';
 import { UpdateHistorialContrasenaDto } from './dto/update-historial-contrasena.dto';
@@ -8,8 +8,8 @@ export class HistorialContrasenaController {
   constructor(private readonly historialContrasenaService: HistorialContrasenaService) {}
 
   @Post()
-  create(@Body() createHistorialContrasenaDto: CreateHistorialContrasenaDto) {
-    return this.historialContrasenaService.create(createHistorialContrasenaDto);
+  create(@Body() createDto: CreateHistorialContrasenaDto) {
+    return this.historialContrasenaService.create(createDto);
   }
 
   @Get()
@@ -17,18 +17,21 @@ export class HistorialContrasenaController {
     return this.historialContrasenaService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.historialContrasenaService.findOne(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('find')
+  findOne(@Body() keys: any) {
+    return this.historialContrasenaService.findOne(keys);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateHistorialContrasenaDto: UpdateHistorialContrasenaDto) {
-    return this.historialContrasenaService.update(+id, updateHistorialContrasenaDto);
+  /** PK compuesta → { keys: {...}, data: {...} } */
+  @Patch()
+  update(@Body() body: { keys: any; data: UpdateHistorialContrasenaDto }) {
+    return this.historialContrasenaService.update(body.keys, body.data);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.historialContrasenaService.remove(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('delete')
+  remove(@Body() keys: any) {
+    return this.historialContrasenaService.remove(keys);
   }
 }

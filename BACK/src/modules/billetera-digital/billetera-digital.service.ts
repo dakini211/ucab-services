@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { CreateBilleteraDigitalDto } from './dto/create-billetera-digital.dto';
+import { UpdateBilleteraDigitalDto } from './dto/update-billetera-digital.dto';
 
 @Injectable()
 export class BilleteraDigitalService {
   constructor(private prisma: PrismaService) {}
 
-  create(createDto: any) {
+  create(createDto: CreateBilleteraDigitalDto) {
     return this.prisma.billetera_digital.create({ data: createDto });
   }
 
@@ -13,19 +15,18 @@ export class BilleteraDigitalService {
     return this.prisma.billetera_digital.findMany();
   }
 
-  findOne(id: any) {
-    // TODO: Ajustar si la tabla usa llave primaria compuesta o si el ID no es número
-    return this.prisma.billetera_digital.findUnique({ where: { id_miembro: BigInt(id) } as any });
+  findOne(uid: string) {
+    return this.prisma.billetera_digital.findUnique({ where: { uid } });
   }
 
-  update(id: any, updateDto: any) {
+  update(uid: string, updateDto: UpdateBilleteraDigitalDto) {
     return this.prisma.billetera_digital.update({
-      where: { id_miembro: BigInt(id) } as any,
+      where: { uid },
       data: updateDto,
     });
   }
 
-  remove(id: any) {
-    return this.prisma.billetera_digital.delete({ where: { id_miembro: BigInt(id) } as any });
+  remove(uid: string) {
+    return this.prisma.billetera_digital.delete({ where: { uid } });
   }
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Delete } from '@nestjs/common';
 import { TarjetaService } from './tarjeta.service';
 import { CreateTarjetaDto } from './dto/create-tarjeta.dto';
 import { UpdateTarjetaDto } from './dto/update-tarjeta.dto';
@@ -8,8 +8,8 @@ export class TarjetaController {
   constructor(private readonly tarjetaService: TarjetaService) {}
 
   @Post()
-  create(@Body() createTarjetaDto: CreateTarjetaDto) {
-    return this.tarjetaService.create(createTarjetaDto);
+  create(@Body() createDto: CreateTarjetaDto) {
+    return this.tarjetaService.create(createDto);
   }
 
   @Get()
@@ -17,18 +17,21 @@ export class TarjetaController {
     return this.tarjetaService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.tarjetaService.findOne(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('find')
+  findOne(@Body() keys: any) {
+    return this.tarjetaService.findOne(keys);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTarjetaDto: UpdateTarjetaDto) {
-    return this.tarjetaService.update(+id, updateTarjetaDto);
+  /** PK compuesta → { keys: {...}, data: {...} } */
+  @Patch()
+  update(@Body() body: { keys: any; data: UpdateTarjetaDto }) {
+    return this.tarjetaService.update(body.keys, body.data);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.tarjetaService.remove(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('delete')
+  remove(@Body() keys: any) {
+    return this.tarjetaService.remove(keys);
   }
 }

@@ -17,18 +17,18 @@ export class OperaController {
     return this.operaService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.operaService.findOne(+id);
+  @Get(':nombre_entidad')
+  findOne(@Param('nombre_entidad') nombre_entidad: string) {
+    return this.operaService.findOne(nombre_entidad);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateOperaDto: UpdateOperaDto) {
-    return this.operaService.update(+id, updateOperaDto);
+  @Patch(':nombre_entidad')
+  update(@Param('nombre_entidad') nombre_entidad: string, @Body() updateOperaDto: UpdateOperaDto) {
+    return this.operaService.update(nombre_entidad, updateOperaDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.operaService.remove(+id);
+  @Delete(':nombre_entidad')
+  remove(@Param('nombre_entidad') nombre_entidad: string) {
+    return this.operaService.remove(nombre_entidad);
   }
 }

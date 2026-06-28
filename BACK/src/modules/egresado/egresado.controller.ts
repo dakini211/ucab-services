@@ -8,8 +8,8 @@ export class EgresadoController {
   constructor(private readonly egresadoService: EgresadoService) {}
 
   @Post()
-  create(@Body() createEgresadoDto: CreateEgresadoDto) {
-    return this.egresadoService.create(createEgresadoDto);
+  create(@Body() createDto: CreateEgresadoDto) {
+    return this.egresadoService.create(createDto);
   }
 
   @Get()
@@ -17,18 +17,18 @@ export class EgresadoController {
     return this.egresadoService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.egresadoService.findOne(+id);
+  @Get(':id_miembro')
+  findOne(@Param('id_miembro') id_miembro: string) {
+    return this.egresadoService.findOne(id_miembro);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateEgresadoDto: UpdateEgresadoDto) {
-    return this.egresadoService.update(+id, updateEgresadoDto);
+  @Patch(':id_miembro')
+  update(@Param('id_miembro') id_miembro: string, @Body() updateDto: UpdateEgresadoDto) {
+    return this.egresadoService.update(id_miembro, updateDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.egresadoService.remove(+id);
+  @Delete(':id_miembro')
+  remove(@Param('id_miembro') id_miembro: string) {
+    return this.egresadoService.remove(id_miembro);
   }
 }

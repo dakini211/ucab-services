@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { CreateTaiDto } from './dto/create-tai.dto';
+import { UpdateTaiDto } from './dto/update-tai.dto';
 
 @Injectable()
 export class TaiService {
   constructor(private prisma: PrismaService) {}
 
-  create(createDto: any) {
+  create(createDto: CreateTaiDto) {
     return this.prisma.tai.create({ data: createDto });
   }
 
@@ -13,19 +15,37 @@ export class TaiService {
     return this.prisma.tai.findMany();
   }
 
-  findOne(id: any) {
-    // TODO: Ajustar si la tabla usa llave primaria compuesta o si el ID no es número
-    return this.prisma.tai.findUnique({ where: { id_miembro: BigInt(id) } as any });
+  findOne(keys: { numero_de_control: string; fecha_operacion: string }) {
+    return this.prisma.tai.findUnique({
+      where: {
+        numero_de_control_fecha_operacion: {
+          numero_de_control: keys.numero_de_control,
+          fecha_operacion: new Date(keys.fecha_operacion),
+        },
+      },
+    });
   }
 
-  update(id: any, updateDto: any) {
+  update(keys: { numero_de_control: string; fecha_operacion: string }, updateDto: UpdateTaiDto) {
     return this.prisma.tai.update({
-      where: { id_miembro: BigInt(id) } as any,
+      where: {
+        numero_de_control_fecha_operacion: {
+          numero_de_control: keys.numero_de_control,
+          fecha_operacion: new Date(keys.fecha_operacion),
+        },
+      },
       data: updateDto,
     });
   }
 
-  remove(id: any) {
-    return this.prisma.tai.delete({ where: { id_miembro: BigInt(id) } as any });
+  remove(keys: { numero_de_control: string; fecha_operacion: string }) {
+    return this.prisma.tai.delete({
+      where: {
+        numero_de_control_fecha_operacion: {
+          numero_de_control: keys.numero_de_control,
+          fecha_operacion: new Date(keys.fecha_operacion),
+        },
+      },
+    });
   }
 }

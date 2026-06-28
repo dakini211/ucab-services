@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
 import { PublicaService } from './publica.service';
 import { CreatePublicaDto } from './dto/create-publica.dto';
 import { UpdatePublicaDto } from './dto/update-publica.dto';
@@ -17,18 +17,18 @@ export class PublicaController {
     return this.publicaService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.publicaService.findOne(+id);
+  @Get(':id_servicio')
+  findOne(@Param('id_servicio', ParseIntPipe) id_servicio: number) {
+    return this.publicaService.findOne(id_servicio);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePublicaDto: UpdatePublicaDto) {
-    return this.publicaService.update(+id, updatePublicaDto);
+  @Patch(':id_servicio')
+  update(@Param('id_servicio', ParseIntPipe) id_servicio: number, @Body() updatePublicaDto: UpdatePublicaDto) {
+    return this.publicaService.update(id_servicio, updatePublicaDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.publicaService.remove(+id);
+  @Delete(':id_servicio')
+  remove(@Param('id_servicio', ParseIntPipe) id_servicio: number) {
+    return this.publicaService.remove(id_servicio);
   }
 }

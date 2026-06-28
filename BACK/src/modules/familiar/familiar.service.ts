@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { CreateFamiliarDto } from './dto/create-familiar.dto';
+import { UpdateFamiliarDto } from './dto/update-familiar.dto';
 
 @Injectable()
 export class FamiliarService {
   constructor(private prisma: PrismaService) {}
 
-  create(createDto: any) {
+  create(createDto: CreateFamiliarDto) {
     return this.prisma.familiar.create({ data: createDto });
   }
 
@@ -13,19 +15,15 @@ export class FamiliarService {
     return this.prisma.familiar.findMany();
   }
 
-  findOne(id: any) {
-    // TODO: Ajustar si la tabla usa llave primaria compuesta o si el ID no es número
-    return this.prisma.familiar.findUnique({ where: { id_miembro: BigInt(id) } as any });
+  findOne(cedula: number) {
+    return this.prisma.familiar.findUnique({ where: { cedula } });
   }
 
-  update(id: any, updateDto: any) {
-    return this.prisma.familiar.update({
-      where: { id_miembro: BigInt(id) } as any,
-      data: updateDto,
-    });
+  update(cedula: number, updateDto: UpdateFamiliarDto) {
+    return this.prisma.familiar.update({ where: { cedula }, data: updateDto });
   }
 
-  remove(id: any) {
-    return this.prisma.familiar.delete({ where: { id_miembro: BigInt(id) } as any });
+  remove(cedula: number) {
+    return this.prisma.familiar.delete({ where: { cedula } });
   }
 }

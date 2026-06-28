@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { CreateEgresadoDto } from './dto/create-egresado.dto';
+import { UpdateEgresadoDto } from './dto/update-egresado.dto';
 
 @Injectable()
 export class EgresadoService {
   constructor(private prisma: PrismaService) {}
 
-  create(createDto: any) {
+  create(createDto: CreateEgresadoDto) {
     return this.prisma.egresado.create({ data: createDto });
   }
 
@@ -13,19 +15,18 @@ export class EgresadoService {
     return this.prisma.egresado.findMany();
   }
 
-  findOne(id: any) {
-    // TODO: Ajustar si la tabla usa llave primaria compuesta o si el ID no es número
-    return this.prisma.egresado.findUnique({ where: { id_miembro: BigInt(id) } as any });
+  findOne(id_miembro: string | number) {
+    return this.prisma.egresado.findUnique({ where: { id_miembro: BigInt(id_miembro) } });
   }
 
-  update(id: any, updateDto: any) {
+  update(id_miembro: string | number, updateDto: UpdateEgresadoDto) {
     return this.prisma.egresado.update({
-      where: { id_miembro: BigInt(id) } as any,
+      where: { id_miembro: BigInt(id_miembro) },
       data: updateDto,
     });
   }
 
-  remove(id: any) {
-    return this.prisma.egresado.delete({ where: { id_miembro: BigInt(id) } as any });
+  remove(id_miembro: string | number) {
+    return this.prisma.egresado.delete({ where: { id_miembro: BigInt(id_miembro) } });
   }
 }

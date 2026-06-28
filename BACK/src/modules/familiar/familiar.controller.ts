@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
 import { FamiliarService } from './familiar.service';
 import { CreateFamiliarDto } from './dto/create-familiar.dto';
 import { UpdateFamiliarDto } from './dto/update-familiar.dto';
@@ -17,18 +17,18 @@ export class FamiliarController {
     return this.familiarService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.familiarService.findOne(+id);
+  @Get(':cedula')
+  findOne(@Param('cedula', ParseIntPipe) cedula: number) {
+    return this.familiarService.findOne(cedula);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateFamiliarDto: UpdateFamiliarDto) {
-    return this.familiarService.update(+id, updateFamiliarDto);
+  @Patch(':cedula')
+  update(@Param('cedula', ParseIntPipe) cedula: number, @Body() updateFamiliarDto: UpdateFamiliarDto) {
+    return this.familiarService.update(cedula, updateFamiliarDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.familiarService.remove(+id);
+  @Delete(':cedula')
+  remove(@Param('cedula', ParseIntPipe) cedula: number) {
+    return this.familiarService.remove(cedula);
   }
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Delete } from '@nestjs/common';
 import { EdificacionService } from './edificacion.service';
 import { CreateEdificacionDto } from './dto/create-edificacion.dto';
 import { UpdateEdificacionDto } from './dto/update-edificacion.dto';
@@ -8,8 +8,8 @@ export class EdificacionController {
   constructor(private readonly edificacionService: EdificacionService) {}
 
   @Post()
-  create(@Body() createEdificacionDto: CreateEdificacionDto) {
-    return this.edificacionService.create(createEdificacionDto);
+  create(@Body() createDto: CreateEdificacionDto) {
+    return this.edificacionService.create(createDto);
   }
 
   @Get()
@@ -17,18 +17,21 @@ export class EdificacionController {
     return this.edificacionService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.edificacionService.findOne(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('find')
+  findOne(@Body() keys: any) {
+    return this.edificacionService.findOne(keys);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateEdificacionDto: UpdateEdificacionDto) {
-    return this.edificacionService.update(+id, updateEdificacionDto);
+  /** PK compuesta → { keys: {...}, data: {...} } */
+  @Patch()
+  update(@Body() body: { keys: any; data: UpdateEdificacionDto }) {
+    return this.edificacionService.update(body.keys, body.data);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.edificacionService.remove(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('delete')
+  remove(@Body() keys: any) {
+    return this.edificacionService.remove(keys);
   }
 }

@@ -17,18 +17,18 @@ export class OrganizacionExternaController {
     return this.organizacionExternaService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.organizacionExternaService.findOne(+id);
+  @Get(':nombre_entidad')
+  findOne(@Param('nombre_entidad') nombre_entidad: string) {
+    return this.organizacionExternaService.findOne(nombre_entidad);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateOrganizacionExternaDto: UpdateOrganizacionExternaDto) {
-    return this.organizacionExternaService.update(+id, updateOrganizacionExternaDto);
+  @Patch(':nombre_entidad')
+  update(@Param('nombre_entidad') nombre_entidad: string, @Body() updateOrganizacionExternaDto: UpdateOrganizacionExternaDto) {
+    return this.organizacionExternaService.update(nombre_entidad, updateOrganizacionExternaDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.organizacionExternaService.remove(+id);
+  @Delete(':nombre_entidad')
+  remove(@Param('nombre_entidad') nombre_entidad: string) {
+    return this.organizacionExternaService.remove(nombre_entidad);
   }
 }

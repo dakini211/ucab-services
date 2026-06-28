@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
 import { ServicioService } from './servicio.service';
 import { CreateServicioDto } from './dto/create-servicio.dto';
 import { UpdateServicioDto } from './dto/update-servicio.dto';
@@ -17,18 +17,18 @@ export class ServicioController {
     return this.servicioService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.servicioService.findOne(+id);
+  @Get(':id_servicio')
+  findOne(@Param('id_servicio', ParseIntPipe) id_servicio: number) {
+    return this.servicioService.findOne(id_servicio);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateServicioDto: UpdateServicioDto) {
-    return this.servicioService.update(+id, updateServicioDto);
+  @Patch(':id_servicio')
+  update(@Param('id_servicio', ParseIntPipe) id_servicio: number, @Body() updateServicioDto: UpdateServicioDto) {
+    return this.servicioService.update(id_servicio, updateServicioDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.servicioService.remove(+id);
+  @Delete(':id_servicio')
+  remove(@Param('id_servicio', ParseIntPipe) id_servicio: number) {
+    return this.servicioService.remove(id_servicio);
   }
 }

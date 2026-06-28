@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { CreateTasaCambioDto } from './dto/create-tasa-cambio.dto';
+import { UpdateTasaCambioDto } from './dto/update-tasa-cambio.dto';
 
 @Injectable()
 export class TasaCambioService {
   constructor(private prisma: PrismaService) {}
 
-  create(createDto: any) {
+  create(createDto: CreateTasaCambioDto) {
     return this.prisma.tasa_cambio.create({ data: createDto });
   }
 
@@ -13,19 +15,40 @@ export class TasaCambioService {
     return this.prisma.tasa_cambio.findMany();
   }
 
-  findOne(id: any) {
-    // TODO: Ajustar si la tabla usa llave primaria compuesta o si el ID no es número
-    return this.prisma.tasa_cambio.findUnique({ where: { id_miembro: BigInt(id) } as any });
+  findOne(keys: { moneda_origen: string; moneda_destino: string; fecha_vigencia: string }) {
+    return this.prisma.tasa_cambio.findUnique({
+      where: {
+        moneda_origen_moneda_destino_fecha_vigencia: {
+          moneda_origen: keys.moneda_origen,
+          moneda_destino: keys.moneda_destino,
+          fecha_vigencia: new Date(keys.fecha_vigencia),
+        },
+      },
+    });
   }
 
-  update(id: any, updateDto: any) {
+  update(keys: { moneda_origen: string; moneda_destino: string; fecha_vigencia: string }, updateDto: UpdateTasaCambioDto) {
     return this.prisma.tasa_cambio.update({
-      where: { id_miembro: BigInt(id) } as any,
+      where: {
+        moneda_origen_moneda_destino_fecha_vigencia: {
+          moneda_origen: keys.moneda_origen,
+          moneda_destino: keys.moneda_destino,
+          fecha_vigencia: new Date(keys.fecha_vigencia),
+        },
+      },
       data: updateDto,
     });
   }
 
-  remove(id: any) {
-    return this.prisma.tasa_cambio.delete({ where: { id_miembro: BigInt(id) } as any });
+  remove(keys: { moneda_origen: string; moneda_destino: string; fecha_vigencia: string }) {
+    return this.prisma.tasa_cambio.delete({
+      where: {
+        moneda_origen_moneda_destino_fecha_vigencia: {
+          moneda_origen: keys.moneda_origen,
+          moneda_destino: keys.moneda_destino,
+          fecha_vigencia: new Date(keys.fecha_vigencia),
+        },
+      },
+    });
   }
 }

@@ -8,8 +8,8 @@ export class BilleteraDigitalController {
   constructor(private readonly billeteraDigitalService: BilleteraDigitalService) {}
 
   @Post()
-  create(@Body() createBilleteraDigitalDto: CreateBilleteraDigitalDto) {
-    return this.billeteraDigitalService.create(createBilleteraDigitalDto);
+  create(@Body() createDto: CreateBilleteraDigitalDto) {
+    return this.billeteraDigitalService.create(createDto);
   }
 
   @Get()
@@ -17,18 +17,18 @@ export class BilleteraDigitalController {
     return this.billeteraDigitalService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.billeteraDigitalService.findOne(+id);
+  @Get(':uid')
+  findOne(@Param('uid') uid: string) {
+    return this.billeteraDigitalService.findOne(uid);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateBilleteraDigitalDto: UpdateBilleteraDigitalDto) {
-    return this.billeteraDigitalService.update(+id, updateBilleteraDigitalDto);
+  @Patch(':uid')
+  update(@Param('uid') uid: string, @Body() updateDto: UpdateBilleteraDigitalDto) {
+    return this.billeteraDigitalService.update(uid, updateDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.billeteraDigitalService.remove(+id);
+  @Delete(':uid')
+  remove(@Param('uid') uid: string) {
+    return this.billeteraDigitalService.remove(uid);
   }
 }

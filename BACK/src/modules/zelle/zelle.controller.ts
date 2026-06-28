@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Delete } from '@nestjs/common';
 import { ZelleService } from './zelle.service';
 import { CreateZelleDto } from './dto/create-zelle.dto';
 import { UpdateZelleDto } from './dto/update-zelle.dto';
@@ -8,8 +8,8 @@ export class ZelleController {
   constructor(private readonly zelleService: ZelleService) {}
 
   @Post()
-  create(@Body() createZelleDto: CreateZelleDto) {
-    return this.zelleService.create(createZelleDto);
+  create(@Body() createDto: CreateZelleDto) {
+    return this.zelleService.create(createDto);
   }
 
   @Get()
@@ -17,18 +17,21 @@ export class ZelleController {
     return this.zelleService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.zelleService.findOne(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('find')
+  findOne(@Body() keys: any) {
+    return this.zelleService.findOne(keys);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateZelleDto: UpdateZelleDto) {
-    return this.zelleService.update(+id, updateZelleDto);
+  /** PK compuesta → { keys: {...}, data: {...} } */
+  @Patch()
+  update(@Body() body: { keys: any; data: UpdateZelleDto }) {
+    return this.zelleService.update(body.keys, body.data);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.zelleService.remove(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('delete')
+  remove(@Body() keys: any) {
+    return this.zelleService.remove(keys);
   }
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Delete } from '@nestjs/common';
 import { OfertaService } from './oferta.service';
 import { CreateOfertaDto } from './dto/create-oferta.dto';
 import { UpdateOfertaDto } from './dto/update-oferta.dto';
@@ -8,8 +8,8 @@ export class OfertaController {
   constructor(private readonly ofertaService: OfertaService) {}
 
   @Post()
-  create(@Body() createOfertaDto: CreateOfertaDto) {
-    return this.ofertaService.create(createOfertaDto);
+  create(@Body() createDto: CreateOfertaDto) {
+    return this.ofertaService.create(createDto);
   }
 
   @Get()
@@ -17,18 +17,21 @@ export class OfertaController {
     return this.ofertaService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.ofertaService.findOne(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('find')
+  findOne(@Body() keys: any) {
+    return this.ofertaService.findOne(keys);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateOfertaDto: UpdateOfertaDto) {
-    return this.ofertaService.update(+id, updateOfertaDto);
+  /** PK compuesta → { keys: {...}, data: {...} } */
+  @Patch()
+  update(@Body() body: { keys: any; data: UpdateOfertaDto }) {
+    return this.ofertaService.update(body.keys, body.data);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.ofertaService.remove(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('delete')
+  remove(@Body() keys: any) {
+    return this.ofertaService.remove(keys);
   }
 }

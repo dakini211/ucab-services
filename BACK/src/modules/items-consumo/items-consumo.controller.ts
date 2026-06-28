@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Delete } from '@nestjs/common';
 import { ItemsConsumoService } from './items-consumo.service';
 import { CreateItemsConsumoDto } from './dto/create-items-consumo.dto';
 import { UpdateItemsConsumoDto } from './dto/update-items-consumo.dto';
@@ -8,8 +8,8 @@ export class ItemsConsumoController {
   constructor(private readonly itemsConsumoService: ItemsConsumoService) {}
 
   @Post()
-  create(@Body() createItemsConsumoDto: CreateItemsConsumoDto) {
-    return this.itemsConsumoService.create(createItemsConsumoDto);
+  create(@Body() createDto: CreateItemsConsumoDto) {
+    return this.itemsConsumoService.create(createDto);
   }
 
   @Get()
@@ -17,18 +17,21 @@ export class ItemsConsumoController {
     return this.itemsConsumoService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.itemsConsumoService.findOne(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('find')
+  findOne(@Body() keys: any) {
+    return this.itemsConsumoService.findOne(keys);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateItemsConsumoDto: UpdateItemsConsumoDto) {
-    return this.itemsConsumoService.update(+id, updateItemsConsumoDto);
+  /** PK compuesta → { keys: {...}, data: {...} } */
+  @Patch()
+  update(@Body() body: { keys: any; data: UpdateItemsConsumoDto }) {
+    return this.itemsConsumoService.update(body.keys, body.data);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.itemsConsumoService.remove(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('delete')
+  remove(@Body() keys: any) {
+    return this.itemsConsumoService.remove(keys);
   }
 }

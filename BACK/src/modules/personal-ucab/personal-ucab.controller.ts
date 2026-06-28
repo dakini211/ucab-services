@@ -8,8 +8,8 @@ export class PersonalUcabController {
   constructor(private readonly personalUcabService: PersonalUcabService) {}
 
   @Post()
-  create(@Body() createPersonalUcabDto: CreatePersonalUcabDto) {
-    return this.personalUcabService.create(createPersonalUcabDto);
+  create(@Body() createDto: CreatePersonalUcabDto) {
+    return this.personalUcabService.create(createDto);
   }
 
   @Get()
@@ -17,18 +17,18 @@ export class PersonalUcabController {
     return this.personalUcabService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.personalUcabService.findOne(+id);
+  @Get(':id_miembro')
+  findOne(@Param('id_miembro') id_miembro: string) {
+    return this.personalUcabService.findOne(id_miembro);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePersonalUcabDto: UpdatePersonalUcabDto) {
-    return this.personalUcabService.update(+id, updatePersonalUcabDto);
+  @Patch(':id_miembro')
+  update(@Param('id_miembro') id_miembro: string, @Body() updateDto: UpdatePersonalUcabDto) {
+    return this.personalUcabService.update(id_miembro, updateDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.personalUcabService.remove(+id);
+  @Delete(':id_miembro')
+  remove(@Param('id_miembro') id_miembro: string) {
+    return this.personalUcabService.remove(id_miembro);
   }
 }

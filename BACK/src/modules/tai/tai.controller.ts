@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Delete } from '@nestjs/common';
 import { TaiService } from './tai.service';
 import { CreateTaiDto } from './dto/create-tai.dto';
 import { UpdateTaiDto } from './dto/update-tai.dto';
@@ -8,8 +8,8 @@ export class TaiController {
   constructor(private readonly taiService: TaiService) {}
 
   @Post()
-  create(@Body() createTaiDto: CreateTaiDto) {
-    return this.taiService.create(createTaiDto);
+  create(@Body() createDto: CreateTaiDto) {
+    return this.taiService.create(createDto);
   }
 
   @Get()
@@ -17,18 +17,21 @@ export class TaiController {
     return this.taiService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.taiService.findOne(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('find')
+  findOne(@Body() keys: any) {
+    return this.taiService.findOne(keys);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTaiDto: UpdateTaiDto) {
-    return this.taiService.update(+id, updateTaiDto);
+  /** PK compuesta → { keys: {...}, data: {...} } */
+  @Patch()
+  update(@Body() body: { keys: any; data: UpdateTaiDto }) {
+    return this.taiService.update(body.keys, body.data);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.taiService.remove(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('delete')
+  remove(@Body() keys: any) {
+    return this.taiService.remove(keys);
   }
 }

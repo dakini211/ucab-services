@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Delete } from '@nestjs/common';
 import { HistorialMiembroService } from './historial-miembro.service';
 import { CreateHistorialMiembroDto } from './dto/create-historial-miembro.dto';
 import { UpdateHistorialMiembroDto } from './dto/update-historial-miembro.dto';
@@ -8,8 +8,8 @@ export class HistorialMiembroController {
   constructor(private readonly historialMiembroService: HistorialMiembroService) {}
 
   @Post()
-  create(@Body() createHistorialMiembroDto: CreateHistorialMiembroDto) {
-    return this.historialMiembroService.create(createHistorialMiembroDto);
+  create(@Body() createDto: CreateHistorialMiembroDto) {
+    return this.historialMiembroService.create(createDto);
   }
 
   @Get()
@@ -17,18 +17,21 @@ export class HistorialMiembroController {
     return this.historialMiembroService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.historialMiembroService.findOne(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('find')
+  findOne(@Body() keys: any) {
+    return this.historialMiembroService.findOne(keys);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateHistorialMiembroDto: UpdateHistorialMiembroDto) {
-    return this.historialMiembroService.update(+id, updateHistorialMiembroDto);
+  /** PK compuesta → { keys: {...}, data: {...} } */
+  @Patch()
+  update(@Body() body: { keys: any; data: UpdateHistorialMiembroDto }) {
+    return this.historialMiembroService.update(body.keys, body.data);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.historialMiembroService.remove(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('delete')
+  remove(@Body() keys: any) {
+    return this.historialMiembroService.remove(keys);
   }
 }

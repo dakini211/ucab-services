@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Delete } from '@nestjs/common';
 import { EspacioFisicoService } from './espacio-fisico.service';
 import { CreateEspacioFisicoDto } from './dto/create-espacio-fisico.dto';
 import { UpdateEspacioFisicoDto } from './dto/update-espacio-fisico.dto';
@@ -8,8 +8,8 @@ export class EspacioFisicoController {
   constructor(private readonly espacioFisicoService: EspacioFisicoService) {}
 
   @Post()
-  create(@Body() createEspacioFisicoDto: CreateEspacioFisicoDto) {
-    return this.espacioFisicoService.create(createEspacioFisicoDto);
+  create(@Body() createDto: CreateEspacioFisicoDto) {
+    return this.espacioFisicoService.create(createDto);
   }
 
   @Get()
@@ -17,18 +17,21 @@ export class EspacioFisicoController {
     return this.espacioFisicoService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.espacioFisicoService.findOne(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('find')
+  findOne(@Body() keys: any) {
+    return this.espacioFisicoService.findOne(keys);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateEspacioFisicoDto: UpdateEspacioFisicoDto) {
-    return this.espacioFisicoService.update(+id, updateEspacioFisicoDto);
+  /** PK compuesta → { keys: {...}, data: {...} } */
+  @Patch()
+  update(@Body() body: { keys: any; data: UpdateEspacioFisicoDto }) {
+    return this.espacioFisicoService.update(body.keys, body.data);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.espacioFisicoService.remove(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('delete')
+  remove(@Body() keys: any) {
+    return this.espacioFisicoService.remove(keys);
   }
 }

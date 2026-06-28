@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { CreateServicioDto } from './dto/create-servicio.dto';
+import { UpdateServicioDto } from './dto/update-servicio.dto';
 
 @Injectable()
 export class ServicioService {
   constructor(private prisma: PrismaService) {}
 
-  create(createDto: any) {
+  create(createDto: CreateServicioDto) {
     return this.prisma.servicio.create({ data: createDto });
   }
 
@@ -13,19 +15,15 @@ export class ServicioService {
     return this.prisma.servicio.findMany();
   }
 
-  findOne(id: any) {
-    // TODO: Ajustar si la tabla usa llave primaria compuesta o si el ID no es número
-    return this.prisma.servicio.findUnique({ where: { id_miembro: BigInt(id) } as any });
+  findOne(id_servicio: number) {
+    return this.prisma.servicio.findUnique({ where: { id_servicio } });
   }
 
-  update(id: any, updateDto: any) {
-    return this.prisma.servicio.update({
-      where: { id_miembro: BigInt(id) } as any,
-      data: updateDto,
-    });
+  update(id_servicio: number, updateDto: UpdateServicioDto) {
+    return this.prisma.servicio.update({ where: { id_servicio }, data: updateDto });
   }
 
-  remove(id: any) {
-    return this.prisma.servicio.delete({ where: { id_miembro: BigInt(id) } as any });
+  remove(id_servicio: number) {
+    return this.prisma.servicio.delete({ where: { id_servicio } });
   }
 }

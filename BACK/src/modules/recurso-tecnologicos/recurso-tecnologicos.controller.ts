@@ -1,15 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Delete } from '@nestjs/common';
 import { RecursoTecnologicosService } from './recurso-tecnologicos.service';
-import { CreateRecursoTecnologicoDto } from './dto/create-recurso-tecnologico.dto';
-import { UpdateRecursoTecnologicoDto } from './dto/update-recurso-tecnologico.dto';
+import { CreateRecursoTecnologicosDto } from './dto/create-recurso-tecnologicos.dto';
+import { UpdateRecursoTecnologicosDto } from './dto/update-recurso-tecnologicos.dto';
 
 @Controller('recurso-tecnologicos')
 export class RecursoTecnologicosController {
   constructor(private readonly recursoTecnologicosService: RecursoTecnologicosService) {}
 
   @Post()
-  create(@Body() createRecursoTecnologicoDto: CreateRecursoTecnologicoDto) {
-    return this.recursoTecnologicosService.create(createRecursoTecnologicoDto);
+  create(@Body() createDto: CreateRecursoTecnologicosDto) {
+    return this.recursoTecnologicosService.create(createDto);
   }
 
   @Get()
@@ -17,18 +17,21 @@ export class RecursoTecnologicosController {
     return this.recursoTecnologicosService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.recursoTecnologicosService.findOne(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('find')
+  findOne(@Body() keys: any) {
+    return this.recursoTecnologicosService.findOne(keys);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateRecursoTecnologicoDto: UpdateRecursoTecnologicoDto) {
-    return this.recursoTecnologicosService.update(+id, updateRecursoTecnologicoDto);
+  /** PK compuesta → { keys: {...}, data: {...} } */
+  @Patch()
+  update(@Body() body: { keys: any; data: UpdateRecursoTecnologicosDto }) {
+    return this.recursoTecnologicosService.update(body.keys, body.data);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.recursoTecnologicosService.remove(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('delete')
+  remove(@Body() keys: any) {
+    return this.recursoTecnologicosService.remove(keys);
   }
 }

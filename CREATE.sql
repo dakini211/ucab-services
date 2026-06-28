@@ -118,7 +118,7 @@ CREATE TABLE Administrativo (
 -- 3. BLOQUE: FAMILIARES Y CARGAS
 --------------------------------------------------------------------------------
 CREATE TABLE Familiar (
-    cedula VARCHAR(15) PRIMARY KEY,             
+    cedula INTEGER PRIMARY KEY,             
     id_personal_ucab BIGINT NOT NULL,          
     nombre_familiar VARCHAR(100) NOT NULL,      
     parentesco VARCHAR(50) NOT NULL,            
@@ -132,7 +132,7 @@ CREATE TABLE Familiar (
 );
 
 CREATE TABLE cargo_mayor (
-    cedula VARCHAR(15) PRIMARY KEY,             
+    cedula INTEGER PRIMARY KEY,             
     estudios VARCHAR(150) NOT NULL,             
     
     CONSTRAINT fk_mayor_familiar FOREIGN KEY (cedula)
@@ -140,7 +140,7 @@ CREATE TABLE cargo_mayor (
 );
 
 CREATE TABLE cargo_menor (
-    cedula VARCHAR(15) PRIMARY KEY,             
+    cedula INTEGER PRIMARY KEY,             
     vacunacion TEXT,                            
     educacion_inicial VARCHAR(150),             
     

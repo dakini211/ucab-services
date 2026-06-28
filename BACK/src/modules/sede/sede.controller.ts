@@ -17,18 +17,18 @@ export class SedeController {
     return this.sedeService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.sedeService.findOne(+id);
+  @Get(':nombre_sede')
+  findOne(@Param('nombre_sede') nombre_sede: string) {
+    return this.sedeService.findOne(nombre_sede);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSedeDto: UpdateSedeDto) {
-    return this.sedeService.update(+id, updateSedeDto);
+  @Patch(':nombre_sede')
+  update(@Param('nombre_sede') nombre_sede: string, @Body() updateSedeDto: UpdateSedeDto) {
+    return this.sedeService.update(nombre_sede, updateSedeDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.sedeService.remove(+id);
+  @Delete(':nombre_sede')
+  remove(@Param('nombre_sede') nombre_sede: string) {
+    return this.sedeService.remove(nombre_sede);
   }
 }

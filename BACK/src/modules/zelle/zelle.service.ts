@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { CreateZelleDto } from './dto/create-zelle.dto';
+import { UpdateZelleDto } from './dto/update-zelle.dto';
 
 @Injectable()
 export class ZelleService {
   constructor(private prisma: PrismaService) {}
 
-  create(createDto: any) {
+  create(createDto: CreateZelleDto) {
     return this.prisma.zelle.create({ data: createDto });
   }
 
@@ -13,19 +15,37 @@ export class ZelleService {
     return this.prisma.zelle.findMany();
   }
 
-  findOne(id: any) {
-    // TODO: Ajustar si la tabla usa llave primaria compuesta o si el ID no es número
-    return this.prisma.zelle.findUnique({ where: { id_miembro: BigInt(id) } as any });
+  findOne(keys: { numero_de_control: string; fecha_operacion: string }) {
+    return this.prisma.zelle.findUnique({
+      where: {
+        numero_de_control_fecha_operacion: {
+          numero_de_control: keys.numero_de_control,
+          fecha_operacion: new Date(keys.fecha_operacion),
+        },
+      },
+    });
   }
 
-  update(id: any, updateDto: any) {
+  update(keys: { numero_de_control: string; fecha_operacion: string }, updateDto: UpdateZelleDto) {
     return this.prisma.zelle.update({
-      where: { id_miembro: BigInt(id) } as any,
+      where: {
+        numero_de_control_fecha_operacion: {
+          numero_de_control: keys.numero_de_control,
+          fecha_operacion: new Date(keys.fecha_operacion),
+        },
+      },
       data: updateDto,
     });
   }
 
-  remove(id: any) {
-    return this.prisma.zelle.delete({ where: { id_miembro: BigInt(id) } as any });
+  remove(keys: { numero_de_control: string; fecha_operacion: string }) {
+    return this.prisma.zelle.delete({
+      where: {
+        numero_de_control_fecha_operacion: {
+          numero_de_control: keys.numero_de_control,
+          fecha_operacion: new Date(keys.fecha_operacion),
+        },
+      },
+    });
   }
 }

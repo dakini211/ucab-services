@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Delete } from '@nestjs/common';
 import { ObtieneService } from './obtiene.service';
 import { CreateObtieneDto } from './dto/create-obtiene.dto';
 import { UpdateObtieneDto } from './dto/update-obtiene.dto';
@@ -8,8 +8,8 @@ export class ObtieneController {
   constructor(private readonly obtieneService: ObtieneService) {}
 
   @Post()
-  create(@Body() createObtieneDto: CreateObtieneDto) {
-    return this.obtieneService.create(createObtieneDto);
+  create(@Body() createDto: CreateObtieneDto) {
+    return this.obtieneService.create(createDto);
   }
 
   @Get()
@@ -17,18 +17,21 @@ export class ObtieneController {
     return this.obtieneService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.obtieneService.findOne(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('find')
+  findOne(@Body() keys: any) {
+    return this.obtieneService.findOne(keys);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateObtieneDto: UpdateObtieneDto) {
-    return this.obtieneService.update(+id, updateObtieneDto);
+  /** PK compuesta → { keys: {...}, data: {...} } */
+  @Patch()
+  update(@Body() body: { keys: any; data: UpdateObtieneDto }) {
+    return this.obtieneService.update(body.keys, body.data);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.obtieneService.remove(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('delete')
+  remove(@Body() keys: any) {
+    return this.obtieneService.remove(keys);
   }
 }

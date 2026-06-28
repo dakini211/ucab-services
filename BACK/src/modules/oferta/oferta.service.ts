@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { CreateOfertaDto } from './dto/create-oferta.dto';
+import { UpdateOfertaDto } from './dto/update-oferta.dto';
 
 @Injectable()
 export class OfertaService {
   constructor(private prisma: PrismaService) {}
 
-  create(createDto: any) {
+  create(createDto: CreateOfertaDto) {
     return this.prisma.oferta.create({ data: createDto });
   }
 
@@ -13,19 +15,40 @@ export class OfertaService {
     return this.prisma.oferta.findMany();
   }
 
-  findOne(id: any) {
-    // TODO: Ajustar si la tabla usa llave primaria compuesta o si el ID no es número
-    return this.prisma.oferta.findUnique({ where: { id_miembro: BigInt(id) } as any });
+  findOne(keys: { nombre_entidad: string; cargo: string; id_miembro: number }) {
+    return this.prisma.oferta.findUnique({
+      where: {
+        nombre_entidad_cargo_id_miembro: {
+          nombre_entidad: keys.nombre_entidad,
+          cargo: keys.cargo,
+          id_miembro: BigInt(keys.id_miembro),
+        },
+      },
+    });
   }
 
-  update(id: any, updateDto: any) {
+  update(keys: { nombre_entidad: string; cargo: string; id_miembro: number }, updateDto: UpdateOfertaDto) {
     return this.prisma.oferta.update({
-      where: { id_miembro: BigInt(id) } as any,
+      where: {
+        nombre_entidad_cargo_id_miembro: {
+          nombre_entidad: keys.nombre_entidad,
+          cargo: keys.cargo,
+          id_miembro: BigInt(keys.id_miembro),
+        },
+      },
       data: updateDto,
     });
   }
 
-  remove(id: any) {
-    return this.prisma.oferta.delete({ where: { id_miembro: BigInt(id) } as any });
+  remove(keys: { nombre_entidad: string; cargo: string; id_miembro: number }) {
+    return this.prisma.oferta.delete({
+      where: {
+        nombre_entidad_cargo_id_miembro: {
+          nombre_entidad: keys.nombre_entidad,
+          cargo: keys.cargo,
+          id_miembro: BigInt(keys.id_miembro),
+        },
+      },
+    });
   }
 }

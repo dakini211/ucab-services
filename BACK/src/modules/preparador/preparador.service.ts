@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { CreatePreparadorDto } from './dto/create-preparador.dto';
+import { UpdatePreparadorDto } from './dto/update-preparador.dto';
 
 @Injectable()
 export class PreparadorService {
   constructor(private prisma: PrismaService) {}
 
-  create(createDto: any) {
+  create(createDto: CreatePreparadorDto) {
     return this.prisma.preparador.create({ data: createDto });
   }
 
@@ -13,19 +15,18 @@ export class PreparadorService {
     return this.prisma.preparador.findMany();
   }
 
-  findOne(id: any) {
-    // TODO: Ajustar si la tabla usa llave primaria compuesta o si el ID no es número
-    return this.prisma.preparador.findUnique({ where: { id_miembro: BigInt(id) } as any });
+  findOne(id_miembro: string | number) {
+    return this.prisma.preparador.findUnique({ where: { id_miembro: BigInt(id_miembro) } });
   }
 
-  update(id: any, updateDto: any) {
+  update(id_miembro: string | number, updateDto: UpdatePreparadorDto) {
     return this.prisma.preparador.update({
-      where: { id_miembro: BigInt(id) } as any,
+      where: { id_miembro: BigInt(id_miembro) },
       data: updateDto,
     });
   }
 
-  remove(id: any) {
-    return this.prisma.preparador.delete({ where: { id_miembro: BigInt(id) } as any });
+  remove(id_miembro: string | number) {
+    return this.prisma.preparador.delete({ where: { id_miembro: BigInt(id_miembro) } });
   }
 }

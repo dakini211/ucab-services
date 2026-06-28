@@ -1,1 +1,4 @@
-export class CreateCargoMayorDto {}
+export class CreateCargoMayorDto {
+  cedula: number;
+  estudios: string;
+}

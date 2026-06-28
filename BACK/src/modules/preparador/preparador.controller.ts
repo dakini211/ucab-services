@@ -8,8 +8,8 @@ export class PreparadorController {
   constructor(private readonly preparadorService: PreparadorService) {}
 
   @Post()
-  create(@Body() createPreparadorDto: CreatePreparadorDto) {
-    return this.preparadorService.create(createPreparadorDto);
+  create(@Body() createDto: CreatePreparadorDto) {
+    return this.preparadorService.create(createDto);
   }
 
   @Get()
@@ -17,18 +17,18 @@ export class PreparadorController {
     return this.preparadorService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.preparadorService.findOne(+id);
+  @Get(':id_miembro')
+  findOne(@Param('id_miembro') id_miembro: string) {
+    return this.preparadorService.findOne(id_miembro);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePreparadorDto: UpdatePreparadorDto) {
-    return this.preparadorService.update(+id, updatePreparadorDto);
+  @Patch(':id_miembro')
+  update(@Param('id_miembro') id_miembro: string, @Body() updateDto: UpdatePreparadorDto) {
+    return this.preparadorService.update(id_miembro, updateDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.preparadorService.remove(+id);
+  @Delete(':id_miembro')
+  remove(@Param('id_miembro') id_miembro: string) {
+    return this.preparadorService.remove(id_miembro);
   }
 }

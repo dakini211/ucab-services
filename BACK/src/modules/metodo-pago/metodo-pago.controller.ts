@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Delete } from '@nestjs/common';
 import { MetodoPagoService } from './metodo-pago.service';
 import { CreateMetodoPagoDto } from './dto/create-metodo-pago.dto';
 import { UpdateMetodoPagoDto } from './dto/update-metodo-pago.dto';
@@ -8,8 +8,8 @@ export class MetodoPagoController {
   constructor(private readonly metodoPagoService: MetodoPagoService) {}
 
   @Post()
-  create(@Body() createMetodoPagoDto: CreateMetodoPagoDto) {
-    return this.metodoPagoService.create(createMetodoPagoDto);
+  create(@Body() createDto: CreateMetodoPagoDto) {
+    return this.metodoPagoService.create(createDto);
   }
 
   @Get()
@@ -17,18 +17,21 @@ export class MetodoPagoController {
     return this.metodoPagoService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.metodoPagoService.findOne(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('find')
+  findOne(@Body() keys: any) {
+    return this.metodoPagoService.findOne(keys);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateMetodoPagoDto: UpdateMetodoPagoDto) {
-    return this.metodoPagoService.update(+id, updateMetodoPagoDto);
+  /** PK compuesta → { keys: {...}, data: {...} } */
+  @Patch()
+  update(@Body() body: { keys: any; data: UpdateMetodoPagoDto }) {
+    return this.metodoPagoService.update(body.keys, body.data);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.metodoPagoService.remove(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('delete')
+  remove(@Body() keys: any) {
+    return this.metodoPagoService.remove(keys);
   }
 }

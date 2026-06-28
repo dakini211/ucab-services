@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { CreateOperaDto } from './dto/create-opera.dto';
+import { UpdateOperaDto } from './dto/update-opera.dto';
 
 @Injectable()
 export class OperaService {
   constructor(private prisma: PrismaService) {}
 
-  create(createDto: any) {
+  create(createDto: CreateOperaDto) {
     return this.prisma.opera.create({ data: createDto });
   }
 
@@ -13,19 +15,15 @@ export class OperaService {
     return this.prisma.opera.findMany();
   }
 
-  findOne(id: any) {
-    // TODO: Ajustar si la tabla usa llave primaria compuesta o si el ID no es número
-    return this.prisma.opera.findUnique({ where: { id_miembro: BigInt(id) } as any });
+  findOne(nombre_entidad: string) {
+    return this.prisma.opera.findUnique({ where: { nombre_entidad } });
   }
 
-  update(id: any, updateDto: any) {
-    return this.prisma.opera.update({
-      where: { id_miembro: BigInt(id) } as any,
-      data: updateDto,
-    });
+  update(nombre_entidad: string, updateDto: UpdateOperaDto) {
+    return this.prisma.opera.update({ where: { nombre_entidad }, data: updateDto });
   }
 
-  remove(id: any) {
-    return this.prisma.opera.delete({ where: { id_miembro: BigInt(id) } as any });
+  remove(nombre_entidad: string) {
+    return this.prisma.opera.delete({ where: { nombre_entidad } });
   }
 }

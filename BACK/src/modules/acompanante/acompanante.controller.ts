@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Delete } from '@nestjs/common';
 import { AcompananteService } from './acompanante.service';
 import { CreateAcompananteDto } from './dto/create-acompanante.dto';
 import { UpdateAcompananteDto } from './dto/update-acompanante.dto';
@@ -8,8 +8,8 @@ export class AcompananteController {
   constructor(private readonly acompananteService: AcompananteService) {}
 
   @Post()
-  create(@Body() createAcompananteDto: CreateAcompananteDto) {
-    return this.acompananteService.create(createAcompananteDto);
+  create(@Body() createDto: CreateAcompananteDto) {
+    return this.acompananteService.create(createDto);
   }
 
   @Get()
@@ -17,18 +17,21 @@ export class AcompananteController {
     return this.acompananteService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.acompananteService.findOne(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('find')
+  findOne(@Body() keys: any) {
+    return this.acompananteService.findOne(keys);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAcompananteDto: UpdateAcompananteDto) {
-    return this.acompananteService.update(+id, updateAcompananteDto);
+  /** PK compuesta → { keys: {...}, data: {...} } */
+  @Patch()
+  update(@Body() body: { keys: any; data: UpdateAcompananteDto }) {
+    return this.acompananteService.update(body.keys, body.data);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.acompananteService.remove(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('delete')
+  remove(@Body() keys: any) {
+    return this.acompananteService.remove(keys);
   }
 }

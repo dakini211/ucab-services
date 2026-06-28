@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Delete } from '@nestjs/common';
 import { EfectivoService } from './efectivo.service';
 import { CreateEfectivoDto } from './dto/create-efectivo.dto';
 import { UpdateEfectivoDto } from './dto/update-efectivo.dto';
@@ -8,8 +8,8 @@ export class EfectivoController {
   constructor(private readonly efectivoService: EfectivoService) {}
 
   @Post()
-  create(@Body() createEfectivoDto: CreateEfectivoDto) {
-    return this.efectivoService.create(createEfectivoDto);
+  create(@Body() createDto: CreateEfectivoDto) {
+    return this.efectivoService.create(createDto);
   }
 
   @Get()
@@ -17,18 +17,21 @@ export class EfectivoController {
     return this.efectivoService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.efectivoService.findOne(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('find')
+  findOne(@Body() keys: any) {
+    return this.efectivoService.findOne(keys);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateEfectivoDto: UpdateEfectivoDto) {
-    return this.efectivoService.update(+id, updateEfectivoDto);
+  /** PK compuesta → { keys: {...}, data: {...} } */
+  @Patch()
+  update(@Body() body: { keys: any; data: UpdateEfectivoDto }) {
+    return this.efectivoService.update(body.keys, body.data);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.efectivoService.remove(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('delete')
+  remove(@Body() keys: any) {
+    return this.efectivoService.remove(keys);
   }
 }

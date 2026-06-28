@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Delete } from '@nestjs/common';
 import { HistoricoTarifaService } from './historico-tarifa.service';
 import { CreateHistoricoTarifaDto } from './dto/create-historico-tarifa.dto';
 import { UpdateHistoricoTarifaDto } from './dto/update-historico-tarifa.dto';
@@ -8,8 +8,8 @@ export class HistoricoTarifaController {
   constructor(private readonly historicoTarifaService: HistoricoTarifaService) {}
 
   @Post()
-  create(@Body() createHistoricoTarifaDto: CreateHistoricoTarifaDto) {
-    return this.historicoTarifaService.create(createHistoricoTarifaDto);
+  create(@Body() createDto: CreateHistoricoTarifaDto) {
+    return this.historicoTarifaService.create(createDto);
   }
 
   @Get()
@@ -17,18 +17,21 @@ export class HistoricoTarifaController {
     return this.historicoTarifaService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.historicoTarifaService.findOne(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('find')
+  findOne(@Body() keys: any) {
+    return this.historicoTarifaService.findOne(keys);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateHistoricoTarifaDto: UpdateHistoricoTarifaDto) {
-    return this.historicoTarifaService.update(+id, updateHistoricoTarifaDto);
+  /** PK compuesta → { keys: {...}, data: {...} } */
+  @Patch()
+  update(@Body() body: { keys: any; data: UpdateHistoricoTarifaDto }) {
+    return this.historicoTarifaService.update(body.keys, body.data);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.historicoTarifaService.remove(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('delete')
+  remove(@Body() keys: any) {
+    return this.historicoTarifaService.remove(keys);
   }
 }

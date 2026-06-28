@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Delete } from '@nestjs/common';
 import { TasaCambioService } from './tasa-cambio.service';
 import { CreateTasaCambioDto } from './dto/create-tasa-cambio.dto';
 import { UpdateTasaCambioDto } from './dto/update-tasa-cambio.dto';
@@ -8,8 +8,8 @@ export class TasaCambioController {
   constructor(private readonly tasaCambioService: TasaCambioService) {}
 
   @Post()
-  create(@Body() createTasaCambioDto: CreateTasaCambioDto) {
-    return this.tasaCambioService.create(createTasaCambioDto);
+  create(@Body() createDto: CreateTasaCambioDto) {
+    return this.tasaCambioService.create(createDto);
   }
 
   @Get()
@@ -17,18 +17,21 @@ export class TasaCambioController {
     return this.tasaCambioService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.tasaCambioService.findOne(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('find')
+  findOne(@Body() keys: any) {
+    return this.tasaCambioService.findOne(keys);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTasaCambioDto: UpdateTasaCambioDto) {
-    return this.tasaCambioService.update(+id, updateTasaCambioDto);
+  /** PK compuesta → { keys: {...}, data: {...} } */
+  @Patch()
+  update(@Body() body: { keys: any; data: UpdateTasaCambioDto }) {
+    return this.tasaCambioService.update(body.keys, body.data);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.tasaCambioService.remove(+id);
+  /** PK compuesta → recibe los campos clave en el body */
+  @Post('delete')
+  remove(@Body() keys: any) {
+    return this.tasaCambioService.remove(keys);
   }
 }
