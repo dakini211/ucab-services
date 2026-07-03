@@ -101,3 +101,60 @@ VALUES
 INSERT INTO Administrativo (id_miembro, carga_horaria_semanal, unidad_presupuestaria)
 VALUES
 (7, 40, 'Dirección de Servicios Estudiantiles');
+
+
+--------------------------------------------------------------------------------
+-- 1. SEDES (Si no las tienes ya insertadas)
+--------------------------------------------------------------------------------
+INSERT INTO Sede (nombre_sede, tarifa_min, tarifa_max) VALUES
+('Sede Montalbán', 10.00, 500.00),
+('Sede Guayana', 8.00, 350.00);
+
+--------------------------------------------------------------------------------
+-- 2. ENTIDADES PRESTADORAS (Clase Padre)
+--------------------------------------------------------------------------------
+INSERT INTO Entidad_Prestadora (nombre_entidad, categoria, ajuste) VALUES
+('Dirección de Tecnología', 'Tecnología e Informática', 'Sin ajuste aplicable'),
+('Centro de Innovación y Emprendimiento', 'Académico e Investigación', 'Ajuste semestral 5%'),
+('Banco Mercantil C.A.', 'Servicios Financieros', 'Ajuste anual según BCV'),
+('Empresas Polar', 'Consumo Masivo', 'Acuerdo corporativo cerrado');
+
+--------------------------------------------------------------------------------
+-- 3. TABLA PUENTE "OPERA" (Relación Entidad - Sede)
+--------------------------------------------------------------------------------
+INSERT INTO Opera (nombre_entidad, nombre_sede) VALUES
+('Dirección de Tecnología', 'Sede Montalbán'),
+('Centro de Innovación y Emprendimiento', 'Sede Montalbán'),
+('Banco Mercantil C.A.', 'Sede Montalbán'),
+('Empresas Polar', 'Sede Guayana');
+
+--------------------------------------------------------------------------------
+-- 4. ENTIDADES PROPIAS (Subclase)
+--------------------------------------------------------------------------------
+INSERT INTO Entidad_Propia (nombre_entidad, cod_presupuestario, dir_oficina) VALUES
+('Dirección de Tecnología', 'UCAB-TEC-001', 'Edificio Cincuentenario, Piso 3, Oficina 301'),
+('Centro de Innovación y Emprendimiento', 'UCAB-INV-002', 'Centro Cultural, Planta Baja, Local 2');
+
+--------------------------------------------------------------------------------
+-- 5. ORGANIZACIONES EXTERNAS (Subclase)
+-- Ojo: Noté que en tu CREATE tienes el campo como "contacto_lega", lo mantuve igual.
+--------------------------------------------------------------------------------
+INSERT INTO Organizacion_externa (nombre_entidad, rif, razon_social, precio_institucional, fecha_contrato, contacto_lega) VALUES
+('Banco Mercantil C.A.', 'J-00002961-0', 'Banco Mercantil, C.A., Banco Universal', 150.00, '2023-01-15', 'asuntoslegales@mercantil.com'),
+('Empresas Polar', 'J-00006372-9', 'Cervecería Polar C.A.', 200.00, '2022-11-20', 'rrhh.legal@polar.com');
+
+--------------------------------------------------------------------------------
+-- 6. OFERTAS LABORALES (Ancladas sólo a Organizaciones Externas según tu FK)
+--------------------------------------------------------------------------------
+INSERT INTO Oferta_laboral (nombre_entidad, cargo, responsabilidades, beneficios, perfil_buscado, fecha_oferta, estatus_vacante) VALUES
+('Banco Mercantil C.A.', 'Analista de Datos Jr', 'Manejo de SQL, creación de dashboards y optimización de consultas.', 'Seguro HCM, Bono de alimentación, Excelente clima laboral.', 'Estudiante de últimos semestres de Ingeniería Informática.', '2026-06-01', 'disponible'),
+('Empresas Polar', 'Pasante de Logística', 'Apoyo en control de inventario y cadena de suministros.', 'Bono de transporte, comedor, posibilidad de contrato.', 'Estudiante de Ingeniería Industrial proactivo.', '2026-06-15', 'disponible');
+
+--------------------------------------------------------------------------------
+-- 7. OFERTA (Postulaciones de los Miembros)
+-- Asumiendo que el id_miembro 1 es Carlos y el 2 es María (de los datos que ya pasaste)
+--------------------------------------------------------------------------------
+INSERT INTO Oferta (nombre_entidad, cargo, id_miembro) VALUES
+('Banco Mercantil C.A.', 'Analista de Datos Jr', 1), -- Postulación de Carlos
+('Empresas Polar', 'Pasante de Logística', 2);       -- Postulación de María
+

@@ -1,0 +1,420 @@
+<div class="layout" [class.sidebar-collapsed]="sidebarCollapsed()">
+
+  <!-- ═══════════════ SIDEBAR ═══════════════ -->
+  <aside class="sidebar" role="navigation" aria-label="Menú principal">
+    <div class="sidebar-header">
+      <div class="logo-block">
+        <div class="logo-icon">
+          <svg viewBox="0 0 40 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 2L8 12V28C8 36 14 43 20 46C26 43 32 36 32 28V12L20 2Z" fill="#E63946" opacity="0.9"/>
+            <path d="M14 18V30M20 14V30M26 18V30" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M11 30H29" stroke="#FFD700" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="logo-text" *ngIf="!sidebarCollapsed()">
+          <span class="logo-title">UCAB</span>
+          <span class="logo-subtitle">UNIVERSIDAD CATÓLICA<br>ANDRÉS BELLO</span>
+        </div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <ul class="nav-list" role="list">
+        <li *ngFor="let item of navItems" class="nav-item">
+          <button
+            class="nav-btn"
+            [class.active]="currentRoute() === item.id"
+            (click)="navigate(item)"
+            [id]="'nav-' + item.id"
+            [title]="item.label"
+            [attr.aria-current]="currentRoute() === item.id ? 'page' : null"
+          >
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path [attr.d]="item.icon"/>
+            </svg>
+            <span class="nav-label" *ngIf="!sidebarCollapsed()">{{ item.label }}</span>
+          </button>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-footer" *ngIf="!sidebarCollapsed()">
+      <div class="brand-footer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="brand-icon"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <div>
+          <p class="brand-name">UCAB-Services</p>
+          <p class="brand-sub">Plataforma oficial</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══════════════ MAIN ═══════════════ -->
+  <div class="main-wrapper">
+
+    <!-- Topbar -->
+    <header class="topbar" role="banner">
+      <button class="toggle-btn" id="btn-toggle-sidebar" (click)="toggleSidebar()" aria-label="Colapsar menú">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="topbar-right">
+        <button class="notif-btn" id="btn-notificaciones" aria-label="Notificaciones">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          <span class="badge-notif">3</span>
+        </button>
+        <div class="user-menu-wrapper">
+          <div class="user-menu" id="user-menu" role="button" tabindex="0">
+            <div class="user-avatar">{{ userInitials() }}</div>
+            <div class="user-info">
+              <span class="user-name">{{ userName() }}</span>
+              <span class="user-email">{{ userEmail() }}</span>
+            </div>
+            <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <button class="logout-btn" (click)="logout()" id="btn-logout" title="Cerrar sesión">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <main class="page-content" role="main">
+
+      <!-- Page Header -->
+      <section class="page-header-section">
+        <div class="page-header-info">
+          <h1 class="page-title">Gestión de edificaciones</h1>
+          <p class="page-subtitle">Administra la información de las edificaciones de la universidad.</p>
+          <div class="title-underline"></div>
+        </div>
+        <button class="btn-primary" id="btn-registrar-edificacion" (click)="openCreate()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+          Registrar edificación
+        </button>
+      </section>
+
+      <!-- Stats cards -->
+      <section class="stats-section" aria-label="Estadísticas de edificaciones">
+        <div class="stat-card">
+          <div class="stat-icon stat-icon-blue">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+          </div>
+          <div class="stat-body">
+            <p class="stat-label">Total de sedes</p>
+            <p class="stat-value">{{ stats().totalSedes }}</p>
+            <p class="stat-sub">Sedes activas</p>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon stat-icon-navy">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+          </div>
+          <div class="stat-body">
+            <p class="stat-label">Total de edificaciones</p>
+            <p class="stat-value">{{ stats().totalEdificaciones }}</p>
+            <p class="stat-sub">Edificaciones registradas</p>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon stat-icon-green">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <div class="stat-body">
+            <p class="stat-label">Edificaciones activas</p>
+            <p class="stat-value">{{ stats().activas }}</p>
+            <p class="stat-sub">{{ activasPct() }}% del total</p>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon stat-icon-gold">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="stat-body">
+            <p class="stat-label">Edificaciones inactivas</p>
+            <p class="stat-value">{{ stats().inactivas }}</p>
+            <p class="stat-sub">{{ inactivasPct() }}% del total</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Filters bar -->
+      <section class="filters-section" aria-label="Filtros de búsqueda">
+        <div class="filter-group">
+          <label class="filter-label" for="filter-sede">Filtrar por sede</label>
+          <select
+            id="filter-sede"
+            class="filter-select"
+            [ngModel]="filterSede()"
+            (ngModelChange)="filterSede.set($event); onFilterChange()"
+          >
+            <option value="todas">Todas las sedes</option>
+            <option *ngFor="let s of sedes()" [value]="s">{{ s }}</option>
+          </select>
+        </div>
+
+        <div class="search-box">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input
+            id="input-buscar"
+            type="text"
+            class="search-input"
+            placeholder="Buscar edificaciones..."
+            [value]="searchQuery()"
+            (input)="onSearch($any($event.target).value)"
+            aria-label="Buscar edificación"
+          />
+        </div>
+      </section>
+
+      <!-- Table -->
+      <section class="table-section">
+        <div class="table-wrapper" role="region" aria-label="Tabla de edificaciones">
+          <div *ngIf="isLoading()" class="table-loading">
+            <div class="spinner"></div>
+            <span>Cargando edificaciones...</span>
+          </div>
+
+          <table *ngIf="!isLoading()" class="data-table" role="table">
+            <thead>
+              <tr>
+                <th scope="col">Código</th>
+                <th scope="col">Nombre de edificación</th>
+                <th scope="col">Sede</th>
+                <th scope="col">Dirección interna</th>
+                <th scope="col">Estado</th>
+                <th scope="col" class="col-acciones">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="edificaciones().length === 0">
+                <td colspan="6" class="empty-row">No se encontraron edificaciones.</td>
+              </tr>
+              <tr *ngFor="let e of edificaciones(); trackBy: trackById" class="table-row">
+                <td class="col-codigo">{{ e.codigo }}</td>
+                <td class="col-nombre">{{ e.nombre }}</td>
+                <td class="col-sede">{{ e.sede }}</td>
+                <td class="col-direccion">{{ e.direccion_interna }}</td>
+                <td class="col-estado">
+                  <span class="estado-badge" [ngClass]="getEstadoBadgeClass(e.estado)">
+                    {{ getEstadoLabel(e.estado) }}
+                  </span>
+                </td>
+                <td class="col-acciones">
+                  <div class="action-btns">
+                    <button class="action-btn btn-view" [id]="'btn-ver-' + e.id" (click)="openView(e)" title="Ver detalle">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      <span>Ver</span>
+                    </button>
+                    <button class="action-btn btn-edit" [id]="'btn-editar-' + e.id" (click)="openEdit(e)" title="Editar">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                      <span>Editar</span>
+                    </button>
+                    <button
+                      *ngIf="e.estado === 'activa'"
+                      class="action-btn btn-delete"
+                      [id]="'btn-eliminar-' + e.id"
+                      (click)="openDelete(e)"
+                      title="Eliminar"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                      <span>Eliminar</span>
+                    </button>
+                    <button
+                      *ngIf="e.estado === 'desactivada'"
+                      class="action-btn btn-activate"
+                      [id]="'btn-activar-' + e.id"
+                      (click)="openToggleEstado(e)"
+                      title="Activar"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                      <span>Activar</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-bar" *ngIf="!isLoading() && edificaciones().length > 0">
+          <span class="showing-info">Mostrando {{ showingFrom() }} a {{ showingTo() }} de {{ total() }} edificaciones</span>
+
+          <div class="pagination-controls">
+            <button class="page-btn" id="btn-primera-pagina" (click)="firstPage()" [disabled]="currentPage() === 1" aria-label="Primera página">«</button>
+            <button class="page-btn" id="btn-anterior-pagina" (click)="prevPage()" [disabled]="currentPage() === 1" aria-label="Página anterior">‹</button>
+
+            <ng-container *ngFor="let p of pages()">
+              <button
+                *ngIf="isNumber(p)"
+                class="page-btn"
+                [class.active]="p === currentPage()"
+                [id]="'btn-pagina-' + p"
+                (click)="goToPage(p)"
+              >{{ p }}</button>
+              <span *ngIf="!isNumber(p)" class="page-ellipsis">...</span>
+            </ng-container>
+
+            <button class="page-btn" id="btn-siguiente-pagina" (click)="nextPage()" [disabled]="currentPage() === totalPages()" aria-label="Página siguiente">›</button>
+            <button class="page-btn" id="btn-ultima-pagina" (click)="lastPage()" [disabled]="currentPage() === totalPages()" aria-label="Última página">»</button>
+          </div>
+
+          <div class="page-size-control">
+            <span>Mostrar</span>
+            <select id="select-por-pagina" class="page-size-select" [ngModel]="pageSize()" (ngModelChange)="onPageSizeChange($event)">
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+            </select>
+            <span>por página</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="page-footer">
+        <div class="footer-copyright">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          UCAB-Services es una plataforma oficial de la Universidad Católica Andrés Bello.
+        </div>
+      </footer>
+    </main>
+  </div><!-- /main-wrapper -->
+</div><!-- /layout -->
+
+<!-- ═══════════════ MODAL VER ═══════════════ -->
+<div class="modal-overlay" *ngIf="modalMode() === 'view'" (click)="closeModal()" role="dialog" aria-modal="true" aria-label="Detalle de edificación">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Detalle de edificación</h2>
+      <button class="modal-close" (click)="closeModal()" id="btn-cerrar-modal-ver" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" *ngIf="selectedEdificacion() as e">
+      <div class="detail-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+      </div>
+      <div class="detail-grid">
+        <div class="detail-item"><span class="detail-label">Código</span><span class="detail-value">{{ e.codigo }}</span></div>
+        <div class="detail-item"><span class="detail-label">Estado</span>
+          <span class="estado-badge" [ngClass]="getEstadoBadgeClass(e.estado)">{{ getEstadoLabel(e.estado) }}</span>
+        </div>
+        <div class="detail-item detail-full"><span class="detail-label">Nombre de edificación</span><span class="detail-value">{{ e.nombre }}</span></div>
+        <div class="detail-item"><span class="detail-label">Sede</span><span class="detail-value">{{ e.sede }}</span></div>
+        <div class="detail-item"><span class="detail-label">Dirección interna</span><span class="detail-value">{{ e.direccion_interna }}</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" id="btn-cerrar-detalle" (click)="closeModal()">Cerrar</button>
+      <button class="btn-primary" id="btn-editar-desde-ver" (click)="openEdit(selectedEdificacion()!)">Editar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL CREAR / EDITAR ═══════════════ -->
+<div class="modal-overlay" *ngIf="modalMode() === 'create' || modalMode() === 'edit'" (click)="closeModal()" role="dialog" aria-modal="true">
+  <div class="modal-card modal-lg" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">{{ modalMode() === 'create' ? 'Registrar edificación' : 'Editar edificación' }}</h2>
+      <button class="modal-close" (click)="closeModal()" id="btn-cerrar-modal-form" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <form [formGroup]="edificacionForm" class="form-grid" id="form-edificacion">
+        <div class="form-group">
+          <label for="f-codigo">Código *</label>
+          <input id="f-codigo" type="text" class="form-input" formControlName="codigo" placeholder="ED-001" />
+          <span class="field-error" *ngIf="edificacionForm.get('codigo')?.invalid && edificacionForm.get('codigo')?.touched">Campo requerido.</span>
+        </div>
+        <div class="form-group">
+          <label for="f-sede">Sede *</label>
+          <input id="f-sede" type="text" class="form-input" formControlName="sede" placeholder="Montalbán" />
+          <span class="field-error" *ngIf="edificacionForm.get('sede')?.invalid && edificacionForm.get('sede')?.touched">Campo requerido.</span>
+        </div>
+        <div class="form-group form-full">
+          <label for="f-nombre">Nombre de edificación *</label>
+          <input id="f-nombre" type="text" class="form-input" formControlName="nombre" placeholder="Biblioteca Central" />
+          <span class="field-error" *ngIf="edificacionForm.get('nombre')?.invalid && edificacionForm.get('nombre')?.touched">Campo requerido.</span>
+        </div>
+        <div class="form-group form-full">
+          <label for="f-direccion">Dirección interna *</label>
+          <input id="f-direccion" type="text" class="form-input" formControlName="direccion_interna" placeholder="Av. Teherán, Montalbán" />
+          <span class="field-error" *ngIf="edificacionForm.get('direccion_interna')?.invalid && edificacionForm.get('direccion_interna')?.touched">Campo requerido.</span>
+        </div>
+        <div class="form-group">
+          <label for="f-estado">Estado</label>
+          <select id="f-estado" class="form-input" formControlName="estado">
+            <option value="activa">Activa</option>
+            <option value="desactivada">Desactivada</option>
+          </select>
+        </div>
+      </form>
+
+      <p class="form-error-msg" *ngIf="formError()">{{ formError() }}</p>
+      <p class="form-success-msg" *ngIf="formSuccess()">{{ formSuccess() }}</p>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" id="btn-cancelar-form" (click)="closeModal()">Cancelar</button>
+      <button class="btn-primary" id="btn-guardar-edificacion" (click)="saveEdificacion()" [disabled]="isSaving()">
+        {{ isSaving() ? 'Guardando...' : (modalMode() === 'create' ? 'Registrar' : 'Guardar cambios') }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL ELIMINAR ═══════════════ -->
+<div class="modal-overlay" *ngIf="modalMode() === 'delete'" (click)="closeModal()" role="dialog" aria-modal="true">
+  <div class="modal-card modal-sm" (click)="$event.stopPropagation()">
+    <div class="modal-header modal-header-warn">
+      <div class="warn-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M9 6V4h6v2"/></svg>
+      </div>
+      <h2 class="modal-title">Eliminar edificación</h2>
+    </div>
+    <div class="modal-body">
+      <p class="confirm-text">
+        ¿Estás seguro de que deseas <strong>eliminar</strong> la edificación
+        <strong>{{ selectedEdificacion()?.nombre }}</strong>? Esta acción no se puede deshacer.
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" id="btn-cancelar-eliminar" (click)="closeModal()">Cancelar</button>
+      <button class="btn-danger" id="btn-confirmar-eliminar" (click)="confirmDelete()" [disabled]="isSaving()">
+        {{ isSaving() ? 'Eliminando...' : 'Sí, eliminar' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL ACTIVAR ═══════════════ -->
+<div class="modal-overlay" *ngIf="modalMode() === 'toggleEstado'" (click)="closeModal()" role="dialog" aria-modal="true">
+  <div class="modal-card modal-sm" (click)="$event.stopPropagation()">
+    <div class="modal-header modal-header-warn">
+      <div class="warn-icon warn-icon-green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <h2 class="modal-title">Activar edificación</h2>
+    </div>
+    <div class="modal-body">
+      <p class="confirm-text">
+        ¿Deseas <strong>activar</strong> la edificación
+        <strong>{{ selectedEdificacion()?.nombre }}</strong>?
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" id="btn-cancelar-activar" (click)="closeModal()">Cancelar</button>
+      <button class="btn-primary" id="btn-confirmar-activar" (click)="confirmToggleEstado()" [disabled]="isSaving()">
+        {{ isSaving() ? 'Procesando...' : 'Sí, activar' }}
+      </button>
+    </div>
+  </div>
+</div>

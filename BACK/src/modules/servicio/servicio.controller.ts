@@ -1,20 +1,49 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { ServicioService } from './servicio.service';
-import { CreateServicioDto } from './dto/create-servicio.dto';
-import { UpdateServicioDto } from './dto/update-servicio.dto';
 
 @Controller('servicio')
 export class ServicioController {
   constructor(private readonly servicioService: ServicioService) {}
 
+  @Get('sedes')
+  getSedes() {
+    return this.servicioService.getSedes();
+  }
+
+  @Get('categorias')
+  getCategorias() {
+    return this.servicioService.getCategorias();
+  }
+
+  @Get('stats')
+  getStats() {
+    return this.servicioService.getStats();
+  }
+
   @Post()
-  create(@Body() createServicioDto: CreateServicioDto) {
+  create(@Body() createServicioDto: any) {
     return this.servicioService.create(createServicioDto);
   }
 
   @Get()
-  findAll() {
-    return this.servicioService.findAll();
+  findAll(
+    @Query('search') search?: string,
+    @Query('categoria') categoria?: string,
+    @Query('sede') sede?: string,
+    @Query('estado') estado?: string,
+    @Query('tipo') tipo?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.servicioService.findAll({ 
+      search, 
+      categoria, 
+      sede, 
+      estado, 
+      tipo, 
+      page: +(page || 1), 
+      limit: +(limit || 10) 
+    });
   }
 
   @Get(':id')
@@ -22,8 +51,13 @@ export class ServicioController {
     return this.servicioService.findOne(+id);
   }
 
+  @Post(':id/solicitar')
+  solicitar(@Param('id') id: string) {
+    return this.servicioService.solicitar(+id);
+  }
+
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateServicioDto: UpdateServicioDto) {
+  update(@Param('id') id: string, @Body() updateServicioDto: any) {
     return this.servicioService.update(+id, updateServicioDto);
   }
 

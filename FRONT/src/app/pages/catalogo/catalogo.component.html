@@ -1,0 +1,531 @@
+<div class="layout" [class.sidebar-collapsed]="sidebarCollapsed()">
+
+  <!-- ═══════════════ SIDEBAR ═══════════════ -->
+  <aside class="sidebar" role="navigation" aria-label="Menú principal">
+    <div class="sidebar-header">
+      <div class="logo-block">
+        <div class="logo-icon">
+          <svg viewBox="0 0 40 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 2L8 12V28C8 36 14 43 20 46C26 43 32 36 32 28V12L20 2Z" fill="#E63946" opacity="0.9"/>
+            <path d="M14 18V30M20 14V30M26 18V30" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M11 30H29" stroke="#FFD700" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="logo-text" *ngIf="!sidebarCollapsed()">
+          <span class="logo-title">UCAB</span>
+          <span class="logo-subtitle">UNIVERSIDAD CATÓLICA<br>ANDRÉS BELLO</span>
+        </div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <ul class="nav-list" role="list">
+        <li *ngFor="let item of navItems" class="nav-item">
+          <button
+            class="nav-btn"
+            [class.active]="currentRoute() === item.id"
+            (click)="navigate(item)"
+            [id]="'nav-' + item.id"
+            [title]="item.label"
+            [attr.aria-current]="currentRoute() === item.id ? 'page' : null"
+          >
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path [attr.d]="item.icon"/>
+            </svg>
+            <span class="nav-label" *ngIf="!sidebarCollapsed()">{{ item.label }}</span>
+          </button>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Brand value props -->
+    <div class="sidebar-brand-props" *ngIf="!sidebarCollapsed()">
+      <div class="brand-prop">
+        <div class="brand-prop-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        </div>
+        <div>
+          <p class="brand-prop-name">Seguro</p>
+          <p class="brand-prop-sub">Tus datos están protegidos</p>
+        </div>
+      </div>
+      <div class="brand-prop">
+        <div class="brand-prop-icon brand-prop-icon-gold">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </div>
+        <div>
+          <p class="brand-prop-name">Confiable</p>
+          <p class="brand-prop-sub">Servicios diseñados para ti</p>
+        </div>
+      </div>
+      <div class="brand-prop">
+        <div class="brand-prop-icon brand-prop-icon-blue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+        </div>
+        <div>
+          <p class="brand-prop-name">Conectados</p>
+          <p class="brand-prop-sub">Una plataforma, muchos servicios</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-footer" *ngIf="!sidebarCollapsed()">
+      <div class="brand-footer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="brand-icon"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <div>
+          <p class="brand-name">UCAB-Services</p>
+          <p class="brand-sub">Plataforma oficial</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══════════════ MAIN ═══════════════ -->
+  <div class="main-wrapper">
+
+    <!-- Topbar -->
+    <header class="topbar" role="banner">
+      <button class="toggle-btn" id="btn-toggle-sidebar" (click)="toggleSidebar()" aria-label="Colapsar menú">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      <div class="topbar-right">
+        <button class="notif-btn" id="btn-notificaciones" aria-label="Notificaciones">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          <span class="badge-notif">3</span>
+        </button>
+        <div class="user-menu-wrapper">
+          <div class="user-menu" id="user-menu" role="button" tabindex="0">
+            <div class="user-avatar">{{ userInitials() }}</div>
+            <div class="user-info">
+              <span class="user-name">{{ userName() }}</span>
+              <span class="user-email">{{ userEmail() }}</span>
+            </div>
+            <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <button class="logout-btn" (click)="logout()" id="btn-logout" title="Cerrar sesión">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <main class="page-content" role="main">
+
+      <!-- Page Header -->
+      <section class="page-header-section">
+        <div class="page-header-info">
+          <h1 class="page-title">Catálogo de servicios</h1>
+          <div class="title-underline"></div>
+          <p class="page-subtitle">Explora, gestiona y publica los servicios disponibles para la comunidad universitaria.</p>
+        </div>
+        <button class="btn-primary" id="btn-publicar-servicio" (click)="openPublicar()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Publicar servicio
+        </button>
+      </section>
+
+      <!-- Filters bar -->
+      <section class="filters-section" aria-label="Filtros del catálogo">
+        <div class="filters-row">
+          <div class="filter-group">
+            <label class="filter-label" for="filter-categoria">Categoría</label>
+            <select id="filter-categoria" class="filter-select"
+              [ngModel]="filterCategoria()"
+              (ngModelChange)="filterCategoria.set($event); onFilterChange()">
+              <option value="">Todas las categorías</option>
+              <option *ngFor="let c of categorias()" [value]="c">{{ c }}</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label class="filter-label" for="filter-sede">Sede</label>
+            <select id="filter-sede" class="filter-select"
+              [ngModel]="filterSede()"
+              (ngModelChange)="filterSede.set($event); onFilterChange()">
+              <option value="">Todas las sedes</option>
+              <option *ngFor="let s of sedes()" [value]="s">{{ s }}</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label class="filter-label" for="filter-estado">Estado</label>
+            <select id="filter-estado" class="filter-select"
+              [ngModel]="filterEstado()"
+              (ngModelChange)="filterEstado.set($event); onFilterChange()">
+              <option value="">Todos los estados</option>
+              <option value="Publicado">Publicado</option>
+              <option value="Borrador">Borrador</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label class="filter-label" for="filter-tipo">Tipo de servicio</label>
+            <select id="filter-tipo" class="filter-select"
+              [ngModel]="filterTipo()"
+              (ngModelChange)="filterTipo.set($event); onFilterChange()">
+              <option value="">Todos los tipos</option>
+              <option value="Digital">Digital</option>
+              <option value="Presencial">Presencial</option>
+            </select>
+          </div>
+
+          <button class="btn-clear-filters" id="btn-limpiar-filtros"
+            [class.has-filters]="hasActiveFilters()"
+            (click)="clearFilters()"
+            title="Limpiar filtros">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+            </svg>
+            Limpiar filtros
+          </button>
+        </div>
+      </section>
+
+      <!-- Table -->
+      <section class="table-section">
+        <div class="table-wrapper" role="region" aria-label="Catálogo de servicios">
+
+          <div *ngIf="isLoading()" class="table-loading">
+            <div class="spinner"></div>
+            <span>Cargando servicios...</span>
+          </div>
+
+          <table *ngIf="!isLoading()" class="data-table" role="table">
+            <thead>
+              <tr>
+                <th scope="col">Nombre del servicio</th>
+                <th scope="col">Categoría</th>
+                <th scope="col">Sede</th>
+                <th scope="col">Tipo</th>
+                <th scope="col">Precio base</th>
+                <th scope="col">Estado</th>
+                <th scope="col" class="col-accion">Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="servicios().length === 0">
+                <td colspan="7" class="empty-row">No se encontraron servicios.</td>
+              </tr>
+              <tr *ngFor="let s of servicios(); trackBy: trackById" class="table-row">
+
+                <!-- Nombre -->
+                <td class="col-nombre">
+                  <div class="service-name-cell">
+                    <div class="service-icon-circle">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                           stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                        <path [attr.d]="getCategoriaIcon(s.categoria)"/>
+                      </svg>
+                    </div>
+                    <div class="service-name-info">
+                      <span class="service-name-title">{{ s.nombre }}</span>
+                      <span class="service-name-desc">{{ s.descripcion }}</span>
+                    </div>
+                  </div>
+                </td>
+
+                <td class="col-categoria">{{ s.categoria }}</td>
+                <td class="col-sede">{{ s.sede }}</td>
+
+                <!-- Tipo -->
+                <td class="col-tipo">
+                  <span class="tipo-badge" [ngClass]="getTipoBadgeClass(s.tipo)">{{ s.tipo }}</span>
+                </td>
+
+                <!-- Precio -->
+                <td class="col-precio">{{ getPrecioLabel(s.precio_base) }}</td>
+
+                <!-- Estado -->
+                <td class="col-estado">
+                  <span class="estado-badge" [ngClass]="getEstadoBadgeClass(s.estado)">{{ s.estado }}</span>
+                </td>
+
+                <!-- Acción: kebab -->
+                <td class="col-accion">
+                  <div class="kebab-wrapper">
+                    <button
+                      class="kebab-btn"
+                      [id]="'btn-menu-' + s.id"
+                      (click)="toggleMenu($event, s.id)"
+                      aria-label="Acciones"
+                      [attr.aria-expanded]="openMenuId() === s.id"
+                    >
+                      <svg viewBox="0 0 24 24" fill="currentColor">
+                        <circle cx="12" cy="5"  r="1.5"/>
+                        <circle cx="12" cy="12" r="1.5"/>
+                        <circle cx="12" cy="19" r="1.5"/>
+                      </svg>
+                    </button>
+
+                    <div class="kebab-dropdown" *ngIf="openMenuId() === s.id" (click)="$event.stopPropagation()">
+                      <button class="dropdown-item" [id]="'btn-consultar-' + s.id" (click)="openConsultar(s)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        Consultar
+                      </button>
+                      <button class="dropdown-item" [id]="'btn-modificar-' + s.id" (click)="openModificar(s)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        Modificar
+                      </button>
+                      <button class="dropdown-item item-danger" [id]="'btn-eliminar-' + s.id" (click)="openEliminar(s)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                        Eliminar
+                      </button>
+                      <div class="dropdown-divider"></div>
+                      <button class="dropdown-item item-primary" [id]="'btn-solicitar-' + s.id" (click)="openSolicitar(s)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                        Solicitar
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-bar" *ngIf="!isLoading() && servicios().length > 0">
+          <span class="showing-info">
+            Mostrando {{ showingFrom() }} a {{ showingTo() }} de {{ total() }} servicios
+          </span>
+
+          <div class="pagination-controls">
+            <button class="page-btn" id="btn-primera-pagina" (click)="firstPage()" [disabled]="currentPage() === 1" aria-label="Primera página">«</button>
+            <button class="page-btn" id="btn-anterior-pagina" (click)="prevPage()"  [disabled]="currentPage() === 1" aria-label="Página anterior">‹</button>
+
+            <ng-container *ngFor="let p of pages()">
+              <button *ngIf="isNumber(p)" class="page-btn" [class.active]="p === currentPage()"
+                [id]="'btn-pagina-' + p" (click)="goToPage(p)">{{ p }}</button>
+              <span *ngIf="!isNumber(p)" class="page-ellipsis">...</span>
+            </ng-container>
+
+            <button class="page-btn" id="btn-siguiente-pagina" (click)="nextPage()" [disabled]="currentPage() === totalPages()" aria-label="Página siguiente">›</button>
+            <button class="page-btn" id="btn-ultima-pagina"    (click)="lastPage()" [disabled]="currentPage() === totalPages()" aria-label="Última página">»</button>
+          </div>
+
+          <div class="page-size-control">
+            <span>Mostrar</span>
+            <select id="select-por-pagina" class="page-size-select" [ngModel]="pageSize()" (ngModelChange)="pageSize.set(+$event); currentPage.set(1); loadServicios()">
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+            </select>
+            <span>por página</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="page-footer">
+        <div class="footer-copyright">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          UCAB-Services es una plataforma oficial de la Universidad Católica Andrés Bello.
+        </div>
+      </footer>
+    </main>
+  </div><!-- /main-wrapper -->
+</div><!-- /layout -->
+
+
+<!-- ═══════════════ MODAL CONSULTAR ═══════════════ -->
+<div class="modal-overlay" *ngIf="modalMode() === 'consultar'" (click)="closeModal()" role="dialog" aria-modal="true">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Detalle del servicio</h2>
+      <button class="modal-close" (click)="closeModal()" id="btn-cerrar-consultar" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" *ngIf="selectedServicio() as s">
+      <div class="detail-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path [attr.d]="getCategoriaIcon(s.categoria)"/>
+        </svg>
+      </div>
+      <div class="detail-grid">
+        <div class="detail-item detail-full">
+          <span class="detail-label">Nombre del servicio</span>
+          <span class="detail-value detail-value-lg">{{ s.nombre }}</span>
+        </div>
+        <div class="detail-item detail-full">
+          <span class="detail-label">Descripción</span>
+          <span class="detail-value">{{ s.descripcion }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Categoría</span>
+          <span class="detail-value">{{ s.categoria }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Sede</span>
+          <span class="detail-value">{{ s.sede }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Tipo</span>
+          <span class="tipo-badge" [ngClass]="getTipoBadgeClass(s.tipo)">{{ s.tipo }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Precio base</span>
+          <span class="detail-value">{{ getPrecioLabel(s.precio_base) }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Estado</span>
+          <span class="estado-badge" [ngClass]="getEstadoBadgeClass(s.estado)">{{ s.estado }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" id="btn-cerrar-detalle" (click)="closeModal()">Cerrar</button>
+      <button class="btn-primary" id="btn-solicitar-desde-consultar" (click)="openSolicitar(selectedServicio()!)">Solicitar</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════ MODAL PUBLICAR / MODIFICAR ═══════════════ -->
+<div class="modal-overlay" *ngIf="modalMode() === 'publicar' || modalMode() === 'modificar'" (click)="closeModal()" role="dialog" aria-modal="true">
+  <div class="modal-card modal-lg" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">{{ modalMode() === 'publicar' ? 'Publicar nuevo servicio' : 'Modificar servicio' }}</h2>
+      <button class="modal-close" (click)="closeModal()" id="btn-cerrar-modal-form" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <form [formGroup]="servicioForm" class="form-grid" id="form-servicio">
+        <div class="form-group form-full">
+          <label for="f-nombre">Nombre del servicio *</label>
+          <input id="f-nombre" type="text" class="form-input" formControlName="nombre" placeholder="Constancia de estudios" />
+          <span class="field-error" *ngIf="servicioForm.get('nombre')?.invalid && servicioForm.get('nombre')?.touched">Campo requerido.</span>
+        </div>
+        <div class="form-group form-full">
+          <label for="f-descripcion">Descripción *</label>
+          <textarea id="f-descripcion" class="form-input form-textarea" formControlName="descripcion" rows="3"
+            placeholder="Describe brevemente el servicio..."></textarea>
+          <span class="field-error" *ngIf="servicioForm.get('descripcion')?.invalid && servicioForm.get('descripcion')?.touched">Campo requerido.</span>
+        </div>
+        <div class="form-group">
+          <label for="f-categoria">Categoría *</label>
+          <select id="f-categoria" class="form-input" formControlName="categoria">
+            <option value="">Seleccionar...</option>
+            <option *ngFor="let c of categorias()" [value]="c">{{ c }}</option>
+            <option value="Académicos">Académicos</option>
+            <option value="Administrativos">Administrativos</option>
+            <option value="Estudiantiles">Estudiantiles</option>
+            <option value="Tecnológicos">Tecnológicos</option>
+          </select>
+          <span class="field-error" *ngIf="servicioForm.get('categoria')?.invalid && servicioForm.get('categoria')?.touched">Campo requerido.</span>
+        </div>
+        <div class="form-group">
+          <label for="f-sede">Sede *</label>
+          <select id="f-sede" class="form-input" formControlName="sede">
+            <option value="">Seleccionar...</option>
+            <option *ngFor="let s of sedes()" [value]="s">{{ s }}</option>
+            <option value="Sede Montalbán">Sede Montalbán</option>
+            <option value="Sede Guayana">Sede Guayana</option>
+          </select>
+          <span class="field-error" *ngIf="servicioForm.get('sede')?.invalid && servicioForm.get('sede')?.touched">Campo requerido.</span>
+        </div>
+        <div class="form-group">
+          <label for="f-tipo">Tipo de servicio *</label>
+          <select id="f-tipo" class="form-input" formControlName="tipo">
+            <option value="Digital">Digital</option>
+            <option value="Presencial">Presencial</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="f-precio">Precio base (Bs.) <span class="label-hint">— Dejar vacío si es gratuito</span></label>
+          <input id="f-precio" type="number" class="form-input" formControlName="precio_base" placeholder="0.00" min="0" step="0.01" />
+        </div>
+        <div class="form-group">
+          <label for="f-estado">Estado</label>
+          <select id="f-estado" class="form-input" formControlName="estado">
+            <option value="Publicado">Publicado</option>
+            <option value="Borrador">Borrador</option>
+          </select>
+        </div>
+      </form>
+
+      <p class="form-error-msg"   *ngIf="formError()">{{ formError() }}</p>
+      <p class="form-success-msg" *ngIf="formSuccess()">{{ formSuccess() }}</p>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" id="btn-cancelar-form" (click)="closeModal()">Cancelar</button>
+      <button class="btn-primary" id="btn-guardar-servicio" (click)="saveServicio()" [disabled]="isSaving()">
+        {{ isSaving() ? 'Guardando...' : (modalMode() === 'publicar' ? 'Publicar servicio' : 'Guardar cambios') }}
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════ MODAL ELIMINAR ═══════════════ -->
+<div class="modal-overlay" *ngIf="modalMode() === 'eliminar'" (click)="closeModal()" role="dialog" aria-modal="true">
+  <div class="modal-card modal-sm" (click)="$event.stopPropagation()">
+    <div class="modal-header modal-header-warn">
+      <div class="warn-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M9 6V4h6v2"/></svg>
+      </div>
+      <h2 class="modal-title">Eliminar servicio</h2>
+    </div>
+    <div class="modal-body">
+      <p class="confirm-text">
+        ¿Estás seguro de que deseas <strong>eliminar</strong> el servicio
+        <strong>{{ selectedServicio()?.nombre }}</strong>? Esta acción no se puede deshacer.
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" id="btn-cancelar-eliminar" (click)="closeModal()">Cancelar</button>
+      <button class="btn-danger" id="btn-confirmar-eliminar" (click)="confirmEliminar()" [disabled]="isSaving()">
+        {{ isSaving() ? 'Eliminando...' : 'Sí, eliminar' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════ MODAL SOLICITAR ═══════════════ -->
+<div class="modal-overlay" *ngIf="modalMode() === 'solicitar'" (click)="closeModal()" role="dialog" aria-modal="true">
+  <div class="modal-card modal-sm" (click)="$event.stopPropagation()">
+    <div class="modal-header modal-header-info">
+      <div class="warn-icon warn-icon-blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      </div>
+      <h2 class="modal-title">Solicitar servicio</h2>
+    </div>
+    <div class="modal-body">
+      <p class="confirm-text">
+        ¿Confirmas la solicitud del servicio
+        <strong>{{ selectedServicio()?.nombre }}</strong>?
+      </p>
+      <div class="solicitar-detail" *ngIf="selectedServicio() as s">
+        <div class="solicitar-row">
+          <span class="solicitar-key">Categoría</span>
+          <span class="solicitar-val">{{ s.categoria }}</span>
+        </div>
+        <div class="solicitar-row">
+          <span class="solicitar-key">Sede</span>
+          <span class="solicitar-val">{{ s.sede }}</span>
+        </div>
+        <div class="solicitar-row">
+          <span class="solicitar-key">Precio</span>
+          <span class="solicitar-val">{{ getPrecioLabel(s.precio_base) }}</span>
+        </div>
+      </div>
+      <p class="form-error-msg"   *ngIf="formError()">{{ formError() }}</p>
+      <p class="form-success-msg" *ngIf="formSuccess()">{{ formSuccess() }}</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" id="btn-cancelar-solicitar" (click)="closeModal()">Cancelar</button>
+      <button class="btn-primary" id="btn-confirmar-solicitar" (click)="confirmSolicitar()" [disabled]="isSaving()">
+        {{ isSaving() ? 'Enviando...' : 'Confirmar solicitud' }}
+      </button>
+    </div>
+  </div>
+</div>

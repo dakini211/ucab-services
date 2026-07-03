@@ -1,28 +1,28 @@
 import {
-  Component, OnInit, OnDestroy, inject, signal, computed, effect
+  Component, OnInit, OnDestroy, inject, signal, computed
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
-import { MiembrosService, Miembro, CreateMiembroDto } from '../../services/miembros.service';
+import {
+  EdificacionesService, Edificacion, CreateEdificacionDto, EdificacionStats
+} from '../../services/edificaciones.service';
 import { AuthService } from '../../services/auth.service';
 
-type ModalMode = 'view' | 'edit' | 'deactivate' | null;
+type ModalMode = 'view' | 'create' | 'edit' | 'delete' | 'toggleEstado' | null;
 
-interface NavItem {
-  id: string; label: string; route: string; icon: string;
-}
+interface NavItem { id: string; label: string; route: string; icon: string; }
 
 @Component({
-  selector: 'app-miembros',
+  selector: 'app-edificaciones',
   standalone: true,
   imports: [CommonModule, RouterModule, FormsModule, ReactiveFormsModule],
-  templateUrl: './miembros.component.html',
-  styleUrl: './miembros.component.scss',
+  templateUrl: './edificaciones.component.html',
+  styleUrl: './edificaciones.component.scss',
 })
-export class MiembrosComponent implements OnInit, OnDestroy {
-  private readonly miembrosService = inject(MiembrosService);
+export class EdificacionesComponent implements OnInit, OnDestroy {
+  private readonly edificacionesService = inject(EdificacionesService);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
@@ -34,18 +34,19 @@ export class MiembrosComponent implements OnInit, OnDestroy {
   isLoading = signal(true);
   isSaving = signal(false);
   modalMode = signal<ModalMode>(null);
-  selectedMiembro = signal<Miembro | null>(null);
+  selectedEdificacion = signal<Edificacion | null>(null);
 
   /* ── Data ──────────────────────────────────────────────── */
-  miembros = signal<Miembro[]>([]);
+  edificaciones = signal<Edificacion[]>([]);
   total = signal(0);
   totalPages = signal(0);
   currentPage = signal(1);
   pageSize = signal(10);
   searchQuery = signal('');
-  filterTipo = signal('todos');
-  filterEstado = signal('todos');
-  currentRoute = signal('miembros');
+  filterSede = signal('todas');
+  sedes = signal<string[]>([]);
+  stats = signal<EdificacionStats>({ totalSedes: 0, totalEdificaciones: 0, activas: 0, inactivas: 0 });
+  currentRoute = signal('edificaciones');
 
   /* ── User ──────────────────────────────────────────────── */
   userName = signal('Usuario');
@@ -53,7 +54,7 @@ export class MiembrosComponent implements OnInit, OnDestroy {
   userInitials = signal('US');
 
   /* ── Form ──────────────────────────────────────────────── */
-  miembroForm!: FormGroup;
+  edificacionForm!: FormGroup;
   formError = signal('');
   formSuccess = signal('');
 
@@ -93,19 +94,30 @@ export class MiembrosComponent implements OnInit, OnDestroy {
   showingFrom = computed(() => (this.currentPage() - 1) * this.pageSize() + 1);
   showingTo = computed(() => Math.min(this.currentPage() * this.pageSize(), this.total()));
 
+  activasPct = computed(() => {
+    const t = this.stats().totalEdificaciones;
+    return t > 0 ? Math.round((this.stats().activas / t) * 100) : 0;
+  });
+
+  inactivasPct = computed(() => {
+    const t = this.stats().totalEdificaciones;
+    return t > 0 ? Math.round((this.stats().inactivas / t) * 100) : 0;
+  });
+
   /* ── Lifecycle ──────────────────────────────────────────── */
   ngOnInit(): void {
     this.loadUserFromStorage();
     this.buildForm();
-    this.loadMiembros();
+    this.loadStats();
+    this.loadSedes();
+    this.loadEdificaciones();
 
-    // Debounce search
     this.searchSubject
       .pipe(debounceTime(400), distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe((q) => {
         this.searchQuery.set(q);
         this.currentPage.set(1);
-        this.loadMiembros();
+        this.loadEdificaciones();
       });
   }
 
@@ -131,32 +143,26 @@ export class MiembrosComponent implements OnInit, OnDestroy {
 
   /* ── Form ──────────────────────────────────────────────── */
   private buildForm(): void {
-    this.miembroForm = this.fb.group({
-      cedula_identidad: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
-      primer_nombre: ['', Validators.required],
-      segundo_nombre: [''],
-      primer_apellido: ['', Validators.required],
-      segundo_apellido: [''],
-      fecha_nacimiento: ['', Validators.required],
-      telefono: [''],
-      correo_institucional: ['', [Validators.required, Validators.email]],
-      direccion_habitacion: [''],
-      estado_cuenta: ['activa', Validators.required],
+    this.edificacionForm = this.fb.group({
+      codigo: ['', Validators.required],
+      nombre: ['', Validators.required],
+      sede: ['', Validators.required],
+      direccion_interna: ['', Validators.required],
+      estado: ['activa', Validators.required],
     });
   }
 
   /* ── Data Loading ───────────────────────────────────────── */
-  loadMiembros(): void {
+  loadEdificaciones(): void {
     this.isLoading.set(true);
-    this.miembrosService.getAll({
+    this.edificacionesService.getAll({
       search: this.searchQuery() || undefined,
-      tipoVinculacion: this.filterTipo() !== 'todos' ? this.filterTipo() : undefined,
-      estadoCuenta: this.filterEstado() !== 'todos' ? this.filterEstado() : undefined,
+      sede: this.filterSede() !== 'todas' ? this.filterSede() : undefined,
       page: this.currentPage(),
       limit: this.pageSize(),
     }).subscribe({
       next: (res) => {
-        this.miembros.set(res.data || []);
+        this.edificaciones.set(res.data || []);
         this.total.set(res.total || 0);
         this.totalPages.set(res.totalPages || 0);
         this.isLoading.set(false);
@@ -165,22 +171,26 @@ export class MiembrosComponent implements OnInit, OnDestroy {
     });
   }
 
-  /* ── Search & Filters ───────────────────────────────────── */
-  onSearch(value: string): void {
-    this.searchSubject.next(value);
+  loadStats(): void {
+    this.edificacionesService.getStats().subscribe({
+      next: (s) => this.stats.set(s),
+      error: () => { },
+    });
   }
+
+  loadSedes(): void {
+    this.edificacionesService.getSedes().subscribe({
+      next: (s) => this.sedes.set(s),
+      error: () => { },
+    });
+  }
+
+  /* ── Search & Filters ───────────────────────────────────── */
+  onSearch(value: string): void { this.searchSubject.next(value); }
 
   onFilterChange(): void {
     this.currentPage.set(1);
-    this.loadMiembros();
-  }
-
-  clearFilters(): void {
-    this.searchQuery.set('');
-    this.filterTipo.set('todos');
-    this.filterEstado.set('todos');
-    this.currentPage.set(1);
-    this.loadMiembros();
+    this.loadEdificaciones();
   }
 
   /* ── Pagination ─────────────────────────────────────────── */
@@ -188,7 +198,7 @@ export class MiembrosComponent implements OnInit, OnDestroy {
     if (typeof page !== 'number') return;
     if (page < 1 || page > this.totalPages()) return;
     this.currentPage.set(page);
-    this.loadMiembros();
+    this.loadEdificaciones();
   }
 
   prevPage(): void { this.goToPage(this.currentPage() - 1); }
@@ -199,70 +209,78 @@ export class MiembrosComponent implements OnInit, OnDestroy {
   onPageSizeChange(size: string): void {
     this.pageSize.set(Number(size));
     this.currentPage.set(1);
-    this.loadMiembros();
+    this.loadEdificaciones();
   }
 
   /* ── Modals ─────────────────────────────────────────────── */
+  openCreate(): void {
+    this.edificacionForm.reset({ estado: 'activa' });
+    this.formError.set('');
+    this.formSuccess.set('');
+    this.selectedEdificacion.set(null);
+    this.modalMode.set('create');
+  }
 
-  openView(m: Miembro): void {
-    this.selectedMiembro.set(m);
+  openView(e: Edificacion): void {
+    this.selectedEdificacion.set(e);
     this.modalMode.set('view');
   }
 
-  openEdit(m: Miembro): void {
-    this.selectedMiembro.set(m);
+  openEdit(e: Edificacion): void {
+    this.selectedEdificacion.set(e);
     this.formError.set('');
     this.formSuccess.set('');
-    const cedula = m.cedula.replace(/[^0-9]/g, '');
-    const partes = m.nombre.split(' ');
-    this.miembroForm.patchValue({
-      cedula_identidad: cedula,
-      primer_nombre: partes[0] ?? '',
-      segundo_nombre: partes.length > 3 ? partes[1] : '',
-      primer_apellido: partes.length > 3 ? partes[2] : partes[1] ?? '',
-      segundo_apellido: partes.length > 3 ? partes[3] : partes[2] ?? '',
-      correo_institucional: m.correo,
-      telefono: m.telefono ?? '',
-      fecha_nacimiento: m.fecha_nacimiento ? m.fecha_nacimiento.slice(0, 10) : '',
-      estado_cuenta: m.estado_cuenta,
+    this.edificacionForm.patchValue({
+      codigo: e.codigo,
+      nombre: e.nombre,
+      sede: e.sede,
+      direccion_interna: e.direccion_interna,
+      estado: e.estado,
     });
     this.modalMode.set('edit');
   }
 
-  openDeactivate(m: Miembro): void {
-    this.selectedMiembro.set(m);
-    this.modalMode.set('deactivate');
+  openDelete(e: Edificacion): void {
+    this.selectedEdificacion.set(e);
+    this.modalMode.set('delete');
+  }
+
+  openToggleEstado(e: Edificacion): void {
+    this.selectedEdificacion.set(e);
+    this.modalMode.set('toggleEstado');
   }
 
   closeModal(): void {
     this.modalMode.set(null);
-    this.selectedMiembro.set(null);
+    this.selectedEdificacion.set(null);
     this.formError.set('');
     this.formSuccess.set('');
   }
 
   /* ── CRUD Actions ───────────────────────────────────────── */
-  saveMiembro(): void {
-    if (this.miembroForm.invalid) {
-      this.miembroForm.markAllAsTouched();
+  saveEdificacion(): void {
+    if (this.edificacionForm.invalid) {
+      this.edificacionForm.markAllAsTouched();
       return;
     }
     this.isSaving.set(true);
     this.formError.set('');
 
-    const dto: CreateMiembroDto = {
-      ...this.miembroForm.value,
-      cedula_identidad: Number(this.miembroForm.value.cedula_identidad),
-      total_sesiones: 0,
-    };
-
-    const obs = this.miembrosService.update(this.selectedMiembro()!.id, dto);
+    const dto: CreateEdificacionDto = this.edificacionForm.value;
+    const isEdit = this.modalMode() === 'edit';
+    const obs = isEdit
+      ? this.edificacionesService.update(this.selectedEdificacion()!.id, dto)
+      : this.edificacionesService.create(dto);
 
     obs.subscribe({
       next: () => {
         this.isSaving.set(false);
-        this.formSuccess.set('¡Miembro actualizado exitosamente!');
-        setTimeout(() => { this.closeModal(); this.loadMiembros(); }, 1200);
+        this.formSuccess.set(isEdit ? '¡Edificación actualizada!' : '¡Edificación registrada!');
+        setTimeout(() => {
+          this.closeModal();
+          this.loadEdificaciones();
+          this.loadStats();
+        }, 1200);
       },
       error: (err) => {
         this.isSaving.set(false);
@@ -271,16 +289,32 @@ export class MiembrosComponent implements OnInit, OnDestroy {
     });
   }
 
-  confirmDeactivate(): void {
-    const m = this.selectedMiembro();
-    if (!m) return;
-    const nuevoEstado = m.estado_cuenta === 'activa' ? 'suspendida' : 'activa';
+  confirmDelete(): void {
+    const e = this.selectedEdificacion();
+    if (!e) return;
     this.isSaving.set(true);
-    this.miembrosService.updateEstado(m.id, nuevoEstado).subscribe({
+    this.edificacionesService.delete(e.id).subscribe({
       next: () => {
         this.isSaving.set(false);
         this.closeModal();
-        this.loadMiembros();
+        this.loadEdificaciones();
+        this.loadStats();
+      },
+      error: () => this.isSaving.set(false),
+    });
+  }
+
+  confirmToggleEstado(): void {
+    const e = this.selectedEdificacion();
+    if (!e) return;
+    const nuevoEstado: 'activa' | 'desactivada' = e.estado === 'activa' ? 'desactivada' : 'activa';
+    this.isSaving.set(true);
+    this.edificacionesService.updateEstado(e.id, nuevoEstado).subscribe({
+      next: () => {
+        this.isSaving.set(false);
+        this.closeModal();
+        this.loadEdificaciones();
+        this.loadStats();
       },
       error: () => this.isSaving.set(false),
     });
@@ -306,28 +340,13 @@ export class MiembrosComponent implements OnInit, OnDestroy {
 
   /* ── Helpers ────────────────────────────────────────────── */
   getEstadoBadgeClass(estado: string): string {
-    switch (estado) {
-      case 'activa': return 'badge-activo';
-      case 'suspendida': return 'badge-suspendido';
-      case 'bloqueada': return 'badge-bloqueado';
-      default: return 'badge-inactivo';
-    }
+    return estado === 'activa' ? 'badge-activa' : 'badge-desactivada';
   }
 
   getEstadoLabel(estado: string): string {
-    switch (estado) {
-      case 'activa': return 'Activo';
-      case 'suspendida': return 'Suspendido';
-      case 'bloqueada': return 'Bloqueado';
-      default: return estado;
-    }
+    return estado === 'activa' ? 'Activa' : 'Desactivada';
   }
 
-  trackById(_index: number, m: Miembro): number {
-    return m.id;
-  }
-
-  isNumber(val: any): boolean {
-    return typeof val === 'number';
-  }
+  trackById(_index: number, e: Edificacion): number { return e.id; }
+  isNumber(val: any): boolean { return typeof val === 'number'; }
 }

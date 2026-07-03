@@ -1,60 +1,67 @@
 import {
-  Component, OnInit, OnDestroy, inject, signal, computed, effect
+  Component, OnInit, OnDestroy, inject, signal, computed, HostListener
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
-import { MiembrosService, Miembro, CreateMiembroDto } from '../../services/miembros.service';
+import {
+  CatalogoService, Servicio, CreateServicioDto
+} from '../../services/catalogo.service';
 import { AuthService } from '../../services/auth.service';
 
-type ModalMode = 'view' | 'edit' | 'deactivate' | null;
+type ModalMode = 'consultar' | 'modificar' | 'eliminar' | 'solicitar' | 'publicar' | null;
 
-interface NavItem {
-  id: string; label: string; route: string; icon: string;
-}
+interface NavItem { id: string; label: string; route: string; icon: string; }
 
 @Component({
-  selector: 'app-miembros',
+  selector: 'app-catalogo',
   standalone: true,
   imports: [CommonModule, RouterModule, FormsModule, ReactiveFormsModule],
-  templateUrl: './miembros.component.html',
-  styleUrl: './miembros.component.scss',
+  templateUrl: './catalogo.component.html',
+  styleUrl: './catalogo.component.scss',
 })
-export class MiembrosComponent implements OnInit, OnDestroy {
-  private readonly miembrosService = inject(MiembrosService);
-  private readonly authService = inject(AuthService);
-  private readonly router = inject(Router);
-  private readonly fb = inject(FormBuilder);
-  private readonly destroy$ = new Subject<void>();
-  private readonly searchSubject = new Subject<string>();
+export class CatalogoComponent implements OnInit, OnDestroy {
+  private readonly catalogoService = inject(CatalogoService);
+  private readonly authService     = inject(AuthService);
+  private readonly router          = inject(Router);
+  private readonly fb              = inject(FormBuilder);
+  private readonly destroy$        = new Subject<void>();
+  private readonly searchSubject   = new Subject<string>();
 
-  /* ── State ─────────────────────────────────────────────── */
+  /* ── UI State ───────────────────────────────────────────── */
   sidebarCollapsed = signal(false);
-  isLoading = signal(true);
-  isSaving = signal(false);
-  modalMode = signal<ModalMode>(null);
-  selectedMiembro = signal<Miembro | null>(null);
+  isLoading        = signal(true);
+  isSaving         = signal(false);
+  modalMode        = signal<ModalMode>(null);
+  selectedServicio = signal<Servicio | null>(null);
+  openMenuId       = signal<number | null>(null);
+  currentRoute     = signal('catalogo');
 
   /* ── Data ──────────────────────────────────────────────── */
-  miembros = signal<Miembro[]>([]);
-  total = signal(0);
-  totalPages = signal(0);
+  servicios   = signal<Servicio[]>([]);
+  total       = signal(0);
+  totalPages  = signal(0);
   currentPage = signal(1);
-  pageSize = signal(10);
-  searchQuery = signal('');
-  filterTipo = signal('todos');
-  filterEstado = signal('todos');
-  currentRoute = signal('miembros');
+  pageSize    = signal(5);
+
+  /* ── Filters ────────────────────────────────────────────── */
+  searchQuery     = signal('');
+  filterCategoria = signal('');
+  filterSede      = signal('');
+  filterEstado    = signal('');
+  filterTipo      = signal('');
+  categorias      = signal<string[]>([]);
+  sedes           = signal<string[]>([]);
 
   /* ── User ──────────────────────────────────────────────── */
-  userName = signal('Usuario');
-  userEmail = signal('');
+  userName     = signal('Usuario');
+  userEmail    = signal('');
   userInitials = signal('US');
 
   /* ── Form ──────────────────────────────────────────────── */
-  miembroForm!: FormGroup;
-  formError = signal('');
+  servicioForm!: FormGroup;
+  formError   = signal('');
   formSuccess = signal('');
 
   /* ── Nav ────────────────────────────────────────────────── */
@@ -76,7 +83,7 @@ export class MiembrosComponent implements OnInit, OnDestroy {
   /* ── Computed ────────────────────────────────────────────── */
   pages = computed(() => {
     const total = this.totalPages();
-    const curr = this.currentPage();
+    const curr  = this.currentPage();
     const pages: (number | '...')[] = [];
     if (total <= 7) {
       for (let i = 1; i <= total; i++) pages.push(i);
@@ -91,21 +98,26 @@ export class MiembrosComponent implements OnInit, OnDestroy {
   });
 
   showingFrom = computed(() => (this.currentPage() - 1) * this.pageSize() + 1);
-  showingTo = computed(() => Math.min(this.currentPage() * this.pageSize(), this.total()));
+  showingTo   = computed(() => Math.min(this.currentPage() * this.pageSize(), this.total()));
+
+  hasActiveFilters = computed(() =>
+    !!this.filterCategoria() || !!this.filterSede() || !!this.filterEstado() || !!this.filterTipo()
+  );
 
   /* ── Lifecycle ──────────────────────────────────────────── */
   ngOnInit(): void {
     this.loadUserFromStorage();
     this.buildForm();
-    this.loadMiembros();
+    this.loadCategorias();
+    this.loadSedes();
+    this.loadServicios();
 
-    // Debounce search
     this.searchSubject
       .pipe(debounceTime(400), distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe((q) => {
         this.searchQuery.set(q);
         this.currentPage.set(1);
-        this.loadMiembros();
+        this.loadServicios();
       });
   }
 
@@ -114,7 +126,10 @@ export class MiembrosComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  /* ── Load user ──────────────────────────────────────────── */
+  @HostListener('document:click')
+  onDocumentClick(): void { this.openMenuId.set(null); }
+
+  /* ── User ──────────────────────────────────────────────── */
   private loadUserFromStorage(): void {
     const stored = localStorage.getItem('user');
     if (stored) {
@@ -131,32 +146,31 @@ export class MiembrosComponent implements OnInit, OnDestroy {
 
   /* ── Form ──────────────────────────────────────────────── */
   private buildForm(): void {
-    this.miembroForm = this.fb.group({
-      cedula_identidad: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
-      primer_nombre: ['', Validators.required],
-      segundo_nombre: [''],
-      primer_apellido: ['', Validators.required],
-      segundo_apellido: [''],
-      fecha_nacimiento: ['', Validators.required],
-      telefono: [''],
-      correo_institucional: ['', [Validators.required, Validators.email]],
-      direccion_habitacion: [''],
-      estado_cuenta: ['activa', Validators.required],
+    this.servicioForm = this.fb.group({
+      nombre:      ['', Validators.required],
+      descripcion: ['', Validators.required],
+      categoria:   ['', Validators.required],
+      sede:        ['', Validators.required],
+      tipo:        ['Digital', Validators.required],
+      precio_base: [null],
+      estado:      ['Borrador', Validators.required],
     });
   }
 
   /* ── Data Loading ───────────────────────────────────────── */
-  loadMiembros(): void {
+  loadServicios(): void {
     this.isLoading.set(true);
-    this.miembrosService.getAll({
-      search: this.searchQuery() || undefined,
-      tipoVinculacion: this.filterTipo() !== 'todos' ? this.filterTipo() : undefined,
-      estadoCuenta: this.filterEstado() !== 'todos' ? this.filterEstado() : undefined,
-      page: this.currentPage(),
-      limit: this.pageSize(),
+    this.catalogoService.getAll({
+      search:    this.searchQuery()     || undefined,
+      categoria: this.filterCategoria() || undefined,
+      sede:      this.filterSede()      || undefined,
+      estado:    this.filterEstado()    || undefined,
+      tipo:      this.filterTipo()      || undefined,
+      page:      this.currentPage(),
+      limit:     this.pageSize(),
     }).subscribe({
       next: (res) => {
-        this.miembros.set(res.data || []);
+        this.servicios.set(res.data || []);
         this.total.set(res.total || 0);
         this.totalPages.set(res.totalPages || 0);
         this.isLoading.set(false);
@@ -165,22 +179,36 @@ export class MiembrosComponent implements OnInit, OnDestroy {
     });
   }
 
-  /* ── Search & Filters ───────────────────────────────────── */
-  onSearch(value: string): void {
-    this.searchSubject.next(value);
+  loadCategorias(): void {
+    this.catalogoService.getCategorias().subscribe({
+      next: (c) => this.categorias.set(c),
+      error: () => {},
+    });
   }
+
+  loadSedes(): void {
+    this.catalogoService.getSedes().subscribe({
+      next: (s) => this.sedes.set(s),
+      error: () => {},
+    });
+  }
+
+  /* ── Filters ────────────────────────────────────────────── */
+  onSearch(value: string): void { this.searchSubject.next(value); }
 
   onFilterChange(): void {
     this.currentPage.set(1);
-    this.loadMiembros();
+    this.loadServicios();
   }
 
   clearFilters(): void {
+    this.filterCategoria.set('');
+    this.filterSede.set('');
+    this.filterEstado.set('');
+    this.filterTipo.set('');
     this.searchQuery.set('');
-    this.filterTipo.set('todos');
-    this.filterEstado.set('todos');
     this.currentPage.set(1);
-    this.loadMiembros();
+    this.loadServicios();
   }
 
   /* ── Pagination ─────────────────────────────────────────── */
@@ -188,81 +216,92 @@ export class MiembrosComponent implements OnInit, OnDestroy {
     if (typeof page !== 'number') return;
     if (page < 1 || page > this.totalPages()) return;
     this.currentPage.set(page);
-    this.loadMiembros();
+    this.loadServicios();
   }
 
-  prevPage(): void { this.goToPage(this.currentPage() - 1); }
-  nextPage(): void { this.goToPage(this.currentPage() + 1); }
+  prevPage():  void { this.goToPage(this.currentPage() - 1); }
+  nextPage():  void { this.goToPage(this.currentPage() + 1); }
   firstPage(): void { this.goToPage(1); }
-  lastPage(): void { this.goToPage(this.totalPages()); }
+  lastPage():  void { this.goToPage(this.totalPages()); }
 
-  onPageSizeChange(size: string): void {
-    this.pageSize.set(Number(size));
-    this.currentPage.set(1);
-    this.loadMiembros();
+  /* ── Kebab Menu ─────────────────────────────────────────── */
+  toggleMenu(event: MouseEvent, id: number): void {
+    event.stopPropagation();
+    this.openMenuId.update((current) => (current === id ? null : id));
   }
 
   /* ── Modals ─────────────────────────────────────────────── */
-
-  openView(m: Miembro): void {
-    this.selectedMiembro.set(m);
-    this.modalMode.set('view');
-  }
-
-  openEdit(m: Miembro): void {
-    this.selectedMiembro.set(m);
+  openPublicar(): void {
+    this.servicioForm.reset({ tipo: 'Digital', estado: 'Borrador' });
     this.formError.set('');
     this.formSuccess.set('');
-    const cedula = m.cedula.replace(/[^0-9]/g, '');
-    const partes = m.nombre.split(' ');
-    this.miembroForm.patchValue({
-      cedula_identidad: cedula,
-      primer_nombre: partes[0] ?? '',
-      segundo_nombre: partes.length > 3 ? partes[1] : '',
-      primer_apellido: partes.length > 3 ? partes[2] : partes[1] ?? '',
-      segundo_apellido: partes.length > 3 ? partes[3] : partes[2] ?? '',
-      correo_institucional: m.correo,
-      telefono: m.telefono ?? '',
-      fecha_nacimiento: m.fecha_nacimiento ? m.fecha_nacimiento.slice(0, 10) : '',
-      estado_cuenta: m.estado_cuenta,
-    });
-    this.modalMode.set('edit');
+    this.selectedServicio.set(null);
+    this.openMenuId.set(null);
+    this.modalMode.set('publicar');
   }
 
-  openDeactivate(m: Miembro): void {
-    this.selectedMiembro.set(m);
-    this.modalMode.set('deactivate');
+  openConsultar(s: Servicio): void {
+    this.selectedServicio.set(s);
+    this.openMenuId.set(null);
+    this.modalMode.set('consultar');
+  }
+
+  openModificar(s: Servicio): void {
+    this.selectedServicio.set(s);
+    this.formError.set('');
+    this.formSuccess.set('');
+    this.servicioForm.patchValue({
+      nombre:      s.nombre,
+      descripcion: s.descripcion,
+      categoria:   s.categoria,
+      sede:        s.sede,
+      tipo:        s.tipo,
+      precio_base: s.precio_base,
+      estado:      s.estado,
+    });
+    this.openMenuId.set(null);
+    this.modalMode.set('modificar');
+  }
+
+  openEliminar(s: Servicio): void {
+    this.selectedServicio.set(s);
+    this.openMenuId.set(null);
+    this.modalMode.set('eliminar');
+  }
+
+  openSolicitar(s: Servicio): void {
+    this.selectedServicio.set(s);
+    this.openMenuId.set(null);
+    this.modalMode.set('solicitar');
   }
 
   closeModal(): void {
     this.modalMode.set(null);
-    this.selectedMiembro.set(null);
+    this.selectedServicio.set(null);
     this.formError.set('');
     this.formSuccess.set('');
   }
 
   /* ── CRUD Actions ───────────────────────────────────────── */
-  saveMiembro(): void {
-    if (this.miembroForm.invalid) {
-      this.miembroForm.markAllAsTouched();
+  saveServicio(): void {
+    if (this.servicioForm.invalid) {
+      this.servicioForm.markAllAsTouched();
       return;
     }
     this.isSaving.set(true);
     this.formError.set('');
 
-    const dto: CreateMiembroDto = {
-      ...this.miembroForm.value,
-      cedula_identidad: Number(this.miembroForm.value.cedula_identidad),
-      total_sesiones: 0,
-    };
-
-    const obs = this.miembrosService.update(this.selectedMiembro()!.id, dto);
+    const dto: CreateServicioDto = this.servicioForm.value;
+    const isEdit = this.modalMode() === 'modificar';
+    const obs = isEdit
+      ? this.catalogoService.update(this.selectedServicio()!.id, dto)
+      : this.catalogoService.create(dto);
 
     obs.subscribe({
       next: () => {
         this.isSaving.set(false);
-        this.formSuccess.set('¡Miembro actualizado exitosamente!');
-        setTimeout(() => { this.closeModal(); this.loadMiembros(); }, 1200);
+        this.formSuccess.set(isEdit ? '¡Servicio actualizado!' : '¡Servicio publicado!');
+        setTimeout(() => { this.closeModal(); this.loadServicios(); }, 1200);
       },
       error: (err) => {
         this.isSaving.set(false);
@@ -271,18 +310,23 @@ export class MiembrosComponent implements OnInit, OnDestroy {
     });
   }
 
-  confirmDeactivate(): void {
-    const m = this.selectedMiembro();
-    if (!m) return;
-    const nuevoEstado = m.estado_cuenta === 'activa' ? 'suspendida' : 'activa';
+  confirmEliminar(): void {
+    const s = this.selectedServicio();
+    if (!s) return;
     this.isSaving.set(true);
-    this.miembrosService.updateEstado(m.id, nuevoEstado).subscribe({
-      next: () => {
-        this.isSaving.set(false);
-        this.closeModal();
-        this.loadMiembros();
-      },
+    this.catalogoService.delete(s.id).subscribe({
+      next:  () => { this.isSaving.set(false); this.closeModal(); this.loadServicios(); },
       error: () => this.isSaving.set(false),
+    });
+  }
+
+  confirmSolicitar(): void {
+    const s = this.selectedServicio();
+    if (!s) return;
+    this.isSaving.set(true);
+    this.catalogoService.solicitar(s.id).subscribe({
+      next:  () => { this.isSaving.set(false); this.formSuccess.set('¡Solicitud enviada con éxito!'); setTimeout(() => this.closeModal(), 1400); },
+      error: (err) => { this.isSaving.set(false); this.formError.set(err?.error?.message ?? 'Error al solicitar.'); },
     });
   }
 
@@ -305,29 +349,28 @@ export class MiembrosComponent implements OnInit, OnDestroy {
   }
 
   /* ── Helpers ────────────────────────────────────────────── */
+  getTipoBadgeClass(tipo: string): string {
+    return tipo === 'Digital' ? 'badge-digital' : 'badge-presencial';
+  }
+
   getEstadoBadgeClass(estado: string): string {
-    switch (estado) {
-      case 'activa': return 'badge-activo';
-      case 'suspendida': return 'badge-suspendido';
-      case 'bloqueada': return 'badge-bloqueado';
-      default: return 'badge-inactivo';
-    }
+    return estado === 'Publicado' ? 'badge-publicado' : 'badge-borrador';
   }
 
-  getEstadoLabel(estado: string): string {
-    switch (estado) {
-      case 'activa': return 'Activo';
-      case 'suspendida': return 'Suspendido';
-      case 'bloqueada': return 'Bloqueado';
-      default: return estado;
-    }
+  getPrecioLabel(precio: number | null): string {
+    return precio == null || precio === 0 ? 'Gratuito' : `Bs. ${precio.toFixed(2)}`;
   }
 
-  trackById(_index: number, m: Miembro): number {
-    return m.id;
+  getCategoriaIcon(categoria: string): string {
+    const map: Record<string, string> = {
+      'Académicos':      'M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z',
+      'Administrativos': 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+      'Estudiantiles':   'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z',
+      'Tecnológicos':    'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2h-2',
+    };
+    return map[categoria] ?? 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z';
   }
 
-  isNumber(val: any): boolean {
-    return typeof val === 'number';
-  }
+  trackById(_i: number, s: Servicio): number { return s.id; }
+  isNumber(val: unknown): boolean { return typeof val === 'number'; }
 }
