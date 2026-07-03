@@ -40,11 +40,11 @@ VALUES
 INSERT INTO Historial_Contrasena (id_miembro, fecha_inicio, contrasena, fecha_fin)
 VALUES
 -- Contraseña vigente (fecha_fin NULL = activa)
-(1, '2022-09-01 08:00:00', '$2b$12$KIX8QeK1xLh5GkDJ3p9nOeB4ZmYcT7wRvN2sA1dF6gH0jP3qL8mUy', NULL),
-(2, '2022-09-01 08:00:00', '$2b$12$LJY9RfL2yMi6HlEK4q0oPfC5AnZdU8xSwO3tB2eG7hI1kQ4rM9nVz', NULL),
+(1, '2022-09-01 08:00:00', '123456', NULL),
+(2, '2022-09-01 08:00:00', '123456', NULL),
 (3, '2022-09-01 08:00:00', '$2b$12$MKZ0SgM3zNj7ImFL5r1pQgD6BoAeV9yTxP4uC3fH8iJ2lR5sN0oWA', NULL),
 (4, '2021-09-01 08:00:00', '$2b$12$NLA1ThN4AOk8JnGM6s2qRhE7CpBfW0zUyQ5vD4gI9jK3mS6tO1pXB', NULL),
-(5, '2018-09-01 08:00:00', '$2b$12$OMB2UiO5BPl9KoHN7t3rSiF8DqCgX1AVzR6wE5hJ0kL4nT7uP2qYC', NULL),
+(5, '2018-09-01 08:00:00', '123456', NULL),
 (6, '2010-03-01 08:00:00', '$2b$12$PNC3VjP6CQm0LpIO8u4sTjG9ErDhY2BWAs7xF6iK1lM5oU8vQ3rZD', NULL),
 (7, '2015-06-01 08:00:00', '$2b$12$QOD4WkQ7DRn1MqJP9v5tUkH0FsEiZ3CXBt8yG7jL2mN6pV9wR4sAE', NULL),
 -- Valentina: tuvo rotación de contraseña, ambas cerradas al dar de baja

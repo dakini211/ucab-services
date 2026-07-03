@@ -28,6 +28,7 @@ export const routes: Routes = [
     title: 'Gestión de Miembros | UCAB-Services',
     canActivate: [authGuard, adminGuard],
   },
+
   {
     path: '**',
     redirectTo: 'login',
