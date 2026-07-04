@@ -58,6 +58,7 @@ export class CatalogoComponent implements OnInit, OnDestroy {
   userName     = signal('Usuario');
   userEmail    = signal('');
   userInitials = signal('US');
+  isAdmin = signal(false);
 
   /* ── Form ──────────────────────────────────────────────── */
   servicioForm!: FormGroup;
@@ -137,6 +138,7 @@ export class CatalogoComponent implements OnInit, OnDestroy {
         const u = JSON.parse(stored);
         this.userName.set(u.nombre ?? 'Usuario');
         this.userEmail.set(u.email ?? '');
+        this.isAdmin.set(u.rol === 'Administrativo' || u.rol === 'Admin');
         const initials = (u.nombre ?? 'U')
           .split(' ').slice(0, 2).map((p: string) => p[0]).join('').toUpperCase();
         this.userInitials.set(initials);
