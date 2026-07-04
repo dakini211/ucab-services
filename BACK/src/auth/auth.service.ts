@@ -81,6 +81,10 @@ export class AuthService {
     };
     const access_token = this.jwtService.sign(payload);
 
+    // Ajustar a hora local (UTC-4 para Venezuela)
+    const now = new Date();
+    const localNow = new Date(now.getTime() - (4 * 60 * 60 * 1000));
+
     // 5. Registrar sesión en historial (opcional, ignorar errores)
     this.prisma.historial_sesiones
       .create({
@@ -88,8 +92,8 @@ export class AuthService {
           id_miembro: miembro.id_miembro,
           lugar_conexion: 'WEB',
           direccion_ip: '127.0.0.1',
-          fecha_inicio: new Date(),
-          hora_inicio: new Date(),
+          fecha_inicio: localNow,
+          hora_inicio: localNow,
         },
       })
       .catch(() => null);
@@ -119,6 +123,33 @@ export class AuthService {
 
     if (!miembro) throw new UnauthorizedException();
 
+    // Buscar la última sesión completada (con hora_fin) para mostrar "última conexión"
+    const ultimaSesion = await this.prisma.historial_sesiones.findFirst({
+      where: {
+        id_miembro: BigInt(userId),
+        hora_fin: { not: null },
+      },
+      orderBy: {
+        identificador_uuid: 'desc'
+      }
+    });
+
+    let ultima_conexion = 'Primera sesión';
+    if (ultimaSesion && ultimaSesion.hora_fin) {
+      const fecha = ultimaSesion.fecha_inicio instanceof Date 
+        ? ultimaSesion.fecha_inicio.toISOString().split('T')[0] 
+        : String(ultimaSesion.fecha_inicio).split('T')[0];
+      
+      const horaObj = ultimaSesion.hora_fin;
+      let timeStr = '';
+      if (horaObj instanceof Date) {
+        timeStr = horaObj.toISOString().split('T')[1].substring(0, 5);
+      } else {
+        timeStr = String(horaObj).includes('T') ? String(horaObj).split('T')[1].substring(0, 5) : String(horaObj).substring(0, 5);
+      }
+      ultima_conexion = `${fecha} a las ${timeStr}`;
+    }
+
     let rol = 'Miembro';
     if (miembro.personal_ucab?.profesor) rol = 'Profesor';
     else if (miembro.personal_ucab?.administrativo) rol = 'Administrativo';
@@ -133,6 +164,40 @@ export class AuthService {
       cedula: miembro.cedula_identidad,
       telefono: miembro.telefono,
       estado_cuenta: miembro.estado_cuenta,
+      ultima_conexion,
     };
+  }
+
+  async logout(userId: string) {
+    const userIdBigInt = BigInt(userId);
+    // Encontrar la sesión más reciente sin hora_fin
+    const sesion = await this.prisma.historial_sesiones.findFirst({
+      where: {
+        id_miembro: userIdBigInt,
+        hora_fin: null,
+      },
+      orderBy: {
+        identificador_uuid: 'desc'
+      }
+    });
+
+    if (sesion) {
+      // Ajustar a hora local (UTC-4 para Venezuela)
+      const now = new Date();
+      const localNow = new Date(now.getTime() - (4 * 60 * 60 * 1000));
+
+      await this.prisma.historial_sesiones.update({
+        where: {
+          id_miembro_identificador_uuid: {
+            id_miembro: userIdBigInt,
+            identificador_uuid: sesion.identificador_uuid,
+          }
+        },
+        data: {
+          hora_fin: localNow
+        }
+      });
+    }
+    return { success: true };
   }
 }

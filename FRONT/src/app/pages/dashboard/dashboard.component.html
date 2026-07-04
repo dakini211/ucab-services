@@ -168,7 +168,7 @@
           </div>
           <p class="stat-number">{{ formatNumber(stats().totalServicios) }}</p>
           <p class="stat-label">Servicios disponibles</p>
-          <button class="stat-link" (click)="navigateTo('/servicios')" id="link-servicios">
+          <button class="stat-link" (click)="navigateTo('/catalogo')" id="link-servicios">
             Ver servicios
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           </button>
@@ -214,8 +214,7 @@
             </svg>
           </div>
           <p class="last-login-label">Última conexión</p>
-          <p class="last-login-time">Hoy, 08:24 a.m.</p>
-          <p class="last-login-date">15 de mayo de 2025</p>
+          <p class="last-login-time" style="font-size: 14px; margin-top: 8px;">{{ user()?.ultima_conexion ?? 'No disponible' }}</p>
         </article>
 
       </section>

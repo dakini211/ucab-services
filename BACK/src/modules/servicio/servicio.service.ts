@@ -7,8 +7,15 @@ export class ServicioService {
 
   private mapServicio(s: any) {
     const entidad = s.publica?.entidad_prestadora;
-    const sedes = entidad?.opera?.map((o: any) => o.nombre_sede) || [];
-    const sedeStr = sedes.length > 0 ? sedes.join(', ') : 'Sede Montalbán';
+    let sedeStr = 'Sede Montalbán';
+    if (entidad?.opera) {
+      if (Array.isArray(entidad.opera)) {
+        const sedes = entidad.opera.map((o: any) => o.nombre_sede);
+        if (sedes.length > 0) sedeStr = sedes.join(', ');
+      } else {
+        sedeStr = entidad.opera.nombre_sede || 'Sede Montalbán';
+      }
+    }
 
     return {
       id: s.id_servicio,

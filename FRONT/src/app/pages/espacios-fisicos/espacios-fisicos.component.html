@@ -1,0 +1,752 @@
+<div class="layout" [class.sidebar-collapsed]="sidebarCollapsed()">
+
+  <!-- ═══════════════ SIDEBAR ═══════════════ -->
+  <aside class="sidebar" role="navigation" aria-label="Menú principal">
+    <div class="sidebar-header">
+      <div class="logo-block">
+        <div class="logo-icon">
+          <svg viewBox="0 0 40 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 2L8 12V28C8 36 14 43 20 46C26 43 32 36 32 28V12L20 2Z" fill="#E63946" opacity="0.9"/>
+            <path d="M14 18V30M20 14V30M26 18V30" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M11 30H29" stroke="#FFD700" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="logo-text" *ngIf="!sidebarCollapsed()">
+          <span class="logo-title">UCAB</span>
+          <span class="logo-subtitle">UNIVERSIDAD CATÓLICA<br>ANDRÉS BELLO</span>
+        </div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <ul class="nav-list" role="list">
+        <li *ngFor="let item of navItems" class="nav-item">
+          <button
+            class="nav-btn"
+            [class.active]="currentRoute() === item.id"
+            (click)="navigate(item)"
+            [id]="'nav-' + item.id"
+            [title]="item.label"
+            [attr.aria-current]="currentRoute() === item.id ? 'page' : null"
+          >
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path [attr.d]="item.icon"/>
+            </svg>
+            <span class="nav-label" *ngIf="!sidebarCollapsed()">{{ item.label }}</span>
+          </button>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Brand value props -->
+    <div class="sidebar-brand-props" *ngIf="!sidebarCollapsed()">
+      <div class="brand-prop">
+        <div class="brand-prop-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        </div>
+        <div>
+          <p class="brand-prop-name">Seguro</p>
+          <p class="brand-prop-sub">Tus datos están protegidos</p>
+        </div>
+      </div>
+      <div class="brand-prop">
+        <div class="brand-prop-icon brand-prop-icon-gold">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </div>
+        <div>
+          <p class="brand-prop-name">Confiable</p>
+          <p class="brand-prop-sub">Servicios diseñados para ti</p>
+        </div>
+      </div>
+      <div class="brand-prop">
+        <div class="brand-prop-icon brand-prop-icon-blue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+        </div>
+        <div>
+          <p class="brand-prop-name">Conectados</p>
+          <p class="brand-prop-sub">Una plataforma, muchos servicios</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-footer" *ngIf="!sidebarCollapsed()">
+      <div class="brand-footer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="brand-icon"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <div>
+          <p class="brand-name">UCAB-Services</p>
+          <p class="brand-sub">Plataforma oficial</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══════════════ MAIN ═══════════════ -->
+  <div class="main-wrapper">
+
+    <!-- Topbar -->
+    <header class="topbar" role="banner">
+      <button class="toggle-btn" id="btn-toggle-sidebar" (click)="toggleSidebar()" aria-label="Colapsar menú">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      <div class="topbar-right">
+        <button class="notif-btn" id="btn-notificaciones" aria-label="Notificaciones">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          <span class="badge-notif">3</span>
+        </button>
+        <div class="user-menu-wrapper">
+          <div class="user-menu" id="user-menu" role="button" tabindex="0">
+            <div class="user-avatar">{{ userInitials() }}</div>
+            <div class="user-info">
+              <span class="user-name">{{ userName() }}</span>
+              <span class="user-email">{{ userEmail() }}</span>
+            </div>
+            <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <button class="logout-btn" (click)="logout()" id="btn-logout" title="Cerrar sesión">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <main class="page-content" role="main">
+
+      <!-- Two-column layout: table area + calendar -->
+      <div class="content-grid">
+
+        <!-- Left column -->
+        <div class="col-main">
+
+          <!-- Page Header -->
+          <section class="page-header-section">
+            <div class="page-header-info">
+              <h1 class="page-title">Gestión de espacios físicos</h1>
+              <div class="title-underline"></div>
+              <p class="page-subtitle">Administra y consulta los espacios disponibles para la comunidad universitaria.</p>
+            </div>
+          </section>
+
+          <!-- Action bar: button + search -->
+          <div class="action-bar">
+
+            <div class="search-box">
+              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input
+                id="input-buscar-espacio"
+                type="text"
+                class="search-input"
+                placeholder="Buscar espacio, edificio o número..."
+                [value]="searchQuery()"
+                (input)="onSearch($any($event.target).value)"
+              />
+            </div>
+          </div>
+
+          <!-- Filters bar -->
+          <section class="filters-section" aria-label="Filtros de espacios">
+            <div class="filters-row">
+              <div class="filter-group">
+                <label class="filter-label" for="filter-sede">Sede</label>
+                <select id="filter-sede" class="filter-select"
+                  [ngModel]="filterSede()"
+                  (ngModelChange)="filterSede.set($event); onFilterChange()">
+                  <option value="">Todas</option>
+                  <option *ngFor="let s of sedes()" [value]="s">{{ s }}</option>
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label class="filter-label" for="filter-edificacion">Edificación</label>
+                <select id="filter-edificacion" class="filter-select"
+                  [ngModel]="filterEdificacion()"
+                  (ngModelChange)="filterEdificacion.set($event); onFilterChange()">
+                  <option value="">Todas</option>
+                  <option *ngFor="let e of edificaciones()" [value]="e">{{ e }}</option>
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label class="filter-label" for="filter-tipo">Tipo de espacio</label>
+                <select id="filter-tipo" class="filter-select"
+                  [ngModel]="filterTipo()"
+                  (ngModelChange)="filterTipo.set($event); onFilterChange()">
+                  <option value="">Todos</option>
+                  <option *ngFor="let t of tiposEspacio()" [value]="t">{{ t }}</option>
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label class="filter-label" for="filter-disponibilidad">Disponibilidad</label>
+                <select id="filter-disponibilidad" class="filter-select"
+                  [ngModel]="filterDisponibilidad()"
+                  (ngModelChange)="filterDisponibilidad.set($event); onFilterChange()">
+                  <option value="">Todos</option>
+                  <option value="Disponible">Disponible</option>
+                  <option value="Parcialmente disponible">Parcialmente disponible</option>
+                  <option value="No disponible">No disponible</option>
+                </select>
+              </div>
+
+              <button class="btn-clear-filters" id="btn-limpiar-filtros"
+                [class.has-filters]="hasActiveFilters()"
+                (click)="clearFilters()"
+                title="Limpiar filtros">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                </svg>
+                Limpiar filtros
+              </button>
+            </div>
+          </section>
+
+          <!-- Table -->
+          <section class="table-section">
+            <div class="table-wrapper" role="region" aria-label="Lista de espacios físicos">
+
+              <div *ngIf="isLoading()" class="table-loading">
+                <div class="spinner"></div>
+                <span>Cargando espacios...</span>
+              </div>
+
+              <table *ngIf="!isLoading()" class="data-table" role="table">
+                <thead>
+                  <tr>
+                    <th scope="col">Número</th>
+                    <th scope="col">Edificación</th>
+                    <th scope="col">Tipo de espacio</th>
+                    <th scope="col">Capacidad</th>
+                    <th scope="col">Recursos tecnológicos</th>
+                    <th scope="col">Disponibilidad</th>
+                    <th scope="col" class="col-acciones">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngIf="espacios().length === 0">
+                    <td colspan="7" class="empty-row">No se encontraron espacios físicos.</td>
+                  </tr>
+
+                  <tr *ngFor="let e of espacios(); trackBy: trackById" class="table-row">
+
+                    <!-- Número -->
+                    <td class="col-numero">
+                      <span class="numero-badge">{{ e.numero }}</span>
+                    </td>
+
+                    <!-- Edificación -->
+                    <td class="col-edificacion">{{ e.edificacion }}</td>
+
+                    <!-- Tipo -->
+                    <td class="col-tipo">{{ e.tipo_espacio }}</td>
+
+                    <!-- Capacidad -->
+                    <td class="col-capacidad">{{ e.capacidad }}</td>
+
+                    <!-- Recursos tecnológicos -->
+                    <td class="col-recursos">
+                      <div class="recursos-wrap">
+                        <div *ngFor="let r of e.recursos_tecnologicos.slice(0, 5)"
+                             class="recurso-icon-wrap"
+                             [class.recurso-disponible]="r.disponible"
+                             [class.recurso-no-disponible]="!r.disponible"
+                             [title]="r.nombre + ' (' + (r.disponible ? 'Disponible' : 'No disponible') + ')'">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                               stroke-linecap="round" stroke-linejoin="round">
+                            <path [attr.d]="getRecursoIcon(r.tipo)"/>
+                          </svg>
+                        </div>
+                        <span *ngIf="e.recursos_tecnologicos.length === 0" class="sin-recursos">—</span>
+                        <span *ngIf="e.recursos_tecnologicos.length > 5" class="recursos-mas">
+                          +{{ e.recursos_tecnologicos.length - 5 }}
+                        </span>
+                      </div>
+                    </td>
+
+                    <!-- Disponibilidad -->
+                    <td class="col-disponibilidad">
+                      <span class="disp-badge" [ngClass]="getDisponibilidadClass(e.disponibilidad)">
+                        {{ e.disponibilidad }}
+                      </span>
+                    </td>
+
+                    <!-- Acciones -->
+                    <td class="col-acciones">
+                      <div class="acciones-row">
+                        <button class="btn-accion btn-ver"
+                          [id]="'btn-ver-' + e.id"
+                          (click)="openVer(e)"
+                          title="Ver detalle">
+                          Ver
+                        </button>
+                        <button class="btn-accion btn-editar"
+                          [id]="'btn-editar-' + e.id"
+                          (click)="openEditar(e)"
+                          title="Editar">
+                          Editar
+                        </button>
+                        <button
+                          *ngIf="e.disponibilidad !== 'No disponible'"
+                          class="btn-accion btn-reservar"
+                          [id]="'btn-reservar-' + e.id"
+                          (click)="openReservar(e)"
+                          title="Reservar">
+                          Reservar
+                        </button>
+                        <button
+                          *ngIf="e.disponibilidad === 'No disponible'"
+                          class="btn-accion btn-marcar"
+                          [id]="'btn-marcar-' + e.id"
+                          (click)="marcarDisponible(e)"
+                          title="Marcar como disponible">
+                          Marcar disponible
+                        </button>
+
+                        <!-- Kebab -->
+                        <div class="kebab-wrapper">
+                          <button
+                            class="kebab-btn"
+                            [id]="'btn-menu-' + e.id"
+                            (click)="toggleMenu($event, e.id)"
+                            aria-label="Más acciones"
+                            [attr.aria-expanded]="openMenuId() === e.id">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                              <circle cx="12" cy="5"  r="1.5"/>
+                              <circle cx="12" cy="12" r="1.5"/>
+                              <circle cx="12" cy="19" r="1.5"/>
+                            </svg>
+                          </button>
+                          <div class="kebab-dropdown" *ngIf="openMenuId() === e.id" (click)="$event.stopPropagation()">
+                            <button class="dropdown-item" [id]="'btn-dd-ver-' + e.id" (click)="openVer(e)">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                              Ver detalle
+                            </button>
+                            <button class="dropdown-item" [id]="'btn-dd-editar-' + e.id" (click)="openEditar(e)">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                              Editar
+                            </button>
+                            <button class="dropdown-item item-danger" [id]="'btn-dd-eliminar-' + e.id" (click)="openEliminar(e)">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                              Eliminar
+                            </button>
+                            <div class="dropdown-divider"></div>
+                            <button class="dropdown-item item-primary" [id]="'btn-dd-reservar-' + e.id" (click)="openReservar(e)">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                              Reservar
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination-bar" *ngIf="!isLoading() && espacios().length > 0">
+              <span class="showing-info">
+                Mostrando {{ showingFrom() }} a {{ showingTo() }} de {{ total() }} espacios
+              </span>
+
+              <div class="pagination-controls">
+                <button class="page-btn" id="btn-primera-pagina" (click)="firstPage()" [disabled]="currentPage() === 1" aria-label="Primera página">«</button>
+                <button class="page-btn" id="btn-anterior-pagina" (click)="prevPage()"  [disabled]="currentPage() === 1" aria-label="Página anterior">‹</button>
+
+                <ng-container *ngFor="let p of pages()">
+                  <button *ngIf="isNumber(p)" class="page-btn" [class.active]="p === currentPage()"
+                    [id]="'btn-pagina-' + p" (click)="goToPage(p)">{{ p }}</button>
+                  <span *ngIf="!isNumber(p)" class="page-ellipsis">...</span>
+                </ng-container>
+
+                <button class="page-btn" id="btn-siguiente-pagina" (click)="nextPage()" [disabled]="currentPage() === totalPages()" aria-label="Página siguiente">›</button>
+                <button class="page-btn" id="btn-ultima-pagina"    (click)="lastPage()" [disabled]="currentPage() === totalPages()" aria-label="Última página">»</button>
+              </div>
+
+              <div class="page-size-control">
+                <span>Mostrar</span>
+                <select id="select-por-pagina" class="page-size-select"
+                  [ngModel]="pageSize()"
+                  (ngModelChange)="pageSize.set(+$event); currentPage.set(1); loadEspacios()">
+                  <option value="5">5</option>
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                </select>
+              </div>
+            </div>
+          </section>
+
+        </div><!-- /col-main -->
+
+        <!-- Right column: calendar -->
+        <aside class="col-calendar" aria-label="Calendario de reservas">
+          <div class="calendar-card">
+            <h3 class="calendar-title">Reservas del espacio</h3>
+            <p class="calendar-espacio-nombre">{{ calendarEspacioNombre() }}</p>
+
+            <!-- Month navigation -->
+            <div class="cal-nav">
+              <button class="cal-nav-btn" id="btn-mes-anterior" (click)="prevMonth()" aria-label="Mes anterior">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              <span class="cal-month-label">{{ calendarMonthLabel() }}</span>
+              <button class="cal-nav-btn" id="btn-mes-siguiente" (click)="nextMonth()" aria-label="Mes siguiente">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
+
+            <!-- Weekday headers -->
+            <div class="cal-grid">
+              <div class="cal-weekday" *ngFor="let d of ['LUN','MAR','MIÉ','JUE','VIE','SÁB','DOM']">{{ d }}</div>
+
+              <!-- Days -->
+              <div
+                *ngFor="let day of calendarDays()"
+                class="cal-day"
+                [class.cal-day-other-month]="!day.isCurrentMonth"
+                [class.cal-day-today]="day.isToday"
+                [class.cal-day-has-reserva]="hasReservaOnDay(day)"
+              >
+                {{ day.day }}
+              </div>
+            </div>
+
+            <!-- Today's events -->
+            <div class="cal-today-section">
+              <div class="cal-today-header">
+                <span class="cal-today-label">{{ todayLabel() }}</span>
+                <button class="btn-ver-dia" id="btn-ver-dia-completo">Ver día completo</button>
+              </div>
+
+              <div class="cal-event-list">
+                <div *ngIf="todayReservas().length === 0" class="cal-no-events">
+                  Sin reservas para hoy.
+                </div>
+                <div class="cal-event" *ngFor="let r of todayReservas()">
+                  <div class="cal-event-dot" [style.background]="getReservaColor(r)"></div>
+                  <div class="cal-event-info">
+                    <span class="cal-event-time">{{ formatHora(r.fecha_inicio) }} – {{ formatHora(r.fecha_fin) }}</span>
+                    <span class="cal-event-title">{{ r.titulo }}</span>
+                    <span class="cal-event-org">{{ r.organizacion }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <button class="btn-ver-mes" id="btn-ver-reservas-mes" (click)="openVerMes()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                Ver todas las reservas del mes
+              </button>
+            </div>
+          </div>
+        </aside>
+
+      </div><!-- /content-grid -->
+
+      <!-- Footer -->
+      <footer class="page-footer">
+        <div class="footer-copyright">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          UCAB-Services es una plataforma oficial de la Universidad Católica Andrés Bello.
+        </div>
+      </footer>
+    </main>
+  </div><!-- /main-wrapper -->
+
+</div><!-- /layout -->
+
+
+<!-- ═══════════════ MODAL RESERVAS DEL MES ═══════════════ -->
+<div class="modal-overlay" *ngIf="modalMode() === 'mes'" (click)="closeModal()" role="dialog" aria-modal="true" aria-label="Reservas del mes">
+  <div class="modal-card modal-lg" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:20px;height:20px;margin-right:8px;vertical-align:middle"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Reservas de {{ calendarMonthLabel() }} — {{ calendarEspacioNombre() }}
+      </h2>
+      <button class="modal-close" (click)="closeModal()" id="btn-cerrar-mes" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Sin espacio seleccionado -->
+      <div *ngIf="!selectedEspacio()" class="mes-empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <p>Selecciona un espacio en la tabla para ver sus reservas del mes.</p>
+      </div>
+
+      <!-- Con espacio pero sin reservas -->
+      <div *ngIf="selectedEspacio() && reservasPorDia().length === 0" class="mes-empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <p>No hay reservas registradas para este espacio en {{ calendarMonthLabel() }}.</p>
+      </div>
+
+      <!-- Lista de reservas agrupadas por día -->
+      <div *ngIf="selectedEspacio() && reservasPorDia().length > 0" class="mes-reservas-list">
+        <div class="mes-dia-group" *ngFor="let grupo of reservasPorDia()">
+          <div class="mes-dia-header">
+            <span class="mes-dia-dot"></span>
+            <span class="mes-dia-label">{{ grupo.fecha }}</span>
+            <span class="mes-dia-count">{{ grupo.reservas.length }} reserva{{ grupo.reservas.length !== 1 ? 's' : '' }}</span>
+          </div>
+          <div class="mes-event" *ngFor="let r of grupo.reservas">
+            <div class="mes-event-bar" [style.background]="r.color || '#E63946'"></div>
+            <div class="mes-event-body">
+              <span class="mes-event-time">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                {{ formatHora(r.fecha_inicio) }} – {{ formatHora(r.fecha_fin) }}
+              </span>
+              <span class="mes-event-title">{{ r.titulo }}</span>
+              <span class="mes-event-org">{{ r.organizacion }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <div class="mes-nav">
+        <button class="btn-outline" (click)="prevMonth()" id="btn-mes-ant-modal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          Mes anterior
+        </button>
+        <span class="mes-nav-label">{{ calendarMonthLabel() }}</span>
+        <button class="btn-outline" (click)="nextMonth()" id="btn-mes-sig-modal">
+          Mes siguiente
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+      <button class="btn-secondary" (click)="closeModal()" id="btn-cerrar-mes-footer">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════ MODAL VER DETALLE ═══════════════ -->
+<div class="modal-overlay" *ngIf="modalMode() === 'ver'" (click)="closeModal()" role="dialog" aria-modal="true" aria-label="Detalle del espacio físico">
+  <div class="modal-card modal-lg" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Detalle del espacio físico</h2>
+      <button class="modal-close" (click)="closeModal()" id="btn-cerrar-ver" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" *ngIf="selectedEspacio() as e">
+      <div class="detail-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/>
+        </svg>
+      </div>
+      <div class="detail-grid">
+        <div class="detail-item">
+          <span class="detail-label">Número</span>
+          <span class="detail-value detail-value-lg">{{ e.numero }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Edificación</span>
+          <span class="detail-value">{{ e.edificacion }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Tipo de espacio</span>
+          <span class="detail-value">{{ e.tipo_espacio }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Capacidad</span>
+          <span class="detail-value">{{ e.capacidad }} personas</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Sede</span>
+          <span class="detail-value">{{ e.sede }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Disponibilidad</span>
+          <span class="disp-badge" [ngClass]="getDisponibilidadClass(e.disponibilidad)">{{ e.disponibilidad }}</span>
+        </div>
+        <div class="detail-item detail-full" *ngIf="e.descripcion">
+          <span class="detail-label">Descripción</span>
+          <span class="detail-value">{{ e.descripcion }}</span>
+        </div>
+        <div class="detail-item detail-full">
+          <span class="detail-label">Recursos tecnológicos ({{ e.recursos_tecnologicos.length }})</span>
+          <div class="recursos-detalle">
+            <div *ngIf="e.recursos_tecnologicos.length === 0" class="sin-recursos-text">Sin recursos registrados.</div>
+            <div class="recurso-chip"
+                 *ngFor="let r of e.recursos_tecnologicos"
+                 [class.recurso-chip-ok]="r.disponible"
+                 [class.recurso-chip-no]="!r.disponible">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                   stroke-linecap="round" stroke-linejoin="round" class="recurso-chip-icon">
+                <path [attr.d]="getRecursoIcon(r.tipo)"/>
+              </svg>
+              <span>{{ r.nombre }}</span>
+              <span class="recurso-chip-qty">×{{ r.cantidad }}</span>
+              <span class="recurso-chip-status">{{ r.disponible ? '✓' : '✗' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" id="btn-cerrar-detalle" (click)="closeModal()">Cerrar</button>
+      <button class="btn-primary" id="btn-reservar-desde-ver" (click)="openReservar(selectedEspacio()!)">Reservar</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════ MODAL REGISTRAR / EDITAR ═══════════════ -->
+<div class="modal-overlay" *ngIf="modalMode() === 'registrar' || modalMode() === 'editar'" (click)="closeModal()" role="dialog" aria-modal="true">
+  <div class="modal-card modal-lg" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">{{ modalMode() === 'registrar' ? 'Registrar espacio físico' : 'Editar espacio físico' }}</h2>
+      <button class="modal-close" (click)="closeModal()" id="btn-cerrar-form" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <form [formGroup]="espacioForm" class="form-grid" id="form-espacio">
+        <div class="form-group">
+          <label for="f-numero">Número / Código *</label>
+          <input id="f-numero" type="text" class="form-input" formControlName="numero" placeholder="Ej: A-101" />
+          <span class="field-error" *ngIf="espacioForm.get('numero')?.invalid && espacioForm.get('numero')?.touched">Campo requerido.</span>
+        </div>
+
+        <div class="form-group">
+          <label for="f-edificacion">Edificación *</label>
+          <input id="f-edificacion" type="text" class="form-input" formControlName="edificacion" placeholder="Ej: Edif. Ciencias" />
+          <span class="field-error" *ngIf="espacioForm.get('edificacion')?.invalid && espacioForm.get('edificacion')?.touched">Campo requerido.</span>
+        </div>
+
+        <div class="form-group">
+          <label for="f-tipo">Tipo de espacio *</label>
+          <select id="f-tipo" class="form-input" formControlName="tipo_espacio">
+            <option value="">Seleccionar...</option>
+            <option value="Auditorio">Auditorio</option>
+            <option value="Aula">Aula</option>
+            <option value="Laboratorio">Laboratorio</option>
+            <option value="Sala de estudio">Sala de estudio</option>
+            <option value="Sala de reuniones">Sala de reuniones</option>
+            <option value="Salón multiuso">Salón multiuso</option>
+            <option value="Cancha">Cancha</option>
+          </select>
+          <span class="field-error" *ngIf="espacioForm.get('tipo_espacio')?.invalid && espacioForm.get('tipo_espacio')?.touched">Campo requerido.</span>
+        </div>
+
+        <div class="form-group">
+          <label for="f-capacidad">Capacidad (personas) *</label>
+          <input id="f-capacidad" type="number" class="form-input" formControlName="capacidad" placeholder="Ej: 250" min="1" />
+          <span class="field-error" *ngIf="espacioForm.get('capacidad')?.invalid && espacioForm.get('capacidad')?.touched">Ingrese un número válido.</span>
+        </div>
+
+        <div class="form-group">
+          <label for="f-sede">Sede *</label>
+          <select id="f-sede" class="form-input" formControlName="sede">
+            <option value="">Seleccionar...</option>
+            <option *ngFor="let s of sedes()" [value]="s">{{ s }}</option>
+            <option value="Sede Montalbán">Sede Montalbán</option>
+            <option value="Sede Guayana">Sede Guayana</option>
+          </select>
+          <span class="field-error" *ngIf="espacioForm.get('sede')?.invalid && espacioForm.get('sede')?.touched">Campo requerido.</span>
+        </div>
+
+        <div class="form-group">
+          <label for="f-disponibilidad">Disponibilidad</label>
+          <select id="f-disponibilidad" class="form-input" formControlName="disponibilidad">
+            <option value="Disponible">Disponible</option>
+            <option value="Parcialmente disponible">Parcialmente disponible</option>
+            <option value="No disponible">No disponible</option>
+          </select>
+        </div>
+
+        <div class="form-group form-full">
+          <label for="f-descripcion">Descripción <span class="label-hint">— Opcional</span></label>
+          <textarea id="f-descripcion" class="form-input form-textarea" formControlName="descripcion" rows="3"
+            placeholder="Describe brevemente el espacio..."></textarea>
+        </div>
+      </form>
+
+      <p class="form-error-msg"   *ngIf="formError()">{{ formError() }}</p>
+      <p class="form-success-msg" *ngIf="formSuccess()">{{ formSuccess() }}</p>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" id="btn-cancelar-form" (click)="closeModal()">Cancelar</button>
+      <button class="btn-primary" id="btn-guardar-espacio" (click)="saveEspacio()" [disabled]="isSaving()">
+        {{ isSaving() ? 'Guardando...' : (modalMode() === 'registrar' ? 'Registrar espacio' : 'Guardar cambios') }}
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════ MODAL ELIMINAR ═══════════════ -->
+<div class="modal-overlay" *ngIf="modalMode() === 'eliminar'" (click)="closeModal()" role="dialog" aria-modal="true">
+  <div class="modal-card modal-sm" (click)="$event.stopPropagation()">
+    <div class="modal-header modal-header-warn">
+      <div class="warn-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      </div>
+      <h2 class="modal-title">Eliminar espacio físico</h2>
+    </div>
+    <div class="modal-body">
+      <p class="confirm-text">
+        ¿Estás seguro de que deseas <strong>eliminar</strong> el espacio
+        <strong>{{ selectedEspacio()?.numero }} – {{ selectedEspacio()?.edificacion }}</strong>?
+        Esta acción no se puede deshacer.
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" id="btn-cancelar-eliminar" (click)="closeModal()">Cancelar</button>
+      <button class="btn-danger" id="btn-confirmar-eliminar" (click)="confirmEliminar()" [disabled]="isSaving()">
+        {{ isSaving() ? 'Eliminando...' : 'Sí, eliminar' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════ MODAL RESERVAR ═══════════════ -->
+<div class="modal-overlay" *ngIf="modalMode() === 'reservar'" (click)="closeModal()" role="dialog" aria-modal="true">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header modal-header-info">
+      <div class="warn-icon warn-icon-blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      </div>
+      <h2 class="modal-title">Reservar espacio: {{ selectedEspacio()?.numero }}</h2>
+    </div>
+    <div class="modal-body">
+      <form [formGroup]="reservaForm" class="form-grid" id="form-reserva">
+        <div class="form-group">
+          <label for="f-fecha-inicio">Fecha y hora de inicio *</label>
+          <input id="f-fecha-inicio" type="datetime-local" class="form-input" formControlName="fecha_inicio" />
+          <span class="field-error" *ngIf="reservaForm.get('fecha_inicio')?.invalid && reservaForm.get('fecha_inicio')?.touched">Campo requerido.</span>
+        </div>
+        <div class="form-group">
+          <label for="f-fecha-fin">Fecha y hora de fin *</label>
+          <input id="f-fecha-fin" type="datetime-local" class="form-input" formControlName="fecha_fin" />
+          <span class="field-error" *ngIf="reservaForm.get('fecha_fin')?.invalid && reservaForm.get('fecha_fin')?.touched">Campo requerido.</span>
+        </div>
+        <div class="form-group form-full">
+          <label for="f-motivo">Motivo de la reserva *</label>
+          <textarea id="f-motivo" class="form-input form-textarea" formControlName="motivo" rows="3"
+            placeholder="Describe el propósito de la reserva..."></textarea>
+          <span class="field-error" *ngIf="reservaForm.get('motivo')?.invalid && reservaForm.get('motivo')?.touched">Campo requerido.</span>
+        </div>
+      </form>
+      <p class="form-error-msg"   *ngIf="formError()">{{ formError() }}</p>
+      <p class="form-success-msg" *ngIf="formSuccess()">{{ formSuccess() }}</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" id="btn-cancelar-reservar" (click)="closeModal()">Cancelar</button>
+      <button class="btn-primary" id="btn-confirmar-reservar" (click)="confirmReservar()" [disabled]="isSaving()">
+        {{ isSaving() ? 'Reservando...' : 'Confirmar reserva' }}
+      </button>
+    </div>
+  </div>
+</div>

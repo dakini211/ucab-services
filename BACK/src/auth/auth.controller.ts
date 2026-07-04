@@ -35,4 +35,15 @@ export class AuthController {
   getMe(@Request() req) {
     return this.authService.getMe(req.user.id.toString());
   }
+
+  /**
+   * POST /api/auth/logout
+   * Cierra sesión marcando la hora_fin en la base de datos
+   */
+  @UseGuards(AuthGuard('jwt'))
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  logout(@Request() req) {
+    return this.authService.logout(req.user.id.toString());
+  }
 }

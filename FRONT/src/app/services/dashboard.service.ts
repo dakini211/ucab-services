@@ -26,7 +26,7 @@ export interface UserProfile {
   nombre: string;
   email: string;
   rol: string;
-  ultimaConexion?: string;
+  ultima_conexion?: string;
   avatar?: string;
 }
 
@@ -84,7 +84,7 @@ const MOCK_USER: UserProfile = {
   nombre: 'María Gabriela',
   email: 'mgonzalez@ucab.edu.ve',
   rol: 'Administrador',
-  ultimaConexion: 'Hoy, 08:24 a.m.',
+  ultima_conexion: 'Hoy, 08:24 a.m.',
 };
 
 /* ── Service ────────────────────────────────────────────── */
@@ -168,8 +168,10 @@ export class DashboardService {
    * GET /api/auth/me
    */
   getUserProfile(): Observable<UserProfile> {
-    // Intenta obtener del backend primero; si falla, usa localStorage
-    return this.http.get<UserProfile>(`${this.API_URL}/auth/me`).pipe(
+    const token = localStorage.getItem('access_token');
+    const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+
+    return this.http.get<UserProfile>(`${this.API_URL}/auth/me`, { headers }).pipe(
       catchError(() => {
         const stored = localStorage.getItem('user');
         return of(stored ? (JSON.parse(stored) as UserProfile) : MOCK_USER);

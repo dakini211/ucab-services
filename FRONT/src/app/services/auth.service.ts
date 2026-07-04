@@ -61,6 +61,20 @@ export class AuthService {
    * Cierra la sesión del usuario actual.
    */
   logout(): void {
+    const token = this.getToken();
+    if (token) {
+      this.http.post(`${this.API_URL}/auth/logout`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      }).subscribe({
+        next: () => this.clearSession(),
+        error: () => this.clearSession()
+      });
+    } else {
+      this.clearSession();
+    }
+  }
+
+  private clearSession(): void {
     localStorage.removeItem('access_token');
     localStorage.removeItem('user');
   }

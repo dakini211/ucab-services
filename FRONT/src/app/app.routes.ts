@@ -45,6 +45,13 @@ export const routes: Routes = [
     canActivate: [authGuard, adminGuard],
   },
   {
+    path: 'espacios',
+    loadComponent: () =>
+      import('./pages/espacios-fisicos/espacios-fisicos.component').then((m) => m.EspaciosFisicosComponent),
+    title: 'Gestión de Espacios Físicos | UCAB-Services',
+    canActivate: [authGuard],
+  },
+  {
     path: '**',
     redirectTo: 'login',
   },
