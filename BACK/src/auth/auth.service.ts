@@ -30,7 +30,7 @@ export class AuthService {
         estudiante: true,
         personal_ucab: {
           include: {
-            administrativo: true,
+            administrativo: { include: { admid_general: true } },
             profesor: true,
           },
         },
@@ -70,7 +70,9 @@ export class AuthService {
     // 3. Determinar rol basado en las relaciones
     let rol = 'Miembro';
     if (miembro.personal_ucab?.profesor) rol = 'Profesor';
-    else if (miembro.personal_ucab?.administrativo) rol = 'Administrativo';
+    else if (miembro.personal_ucab?.administrativo) {
+      rol = miembro.personal_ucab.administrativo.admid_general ? 'Admin' : 'Administrativo';
+    }
     else if (miembro.estudiante) rol = 'Estudiante';
     else if (miembro.egresado) rol = 'Egresado';
 
@@ -116,7 +118,7 @@ export class AuthService {
       where: { id_miembro: BigInt(userId) },
       include: {
         estudiante: true,
-        personal_ucab: { include: { administrativo: true, profesor: true } },
+        personal_ucab: { include: { administrativo: { include: { admid_general: true } }, profesor: true } },
         egresado: true,
       },
     });
@@ -152,7 +154,9 @@ export class AuthService {
 
     let rol = 'Miembro';
     if (miembro.personal_ucab?.profesor) rol = 'Profesor';
-    else if (miembro.personal_ucab?.administrativo) rol = 'Administrativo';
+    else if (miembro.personal_ucab?.administrativo) {
+      rol = miembro.personal_ucab.administrativo.admid_general ? 'Admin' : 'Administrativo';
+    }
     else if (miembro.estudiante) rol = 'Estudiante';
     else if (miembro.egresado) rol = 'Egresado';
 

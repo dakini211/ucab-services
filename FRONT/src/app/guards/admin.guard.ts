@@ -3,8 +3,8 @@ import { CanActivateFn, Router } from '@angular/router';
 
 export const adminGuard: CanActivateFn = (_route, _state) => {
   const router = inject(Router);
-  const token = localStorage.getItem('access_token');
-  const userStr = localStorage.getItem('user');
+  const token = sessionStorage.getItem('access_token');
+  const userStr = sessionStorage.getItem('user');
 
   if (!token || !userStr) {
     router.navigate(['/login']);
@@ -13,7 +13,7 @@ export const adminGuard: CanActivateFn = (_route, _state) => {
 
   try {
     const user = JSON.parse(userStr);
-    if (user.rol === 'Administrativo' || user.rol === 'Admin') {
+    if (user.rol === 'Admin') {
       return true;
     }
     // No es admin: lo manda al dashboard

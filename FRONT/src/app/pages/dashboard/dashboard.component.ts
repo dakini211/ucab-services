@@ -166,13 +166,13 @@ export class DashboardComponent implements OnInit {
   /* ── Lifecycle ──────────────────────────────────────────── */
   ngOnInit(): void {
     this.setCurrentDateTime();
-    this.loadUserFromStorage(); // Carga inmediata desde localStorage
+    this.loadUserFromStorage(); // Carga inmediata desde sessionStorage
     this.loadDashboardData();   // Después actualiza con datos reales del backend
   }
 
-  /* ── Load user from localStorage immediately ────────────── */
+  /* ── Load user from sessionStorage immediately ────────────── */
   private loadUserFromStorage(): void {
-    const stored = localStorage.getItem('user');
+    const stored = sessionStorage.getItem('user');
     if (stored) {
       try {
         const parsedUser = JSON.parse(stored);
@@ -223,7 +223,7 @@ export class DashboardComponent implements OnInit {
 
   /* ── Navigation ─────────────────────────────────────────── */
   navigate(item: NavItem): void {
-    const implementedRoutes = ['/dashboard', '/miembros', '/edificaciones', '/catalogo', '/espacios'];
+    const implementedRoutes = ['/dashboard', '/miembros', '/edificaciones', '/catalogo', '/espacios', '/perfil'];
     if (implementedRoutes.includes(item.route)) {
       this.currentRoute.set(item.id);
       this.router.navigate([item.route]);

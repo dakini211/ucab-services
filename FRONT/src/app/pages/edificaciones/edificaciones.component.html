@@ -88,7 +88,7 @@
           <p class="page-subtitle">Administra la información de las edificaciones de la universidad.</p>
           <div class="title-underline"></div>
         </div>
-        <button class="btn-primary" id="btn-registrar-edificacion" (click)="openCreate()">
+        <button *ngIf="canEdit()" class="btn-primary" id="btn-registrar-edificacion" (click)="openCreate()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
           Registrar edificación
         </button>
@@ -209,12 +209,12 @@
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                       <span>Ver</span>
                     </button>
-                    <button class="action-btn btn-edit" [id]="'btn-editar-' + e.id" (click)="openEdit(e)" title="Editar">
+                    <button *ngIf="canEdit()" class="action-btn btn-edit" [id]="'btn-editar-' + e.id" (click)="openEdit(e)" title="Editar">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                       <span>Editar</span>
                     </button>
                     <button
-                      *ngIf="e.estado === 'activa'"
+                      *ngIf="canEdit() && e.estado === 'activa'"
                       class="action-btn btn-delete"
                       [id]="'btn-eliminar-' + e.id"
                       (click)="openDelete(e)"
@@ -224,7 +224,7 @@
                       <span>Eliminar</span>
                     </button>
                     <button
-                      *ngIf="e.estado === 'desactivada'"
+                      *ngIf="canEdit() && e.estado === 'desactivada'"
                       class="action-btn btn-activate"
                       [id]="'btn-activar-' + e.id"
                       (click)="openToggleEstado(e)"

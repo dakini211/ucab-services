@@ -39,9 +39,9 @@ export class AuthService {
       .post<LoginResponse>(`${this.API_URL}/auth/login`, credentials)
       .pipe(
         tap((response) => {
-          // Guarda el token en localStorage al iniciar sesión exitosamente
-          localStorage.setItem('access_token', response.access_token);
-          localStorage.setItem('user', JSON.stringify(response.user));
+          // Guarda el token en sessionStorage al iniciar sesión exitosamente
+          sessionStorage.setItem('access_token', response.access_token);
+          sessionStorage.setItem('user', JSON.stringify(response.user));
         }),
         catchError(this.handleError)
       );
@@ -75,22 +75,22 @@ export class AuthService {
   }
 
   private clearSession(): void {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('user');
+    sessionStorage.removeItem('access_token');
+    sessionStorage.removeItem('user');
   }
 
   /**
    * Verifica si hay un usuario autenticado.
    */
   isAuthenticated(): boolean {
-    return !!localStorage.getItem('access_token');
+    return !!sessionStorage.getItem('access_token');
   }
 
   /**
    * Obtiene el token JWT almacenado.
    */
   getToken(): string | null {
-    return localStorage.getItem('access_token');
+    return sessionStorage.getItem('access_token');
   }
 
   private handleError(error: HttpErrorResponse): Observable<never> {

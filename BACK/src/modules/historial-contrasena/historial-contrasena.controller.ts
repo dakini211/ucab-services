@@ -31,4 +31,18 @@ export class HistorialContrasenaController {
   remove(@Param('id') id: string) {
     return this.historialContrasenaService.remove(+id);
   }
+
+  /**
+   * POST /api/historial-contrasena/cambiar
+   * Body: { id_miembro: number, nueva_contrasena: string }
+   * Llama al stored procedure sp_cambiar_contrasena para cambiar la contraseña.
+   */
+  @Post('cambiar')
+  cambiarContrasena(
+    @Body('id_miembro') idMiembro: number,
+    @Body('nueva_contrasena') nuevaContrasena: string,
+  ) {
+    return this.historialContrasenaService.cambiarContrasena(idMiembro, nuevaContrasena);
+  }
 }
+

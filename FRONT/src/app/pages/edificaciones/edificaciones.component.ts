@@ -52,6 +52,7 @@ export class EdificacionesComponent implements OnInit, OnDestroy {
   userName = signal('Usuario');
   userEmail = signal('');
   userInitials = signal('US');
+  canEdit = signal(false);
 
   /* ── Form ──────────────────────────────────────────────── */
   edificacionForm!: FormGroup;
@@ -128,7 +129,7 @@ export class EdificacionesComponent implements OnInit, OnDestroy {
 
   /* ── Load user ──────────────────────────────────────────── */
   private loadUserFromStorage(): void {
-    const stored = localStorage.getItem('user');
+    const stored = sessionStorage.getItem('user');
     if (stored) {
       try {
         const u = JSON.parse(stored);
@@ -137,6 +138,10 @@ export class EdificacionesComponent implements OnInit, OnDestroy {
         const initials = (u.nombre ?? 'U')
           .split(' ').slice(0, 2).map((p: string) => p[0]).join('').toUpperCase();
         this.userInitials.set(initials);
+
+        const rol = (u.rol ?? '').toLowerCase();
+        const readonlyRoles = ['estudiante', 'preparador', 'profesor', 'egresado', 'miembro', 'administrativo'];
+        this.canEdit.set(!readonlyRoles.includes(rol));
       } catch { /* empty */ }
     }
   }
@@ -324,7 +329,7 @@ export class EdificacionesComponent implements OnInit, OnDestroy {
   toggleSidebar(): void { this.sidebarCollapsed.update((v) => !v); }
 
   navigate(item: NavItem): void {
-    const implementedRoutes = ['/dashboard', '/miembros', '/edificaciones', '/catalogo', '/espacios'];
+    const implementedRoutes = ['/dashboard', '/perfil', '/miembros', '/edificaciones', '/catalogo', '/espacios'];
     if (implementedRoutes.includes(item.route)) {
       this.currentRoute.set(item.id);
       this.router.navigate([item.route]);

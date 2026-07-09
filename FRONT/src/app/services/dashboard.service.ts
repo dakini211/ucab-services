@@ -168,12 +168,12 @@ export class DashboardService {
    * GET /api/auth/me
    */
   getUserProfile(): Observable<UserProfile> {
-    const token = localStorage.getItem('access_token');
+    const token = sessionStorage.getItem('access_token');
     const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
 
     return this.http.get<UserProfile>(`${this.API_URL}/auth/me`, { headers }).pipe(
       catchError(() => {
-        const stored = localStorage.getItem('user');
+        const stored = sessionStorage.getItem('user');
         return of(stored ? (JSON.parse(stored) as UserProfile) : MOCK_USER);
       })
     );

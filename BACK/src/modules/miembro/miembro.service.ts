@@ -53,7 +53,9 @@ export class MiembroService {
     }
 
     const include = {
-      estudiante: true,
+      estudiante: {
+        include: { preparador: true },
+      },
       egresado: true,
       personal_ucab: {
         include: { profesor: true, administrativo: true },
@@ -95,7 +97,7 @@ export class MiembroService {
     const m = await this.prisma.miembro.findUnique({
       where: { id_miembro: BigInt(id) },
       include: {
-        estudiante: true,
+        estudiante: { include: { preparador: true } },
         egresado: true,
         personal_ucab: { include: { profesor: true, administrativo: true } },
         historial_contrasena: { where: { fecha_fin: null }, take: 1 },

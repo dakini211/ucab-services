@@ -1,0 +1,417 @@
+<div class="layout" [class.sidebar-collapsed]="sidebarCollapsed()">
+
+  <!-- ═══════════════ SIDEBAR ═══════════════ -->
+  <aside class="sidebar" role="navigation" aria-label="Menú principal">
+    <div class="sidebar-header">
+      <div class="logo-block">
+        <div class="logo-icon">
+          <svg viewBox="0 0 40 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 2L8 12V28C8 36 14 43 20 46C26 43 32 36 32 28V12L20 2Z" fill="#E63946" opacity="0.9"/>
+            <path d="M14 18V30M20 14V30M26 18V30" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M11 30H29" stroke="#FFD700" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="logo-text" *ngIf="!sidebarCollapsed()">
+          <span class="logo-title">UCAB</span>
+          <span class="logo-subtitle">UNIVERSIDAD CATÓLICA<br>ANDRÉS BELLO</span>
+        </div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <ul class="nav-list" role="list">
+        <li *ngFor="let item of navItems" class="nav-item">
+          <button
+            class="nav-btn"
+            [class.active]="currentRoute() === item.id"
+            (click)="navigate(item)"
+            [id]="'nav-' + item.id"
+            [title]="item.label"
+            [attr.aria-current]="currentRoute() === item.id ? 'page' : null"
+          >
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path [attr.d]="item.icon"/>
+            </svg>
+            <span class="nav-label" *ngIf="!sidebarCollapsed()">{{ item.label }}</span>
+          </button>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-footer" *ngIf="!sidebarCollapsed()">
+      <div class="brand-footer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="brand-icon"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <div>
+          <p class="brand-name">UCAB-Services</p>
+          <p class="brand-sub">Plataforma oficial</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══════════════ MAIN ═══════════════ -->
+  <div class="main-wrapper">
+
+    <!-- Topbar -->
+    <header class="topbar" role="banner">
+      <button class="toggle-btn" id="btn-toggle-sidebar" (click)="toggleSidebar()" aria-label="Colapsar menú">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="topbar-right">
+        <div class="user-menu-wrapper">
+          <div class="user-menu" id="user-menu" role="button" tabindex="0">
+            <div class="user-avatar">{{ userInitials() }}</div>
+            <div class="user-info">
+              <span class="user-name">{{ userName() }}</span>
+              <span class="user-email">{{ userEmail() }}</span>
+            </div>
+            <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <button class="logout-btn" (click)="logout()" id="btn-logout" title="Cerrar sesión">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <main class="page-content" role="main">
+
+      <!-- Page Header -->
+      <section class="page-header-section">
+        <div class="page-header-info">
+          <h1 class="page-title">Mi perfil</h1>
+          <p class="page-subtitle">Visualiza y gestiona la información de tu cuenta.</p>
+          <div class="title-underline"></div>
+        </div>
+      </section>
+
+      <!-- Loading -->
+      <div *ngIf="isLoading()" class="loading-state">
+        <div class="spinner"></div>
+        <span>Cargando información del perfil...</span>
+      </div>
+
+      <!-- Profile content -->
+      <ng-container *ngIf="!isLoading()">
+
+        <!-- ── Hero card ─────────────────────────────── -->
+        <div class="profile-hero">
+          <div class="hero-bg-decoration"></div>
+
+          <div class="hero-content">
+            <!-- Avatar grande -->
+            <div class="profile-avatar-wrap">
+              <div class="profile-avatar-lg">{{ getAvatarInitials() }}</div>
+              <div class="avatar-glow"></div>
+            </div>
+
+            <!-- Nombre y datos primarios -->
+            <div class="hero-info">
+              <h2 class="hero-name">{{ (miembro()?.nombre) || (miembro()?.primer_nombre ? miembro()?.primer_nombre + ' ' + miembro()?.primer_apellido : null) || userName() }}</h2>
+              <p class="hero-email">{{ (miembro()?.correo) || (miembro()?.correo_institucional) || userEmail() }}</p>
+              <div class="hero-badges">
+                <span class="tipo-badge">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  {{ miembro()?.tipo_vinculacion || 'Miembro' }}
+                </span>
+                <span class="estado-badge" [ngClass]="getEstadoBadgeClass(miembro()?.estado_cuenta || 'activa')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+                  {{ getEstadoLabel(miembro()?.estado_cuenta || 'activa') }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Stat chips -->
+            <div class="hero-stats">
+              <div class="stat-chip">
+                <span class="stat-number">{{ miembro()?.total_sesiones ?? 0 }}</span>
+                <span class="stat-label">Sesiones</span>
+              </div>
+              <div class="stat-chip">
+                <svg class="stat-icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <span class="stat-label">Miembro desde</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ── Datos detallados ───────────────────────── -->
+        <div class="profile-details-grid">
+
+          <!-- Información personal -->
+          <div class="detail-card">
+            <div class="card-header">
+              <div class="card-icon-wrap blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </div>
+              <h3 class="card-title">Información personal</h3>
+            </div>
+            <div class="card-body">
+              <div class="info-row">
+                <div class="info-item">
+                  <span class="info-label">Cédula de identidad</span>
+                  <span class="info-value accent">{{ miembro()?.cedula || miembro()?.cedula_identidad || '—' }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Nombre completo</span>
+                  <span class="info-value">{{ miembro()?.nombre || (miembro()?.primer_nombre ? miembro()?.primer_nombre + ' ' + miembro()?.primer_apellido : null) || userName() }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Fecha de nacimiento</span>
+                  <span class="info-value">{{ formatDate(miembro()?.fecha_nacimiento) }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Tipo de vinculación</span>
+                  <span class="info-value">{{ miembro()?.tipo_vinculacion || '—' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Información de contacto -->
+          <div class="detail-card">
+            <div class="card-header">
+              <div class="card-icon-wrap red">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              </div>
+              <h3 class="card-title">Información de contacto</h3>
+            </div>
+            <div class="card-body">
+              <div class="info-row">
+                <div class="info-item full">
+                  <span class="info-label">Correo institucional</span>
+                  <span class="info-value">{{ miembro()?.correo || miembro()?.correo_institucional || userEmail() }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Teléfono</span>
+                  <span class="info-value">{{ miembro()?.telefono || 'No registrado' }}</span>
+                </div>
+                <div class="info-item full">
+                  <span class="info-label">Dirección de habitación</span>
+                  <span class="info-value">{{ miembro()?.direccion_habitacion || 'No registrada' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Estado de cuenta -->
+          <div class="detail-card">
+            <div class="card-header">
+              <div class="card-icon-wrap green">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <h3 class="card-title">Estado de cuenta</h3>
+            </div>
+            <div class="card-body">
+              <div class="account-status-block">
+                <div class="big-status">
+                  <span class="estado-badge-lg" [ngClass]="getEstadoBadgeClass(miembro()?.estado_cuenta || 'activa')">
+                    {{ getEstadoLabel(miembro()?.estado_cuenta || 'activa') }}
+                  </span>
+                </div>
+                <div class="info-row">
+                  <div class="info-item">
+                    <span class="info-label">Total de sesiones</span>
+                    <span class="info-value accent big-number">{{ miembro()?.total_sesiones ?? 0 }}</span>
+                  </div>
+                  <div class="info-item" *ngIf="isAdmin()">
+                    <span class="info-label">ID de miembro</span>
+                    <span class="info-value accent">{{ miembro()?.id || userId() }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Información laboral / académica -->
+          <div class="detail-card" *ngIf="miembro()?.estudiante?.preparador || miembro()?.personal_ucab?.profesor || miembro()?.personal_ucab?.administrativo">
+            <div class="card-header">
+              <div class="card-icon-wrap purple">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 14l9-5-9-5-9 5 9 5z"/><path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/><path d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"/></svg>
+              </div>
+              <h3 class="card-title">Información laboral / académica</h3>
+            </div>
+            <div class="card-body">
+              <div class="info-row">
+                
+                <!-- Preparador -->
+                <ng-container *ngIf="miembro()?.estudiante?.preparador">
+                  <div class="info-item">
+                    <span class="info-label">Tipo de asignatura</span>
+                    <span class="info-value">{{ miembro()?.estudiante?.preparador?.tipo_asignatura || '—' }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Horas de ayudantía</span>
+                    <span class="info-value">{{ miembro()?.estudiante?.preparador?.horas_ayudantia || '0' }} hrs</span>
+                  </div>
+                </ng-container>
+
+                <!-- Profesor -->
+                <ng-container *ngIf="miembro()?.personal_ucab?.profesor">
+                  <div class="info-item">
+                    <span class="info-label">Escalafón</span>
+                    <span class="info-value">{{ miembro()?.personal_ucab?.profesor?.escalafon_docente || '—' }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Carga horaria semanal</span>
+                    <span class="info-value">{{ miembro()?.personal_ucab?.profesor?.carga_horaria_semanal || '0' }} hrs</span>
+                  </div>
+                </ng-container>
+
+                <!-- Administrativo -->
+                <ng-container *ngIf="miembro()?.personal_ucab?.administrativo">
+                  <div class="info-item">
+                    <span class="info-label">Unidad presupuestaria</span>
+                    <span class="info-value">{{ miembro()?.personal_ucab?.administrativo?.unidad_presupuestaria || '—' }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Carga horaria semanal</span>
+                    <span class="info-value">{{ miembro()?.personal_ucab?.administrativo?.carga_horaria_semanal || '0' }} hrs</span>
+                  </div>
+                </ng-container>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- Seguridad -->
+          <div class="detail-card security-card">
+            <div class="card-header">
+              <div class="card-icon-wrap gold">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+              </div>
+              <h3 class="card-title">Seguridad</h3>
+            </div>
+            <div class="card-body">
+              <div class="security-info">
+                <div class="security-text">
+                  <p class="security-desc">Mantén tu cuenta segura actualizando tu contraseña periódicamente. Se recomienda usar una combinación de letras, números y caracteres especiales de al menos 8 caracteres.</p>
+                </div>
+                <button class="btn-change-pass-inline" id="btn-cambiar-contrasena-2" (click)="openPasswordModal()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                  Cambiar contraseña
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </ng-container>
+
+      <!-- Footer -->
+      <footer class="page-footer">
+        <div class="footer-copyright">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          UCAB-Services es una plataforma oficial de la Universidad Católica Andrés Bello.
+        </div>
+      </footer>
+
+    </main>
+  </div><!-- /main-wrapper -->
+</div><!-- /layout -->
+
+<!-- ═══════════════ MODAL CAMBIAR CONTRASEÑA ═══════════════ -->
+<div class="modal-overlay" *ngIf="showPasswordModal()" (click)="closePasswordModal()" role="dialog" aria-modal="true" aria-label="Cambiar contraseña">
+  <div class="modal-card modal-sm" (click)="$event.stopPropagation()">
+    <div class="modal-header modal-header-pass">
+      <div class="pass-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      </div>
+      <div>
+        <h2 class="modal-title">Cambiar contraseña</h2>
+        <p class="modal-subtitle">Ingresa tu nueva contraseña</p>
+      </div>
+      <button class="modal-close" (click)="closePasswordModal()" id="btn-cerrar-modal-pass" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <form [formGroup]="passwordForm" (ngSubmit)="submitCambioContrasena()" id="form-cambio-contrasena">
+
+        <!-- Nueva contraseña -->
+        <div class="form-group">
+          <label for="f-nueva-contrasena">Nueva contraseña *</label>
+          <div class="pass-field-wrap">
+            <input
+              id="f-nueva-contrasena"
+              [type]="showNueva() ? 'text' : 'password'"
+              class="form-input"
+              formControlName="nueva_contrasena"
+              placeholder="Mínimo 6 caracteres"
+              autocomplete="new-password"
+            />
+            <button type="button" class="toggle-pass-btn" (click)="toggleShowNueva()" [title]="showNueva() ? 'Ocultar' : 'Mostrar'">
+              <svg *ngIf="!showNueva()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg *ngIf="showNueva()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
+          <span class="field-error" *ngIf="f['nueva_contrasena'].invalid && f['nueva_contrasena'].touched">
+            <ng-container *ngIf="f['nueva_contrasena'].errors?.['required']">La contraseña es requerida.</ng-container>
+            <ng-container *ngIf="f['nueva_contrasena'].errors?.['minlength']">Mínimo 6 caracteres.</ng-container>
+          </span>
+        </div>
+
+        <!-- Confirmar contraseña -->
+        <div class="form-group" style="margin-top:14px">
+          <label for="f-confirmar-contrasena">Confirmar contraseña *</label>
+          <div class="pass-field-wrap">
+            <input
+              id="f-confirmar-contrasena"
+              [type]="showConfirmar() ? 'text' : 'password'"
+              class="form-input"
+              formControlName="confirmar_contrasena"
+              placeholder="Repite la nueva contraseña"
+              autocomplete="new-password"
+            />
+            <button type="button" class="toggle-pass-btn" (click)="toggleShowConfirmar()" [title]="showConfirmar() ? 'Ocultar' : 'Mostrar'">
+              <svg *ngIf="!showConfirmar()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg *ngIf="showConfirmar()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
+          <span class="field-error" *ngIf="f['confirmar_contrasena'].touched && passwordForm.errors?.['mismatch']">
+            Las contraseñas no coinciden.
+          </span>
+          <span class="field-error" *ngIf="f['confirmar_contrasena'].invalid && f['confirmar_contrasena'].touched && f['confirmar_contrasena'].errors?.['required']">
+            Debes confirmar la contraseña.
+          </span>
+        </div>
+
+        <!-- Strength hints -->
+        <ul class="pass-hints" *ngIf="f['nueva_contrasena'].value">
+          <li [class.hint-ok]="f['nueva_contrasena'].value?.length >= 6">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Mínimo 6 caracteres
+          </li>
+          <li [class.hint-ok]="f['nueva_contrasena'].value?.length >= 8">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Recomendado: 8+ caracteres
+          </li>
+        </ul>
+
+        <p class="form-error-msg" *ngIf="passError()">{{ passError() }}</p>
+        <p class="form-success-msg" *ngIf="passSuccess()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          {{ passSuccess() }}
+        </p>
+      </form>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" id="btn-cancelar-pass" (click)="closePasswordModal()" [disabled]="isSaving()">Cancelar</button>
+      <button
+        class="btn-primary"
+        id="btn-confirmar-cambio-pass"
+        (click)="submitCambioContrasena()"
+        [disabled]="isSaving() || passwordForm.invalid"
+      >
+        <svg *ngIf="!isSaving()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        <span class="spinner-sm" *ngIf="isSaving()"></span>
+        {{ isSaving() ? 'Guardando...' : 'Confirmar cambio' }}
+      </button>
+    </div>
+  </div>
+</div>

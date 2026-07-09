@@ -13,6 +13,12 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
   async onModuleInit() {
     await this.$connect();
+    try {
+      await this.$executeRaw`CALL sp_sincronizar_total_sesiones();`;
+      console.log('Procedimiento sp_sincronizar_total_sesiones ejecutado con éxito en el arranque.');
+    } catch (error) {
+      console.error('Error ejecutando sp_sincronizar_total_sesiones:', error);
+    }
   }
 
   async onModuleDestroy() {

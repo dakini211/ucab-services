@@ -20,10 +20,11 @@ model acompanante {
 }
 
 model administrativo {
-  id_miembro            BigInt        @id
+  id_miembro            BigInt         @id
   carga_horaria_semanal Int
-  unidad_presupuestaria String        @db.VarChar(100)
-  personal_ucab         personal_ucab @relation(fields: [id_miembro], references: [id_miembro], onDelete: Cascade, onUpdate: NoAction, map: "fk_administrativo_personal")
+  unidad_presupuestaria String         @db.VarChar(100)
+  admid_general         admid_general?
+  personal_ucab         personal_ucab  @relation(fields: [id_miembro], references: [id_miembro], onDelete: Cascade, onUpdate: NoAction, map: "fk_administrativo_personal")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -472,4 +473,9 @@ model zelle {
   metodo_pago       metodo_pago @relation(fields: [numero_de_control, fecha_operacion], references: [numero_de_control, fecha_operacion], onDelete: Cascade, onUpdate: NoAction, map: "fk_zelle_metodo")
 
   @@id([numero_de_control, fecha_operacion], map: "pk_zelle")
+}
+
+model admid_general {
+  id_miembro     BigInt         @id
+  administrativo administrativo @relation(fields: [id_miembro], references: [id_miembro], onDelete: Cascade, onUpdate: NoAction, map: "fk_admid_general_administrativo")
 }

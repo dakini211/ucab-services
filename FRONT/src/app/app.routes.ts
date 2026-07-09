@@ -24,11 +24,18 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'perfil',
+    loadComponent: () =>
+      import('./pages/perfil/perfil.component').then((m) => m.PerfilComponent),
+    title: 'Mi Perfil | UCAB-Services',
+    canActivate: [authGuard],
+  },
+  {
     path: 'miembros',
     loadComponent: () =>
       import('./pages/miembros/miembros.component').then((m) => m.MiembrosComponent),
     title: 'Gestión de Miembros | UCAB-Services',
-    canActivate: [authGuard, adminGuard],
+    canActivate: [authGuard],
   },
   {
     path: 'catalogo',
@@ -42,7 +49,7 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/edificaciones/edificaciones.component').then((m) => m.EdificacionesComponent),
     title: 'Gestión de Edificaciones | UCAB-Services',
-    canActivate: [authGuard, adminGuard],
+    canActivate: [authGuard],
   },
   {
     path: 'espacios',
@@ -56,4 +63,6 @@ export const routes: Routes = [
     redirectTo: 'login',
   },
 ];
+
+
 
