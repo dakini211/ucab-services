@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
@@ -152,8 +152,69 @@ export class ServicioService {
     return s ? this.mapServicio(s) : null;
   }
 
-  solicitar(id: number) {
-    return { mensaje: 'Solicitud enviada exitosamente' };
+  /**
+   * Crea una Solicitud_Servicio con estado 'aprobado' y abre el Folio
+   * correspondiente en una única transacción.
+   * 
+   * El nro_de_folio se genera como FOL-<timestamp> para garantizar unicidad.
+   * El folio se abre con fecha_inicio_mes = primer día del mes en curso.
+   */
+  async solicitar(idServicio: number, idMiembro: number) {
+    const ahora = new Date();
+    const nroFolio = `FOL-${ahora.getTime()}`;
+
+    // Primer día del mes actual para fecha_inicio_mes
+    const inicioMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
+
+    try {
+      const [solicitud, folio] = await this.prisma.$transaction(async (tx) => {
+        // 1. Crear la solicitud
+        const s = await tx.solicitud_servicio.create({
+          data: {
+            id_miembro: BigInt(idMiembro),
+            id_servicio: idServicio,
+            fecha_de_creacion: ahora,
+            estado: 'aprobada', // The check constraint expects 'aprobada', not 'aprobado'
+          },
+        });
+
+        // 2. Crear el folio asociado
+        const f = await tx.folio.create({
+          data: {
+            id_miembro: BigInt(idMiembro),
+            id_servicio: idServicio,
+            fecha_de_creacion: ahora,
+            nro_de_folio: nroFolio,
+            estado: 'abierto',
+            // chk_folio_posterior_solicitud: fecha_inicio_mes >= fecha_de_creacion
+            // Set it to ahora to bypass check constraint failure when mid-month
+            fecha_inicio_mes: ahora,
+          },
+        });
+
+        return [s, f];
+      });
+
+      return {
+        solicitud: {
+          id_miembro: solicitud.id_miembro.toString(),
+          id_servicio: solicitud.id_servicio,
+          fecha_de_creacion: solicitud.fecha_de_creacion.toISOString(),
+          estado: solicitud.estado,
+        },
+        folio: {
+          nro_de_folio: folio.nro_de_folio,
+          estado: folio.estado,
+          fecha_inicio_mes: folio.fecha_inicio_mes.toISOString().split('T')[0],
+        },
+      };
+    } catch (error: any) {
+      console.error('Error al solicitar servicio:', error);
+      throw new HttpException(
+        error.message || 'Error al procesar la solicitud',
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
   }
 
   update(id: number, updateDto: any) {

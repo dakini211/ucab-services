@@ -73,6 +73,7 @@ export class FinanzasComponent implements OnInit, OnDestroy {
   userName = signal('Usuario');
   userEmail = signal('');
   userInitials = signal('US');
+  userRol = signal('Miembro');
   canEdit = signal(false);
 
   /* ── Nav ───────────────────────────────────────────────── */
@@ -157,13 +158,18 @@ export class FinanzasComponent implements OnInit, OnDestroy {
       const nombre = u.nombre ?? u.primer_nombre ?? 'Usuario';
       this.userName.set(nombre);
       this.userEmail.set(u.email ?? u.correo_institucional ?? '');
+      this.userRol.set(u.rol ?? 'Miembro');
       this.userInitials.set(
-        String(nombre).split(' ').map((p: string) => p[0]).slice(0, 2).join('').toUpperCase()
+        nombre
+          .split(' ')
+          .map((n: string) => n[0])
+          .slice(0, 2)
+          .join('')
+          .toUpperCase()
       );
-      this.canEdit.set(u.rol === 'Admin');
-    } catch {
-      /* sesión corrupta: quedan los valores por defecto */
-    }
+      // Validar si el usuario tiene rol Admin o Administrativo para ciertas acciones
+      this.canEdit.set(u.rol === 'Admin' || u.rol === 'Administrativo');
+    } catch { }
   }
 
   /* ── Carga de datos ────────────────────────────────────── */
@@ -478,4 +484,33 @@ export class FinanzasComponent implements OnInit, OnDestroy {
   trackFactura(_i: number, f: Factura): string { return f.numero_de_control; }
   trackConcepto(_i: number, it: { concepto: string }): string { return it.concepto; }
   trackPago(_i: number, p: { fecha_operacion: string }): string { return p.fecha_operacion; }
+
+  /* ── Borrado (Eliminar Factura/Folio) ─────────────────────────── */
+  eliminarFactura(numero: string): void {
+    if (!confirm(`¿Estás seguro de que deseas eliminar permanentemente la factura ${numero}?`)) return;
+    this.finanzasService.eliminarFactura(numero).subscribe({
+      next: (res) => {
+        this.formSuccess.set(res.message || 'Factura eliminada.');
+        this.cargar(); // Recarga la tabla
+      },
+      error: (err) => this.formError.set(err.error?.message || 'Error al eliminar factura.'),
+    });
+  }
+
+  eliminarFolio(row: Folio): void {
+    if (!confirm(`¿Estás seguro de que deseas eliminar permanentemente el folio ${row.nro_de_folio}?`)) return;
+    const key: FolioKey = {
+      id_miembro: row.id_miembro.toString(),
+      id_servicio: Number(row.id_servicio),
+      fecha_de_creacion: row.fecha_de_creacion,
+      nro_de_folio: row.nro_de_folio
+    };
+    this.finanzasService.eliminarFolio(key).subscribe({
+      next: (res) => {
+        this.formSuccess.set(res.message || 'Folio eliminado.');
+        this.cargar();
+      },
+      error: (err) => this.formError.set(err.error?.message || 'Error al eliminar folio.'),
+    });
+  }
 }

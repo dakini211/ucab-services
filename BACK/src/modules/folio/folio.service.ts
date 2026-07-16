@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
@@ -31,7 +31,7 @@ export interface FolioKey {
 
 @Injectable()
 export class FolioService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   /** Columnas ordenables. Ver nota de seguridad en pagination.util.ts */
   private static readonly ORDENABLES: Record<string, string> = {
@@ -45,7 +45,7 @@ export class FolioService {
       'fn_total_folio(fo.id_miembro, fo.id_servicio, fo.fecha_de_creacion, fo.nro_de_folio)',
   };
 
-  async findAll(params: {
+  async findAll(user: any, params: {
     search?: string;
     estado?: string;
     page?: number;
@@ -62,7 +62,10 @@ export class FolioService {
     );
 
     const search = (params.search ?? '').trim();
-    const estado = (params.estado ?? '').trim();
+    let estado = (params.estado ?? '').trim();
+    if (estado === 'todos') estado = '';
+
+    console.log('[FOLIO findAll] user:', JSON.stringify(user), 'estado:', estado, 'search:', search);
 
     // Los montos se castean a ::float8 para que lleguen al front como number.
     // Sin el cast, Prisma devuelve Decimal y se serializa como string.
@@ -102,16 +105,21 @@ export class FolioService {
               OR m.cedula_identidad::TEXT ILIKE '%' || ${search} || '%'
               OR s.nombre_servicio        ILIKE '%' || ${search} || '%'
             )
-        AND (${estado} = '' OR fo.estado = ${estado})
+        AND (${estado} = '' OR fo.estado::text = ${estado})
+        ${(user.rol !== 'Admin' && user.rol !== 'Administrativo') ? Prisma.sql`AND fo.id_miembro = ${BigInt(user.id)}` : Prisma.empty}
       ORDER BY ${sortSql} ${orderSql}
       LIMIT ${limit} OFFSET ${offset}
     `;
 
+    console.log('[FOLIO findAll] rows count:', rows.length);
     return armarPagina(rows, page, limit);
   }
 
   /** Cifras de cabecera del modulo financiero. */
-  async getStats() {
+  async getStats(user: any) {
+    if (user.rol !== 'Admin' && user.rol !== 'Administrativo') {
+      throw new ForbiddenException('Solo los administradores pueden ver estas estadísticas.');
+    }
     const rows = await this.prisma.$queryRaw<any[]>`
       SELECT
         (SELECT COUNT(*) FROM Folio   WHERE estado  = 'abierto')::int   AS folios_abiertos,
@@ -125,7 +133,7 @@ export class FolioService {
   }
 
   /** Solicitudes que aun no tienen folio. Alimenta el formulario de apertura. */
-  async getSolicitudesSinFolio() {
+  async getSolicitudesSinFolio(user: any) {
     return this.prisma.$queryRaw<any[]>`
       SELECT
         ss.id_miembro, ss.id_servicio, ss.fecha_de_creacion, ss.estado,
@@ -141,13 +149,17 @@ export class FolioService {
            WHERE fo.id_miembro = ss.id_miembro
              AND fo.id_servicio = ss.id_servicio
              AND fo.fecha_de_creacion = ss.fecha_de_creacion
-        )
+         )
+        ${(user.rol !== 'Admin' && user.rol !== 'Administrativo') ? Prisma.sql`AND ss.id_miembro = ${user.id}` : Prisma.empty}
       ORDER BY ss.fecha_de_creacion DESC
     `;
   }
 
   /** Items de un folio, con la tarifa de hoy al lado para evidenciar el congelado. */
-  async getItems(key: FolioKey) {
+  async getItems(user: any, key: FolioKey) {
+    if (user.rol !== 'Admin' && user.rol !== 'Administrativo' && Number(key.id_miembro) !== user.id) {
+      throw new ForbiddenException('No tiene permiso para ver este folio.');
+    }
     const folio = await this.prisma.folio.findUnique({
       where: {
         id_miembro_id_servicio_fecha_de_creacion_nro_de_folio: {
@@ -181,13 +193,16 @@ export class FolioService {
   }
 
   /** Abre un estado de cuenta sobre una solicitud existente. */
-  async abrir(dto: {
+  async abrir(user: any, dto: {
     id_miembro: string | number;
     id_servicio: number;
     fecha_de_creacion: string;
     fecha_inicio_mes?: string | null;
     nro_de_folio?: string | null;
   }) {
+    if (user.rol !== 'Admin' && user.rol !== 'Administrativo' && Number(dto.id_miembro) !== user.id) {
+      throw new ForbiddenException('Solo un administrador puede abrir folios de otros miembros.');
+    }
     await this.prisma.$executeRaw`
       CALL sp_abrir_folio(
         p_id_miembro        => ${BigInt(dto.id_miembro)},
@@ -205,7 +220,10 @@ export class FolioService {
    * uq_factura_folio garantiza que el folio tiene a lo sumo una factura, asi
    * que la consulta posterior siempre devuelve la recien creada.
    */
-  async facturar(key: FolioKey, numero_de_control?: string | null) {
+  async facturar(user: any, key: FolioKey, numero_de_control?: string | null) {
+    if (user.rol !== 'Admin' && user.rol !== 'Administrativo' && Number(key.id_miembro) !== user.id) {
+      throw new ForbiddenException('No tiene permiso para facturar este folio.');
+    }
     await this.prisma.$executeRaw`
       CALL sp_generar_factura(
         p_id_miembro        => ${BigInt(key.id_miembro)},
@@ -236,7 +254,10 @@ export class FolioService {
   }
 
   /** Cierre masivo mensual (regla pag. 7). */
-  async cierreMasivo(mes?: string | null) {
+  async cierreMasivo(user: any, mes?: string | null) {
+    if (user.rol !== 'Admin' && user.rol !== 'Administrativo') {
+      throw new ForbiddenException('Solo un administrador puede realizar el cierre masivo.');
+    }
     const antes = await this.contarFoliosAbiertos(mes);
 
     await this.prisma.$executeRaw`
@@ -264,5 +285,22 @@ export class FolioService {
              + INTERVAL '1 month' - INTERVAL '1 day')::date
     `;
     return Number(rows[0]?.n ?? 0);
+  }
+
+  async remove(user: any, key: FolioKey) {
+    if (user.rol !== 'Admin' && user.rol !== 'Administrativo') {
+      throw new ForbiddenException('Solo un administrador puede eliminar folios.');
+    }
+    const res = await this.prisma.$executeRaw`
+      DELETE FROM Folio
+      WHERE id_miembro = ${BigInt(key.id_miembro)}
+        AND id_servicio = ${Number(key.id_servicio)}
+        AND fecha_de_creacion = ${new Date(key.fecha_de_creacion)}::timestamp
+        AND nro_de_folio = ${key.nro_de_folio}
+    `;
+    if (res === 0) {
+      throw new NotFoundException('No se encontró el folio.');
+    }
+    return { message: 'Folio eliminado con éxito.' };
   }
 }

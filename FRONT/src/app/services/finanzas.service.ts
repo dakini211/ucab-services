@@ -232,6 +232,10 @@ export class FinanzasService {
     return this.http.delete<{ ok: boolean }>(`${BASE}/items-consumo`, { params });
   }
 
+  eliminarFolio(k: FolioKey): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${BASE}/folio`, { params: this.paramsDeFolio(k) });
+  }
+
   // ── Facturas ───────────────────────────────────────────────
 
   getFacturas(params: GetListaParams = {}): Observable<Paginado<Factura>> {
@@ -242,6 +246,10 @@ export class FinanzasService {
 
   getFactura(numero: string): Observable<DetalleFactura> {
     return this.http.get<DetalleFactura>(`${BASE}/factura/${encodeURIComponent(numero)}`);
+  }
+
+  eliminarFactura(numero: string): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${BASE}/factura/${encodeURIComponent(numero)}`);
   }
 
   // ── Pagos ──────────────────────────────────────────────────

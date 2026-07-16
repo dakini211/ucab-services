@@ -249,6 +249,7 @@
                     <button *ngIf="f.estado === 'facturado'" class="btn-mini ghost" (click)="verDetalleDeFolio(f)">
                       {{ f.numero_de_control }}
                     </button>
+                    <button *ngIf="canEdit()" class="btn-mini ghost" style="color: #E63946" (click)="eliminarFolio(f)">Eliminar</button>
                   </td>
                 </tr>
               </ng-container>
@@ -284,6 +285,7 @@
                   </td>
                   <td class="col-acciones">
                     <button class="btn-mini ghost" (click)="verDetalle(f.numero_de_control)">Ver</button>
+                    <button *ngIf="canEdit()" class="btn-mini ghost" style="color: #E63946" (click)="eliminarFactura(f.numero_de_control)">Eliminar</button>
                   </td>
                 </tr>
               </ng-container>
@@ -432,7 +434,7 @@
 
     <div class="modal-foot" *ngIf="detalle() as d">
       <button class="btn-ghost" (click)="closeModal()">Cerrar</button>
-      <button class="btn-primary" *ngIf="d.factura.estatus === 'pendiente' || d.factura.estatus === 'parcial'"
+      <button class="btn-primary" *ngIf="(d.factura.estatus === 'pendiente' || d.factura.estatus === 'parcial') && !canEdit()"
         (click)="abrirModalPago()">
         Registrar abono
       </button>

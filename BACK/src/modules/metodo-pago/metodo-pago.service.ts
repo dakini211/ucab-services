@@ -1,41 +1,10 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { RegistrarPagoDto } from './dto/registrar-pago.dto';
 
-export type TipoPago =
-  | 'zelle'
-  | 'tarjeta'
-  | 'pago_movil'
-  | 'efectivo'
-  | 'cripto'
-  | 'tai';
-
-export class RegistrarPagoDto {
-  numero_de_control: string;
-  monto: number;
-  tipo: TipoPago;
-  fecha_operacion?: string | null;
-  // Zelle
-  correo?: string | null;
-  nombre?: string | null;
-  confirmacion?: string | null;
-  // Tarjeta
-  nro_tarjeta?: string | null;
-  vencimiento?: string | null;
-  compania?: string | null;
-  red?: string | null;
-  // Pago Movil
-  telefono_emisor?: string | null;
-  banco?: string | null;
-  referencia?: string | null;
-  // Efectivo / Cripto
-  tasa?: number | null;
-  // Cripto
-  dxid?: string | null;
-  billetera?: string | null;
-  // TAI
-  uid?: string | null;
-  pos?: string | null;
-}
+// Se reexportan para no romper imports existentes que apuntaban al service.
+export { RegistrarPagoDto, TIPOS_PAGO } from './dto/registrar-pago.dto';
+export type { TipoPago } from './dto/registrar-pago.dto';
 
 /**
  * Metodos de pago y abonos.
@@ -47,31 +16,28 @@ export class RegistrarPagoDto {
  * si alguien inserta un pago por fuera de esta API, el saldo se actualiza igual.
  *
  * Este servicio no resta ni un centavo.
+ *
+ * VALIDACION EN DOS CAPAS:
+ *   - Formato (obligatorios, tipos, rangos)  -> decoradores de RegistrarPagoDto
+ *   - Reglas de negocio (factura inexistente, ya pagada, anulada, billetera sin
+ *     saldo)                                 -> PL/pgSQL, traducido por PrismaExceptionFilter
+ * Por eso aqui ya no hay ifs de validacion: eran redundantes con el DTO.
  */
 @Injectable()
 export class MetodoPagoService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
-  private static readonly TIPOS: TipoPago[] = [
-    'zelle',
-    'tarjeta',
-    'pago_movil',
-    'efectivo',
-    'cripto',
-    'tai',
-  ];
+  async registrar(user: any, dto: RegistrarPagoDto) {
+    if (user.rol === 'Admin' || user.rol === 'Administrativo') {
+      throw new ForbiddenException('Los administradores no pueden registrar pagos.');
+    }
 
-  async registrar(dto: RegistrarPagoDto) {
-    if (!dto.numero_de_control) {
-      throw new BadRequestException('Falta el numero de control de la factura.');
-    }
-    if (!dto.monto || Number(dto.monto) <= 0) {
-      throw new BadRequestException('El monto del abono debe ser mayor a cero.');
-    }
-    if (!MetodoPagoService.TIPOS.includes(dto.tipo)) {
-      throw new BadRequestException(
-        `Tipo de pago no valido: "${dto.tipo}". Use: ${MetodoPagoService.TIPOS.join(', ')}.`,
-      );
+    const checkFactura = await this.prisma.factura.findUnique({
+      where: { numero_de_control: dto.numero_de_control },
+    });
+    if (!checkFactura) throw new NotFoundException('Factura no encontrada.');
+    if (Number(checkFactura.id_miembro) !== user.id) {
+      throw new ForbiddenException('No puedes abonar a una factura que no te pertenece.');
     }
 
     const fecha = dto.fecha_operacion ? new Date(dto.fecha_operacion) : new Date();
@@ -112,13 +78,21 @@ export class MetodoPagoService {
       saldo: factura ? Number(factura.saldo) : null,
       mensaje:
         factura?.estatus === 'pagada'
-          ? 'Abono registrado. La factura quedo pagada.'
+          ? 'Abono registrado. La factura quedó pagada.'
           : `Abono registrado. Saldo pendiente: ${factura ? Number(factura.saldo).toFixed(2) : '?'}.`,
     };
   }
 
   /** Abonos de una factura, con el tipo real resuelto desde las subclases. */
-  async findByFactura(numero_de_control: string) {
+  async findByFactura(user: any, numero_de_control: string) {
+    const checkFactura = await this.prisma.factura.findUnique({
+      where: { numero_de_control },
+    });
+    if (!checkFactura) throw new NotFoundException('Factura no encontrada.');
+    if (user.rol !== 'Admin' && user.rol !== 'Administrativo' && Number(checkFactura.id_miembro) !== user.id) {
+      throw new ForbiddenException('No tienes permiso para ver los pagos de esta factura.');
+    }
+
     return this.prisma.$queryRaw<any[]>`
       SELECT
         mp.fecha_operacion,

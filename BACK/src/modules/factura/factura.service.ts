@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   armarPagina,
@@ -15,7 +16,7 @@ import {
  */
 @Injectable()
 export class FacturaService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   private static readonly ORDENABLES: Record<string, string> = {
     numero_de_control: 'f.numero_de_control',
@@ -27,7 +28,7 @@ export class FacturaService {
     nro_de_folio: 'f.nro_de_folio',
   };
 
-  async findAll(params: {
+  async findAll(user: any, params: {
     search?: string;
     estatus?: string;
     page?: number;
@@ -44,7 +45,10 @@ export class FacturaService {
     );
 
     const search = (params.search ?? '').trim();
-    const estatus = (params.estatus ?? '').trim();
+    let estatus = (params.estatus ?? '').trim();
+    if (estatus === 'todos') estatus = '';
+
+    console.log('[FACTURA findAll] user:', JSON.stringify(user), 'estatus:', estatus, 'search:', search);
 
     const rows = await this.prisma.$queryRaw<any[]>`
       SELECT
@@ -74,16 +78,18 @@ export class FacturaService {
               OR m.cedula_identidad::TEXT ILIKE '%' || ${search} || '%'
               OR s.nombre_servicio        ILIKE '%' || ${search} || '%'
             )
-        AND (${estatus} = '' OR f.estatus = ${estatus})
+        AND (${estatus} = '' OR f.estatus::text = ${estatus})
+        ${(user.rol !== 'Admin' && user.rol !== 'Administrativo') ? Prisma.sql`AND f.id_miembro = ${BigInt(user.id)}` : Prisma.empty}
       ORDER BY ${sortSql} ${orderSql}
       LIMIT ${limit} OFFSET ${offset}
     `;
 
+    console.log('[FACTURA findAll] rows count:', rows.length);
     return armarPagina(rows, page, limit);
   }
 
   /** Factura + sus items de consumo + sus abonos. */
-  async findOne(numero_de_control: string) {
+  async findOne(user: any, numero_de_control: string) {
     const facturas = await this.prisma.$queryRaw<any[]>`
       SELECT
         f.numero_de_control,
@@ -111,6 +117,10 @@ export class FacturaService {
       throw new NotFoundException(`No existe la factura ${numero_de_control}.`);
     }
     const factura = facturas[0];
+
+    if (user.rol !== 'Admin' && user.rol !== 'Administrativo' && Number(factura.id_miembro) !== user.id) {
+      throw new ForbiddenException('No tiene permiso para ver esta factura.');
+    }
 
     const items = await this.prisma.$queryRaw<any[]>`
       SELECT
@@ -160,7 +170,10 @@ export class FacturaService {
     return { factura, items, pagos };
   }
 
-  async getStats() {
+  async getStats(user: any) {
+    if (user.rol !== 'Admin' && user.rol !== 'Administrativo') {
+      throw new ForbiddenException('Solo los administradores pueden ver estas estadísticas.');
+    }
     const rows = await this.prisma.$queryRaw<any[]>`
       SELECT
         COUNT(*)::int AS total_facturas,
@@ -171,5 +184,21 @@ export class FacturaService {
       FROM Factura
     `;
     return rows[0];
+  }
+
+  async remove(user: any, numero_de_control: string) {
+    if (user.rol !== 'Admin' && user.rol !== 'Administrativo') {
+      throw new ForbiddenException('Solo un administrador puede eliminar facturas.');
+    }
+
+    const res = await this.prisma.$executeRaw`
+      DELETE FROM Factura WHERE numero_de_control = ${numero_de_control}
+    `;
+
+    if (res === 0) {
+      throw new NotFoundException(`No se encontró la factura ${numero_de_control}.`);
+    }
+
+    return { message: 'Factura eliminada con éxito.' };
   }
 }

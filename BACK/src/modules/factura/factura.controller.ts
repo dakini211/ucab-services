@@ -1,18 +1,21 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards, Request, Delete } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { FacturaService } from './factura.service';
 
 /** Prefijo global 'api' => /api/factura */
+@UseGuards(AuthGuard('jwt'))
 @Controller('factura')
 export class FacturaController {
   constructor(private readonly facturaService: FacturaService) {}
 
   @Get('stats')
-  getStats() {
-    return this.facturaService.getStats();
+  getStats(@Request() req) {
+    return this.facturaService.getStats(req.user);
   }
 
   @Get()
   findAll(
+    @Request() req,
     @Query('search') search?: string,
     @Query('estatus') estatus?: string,
     @Query('page') page?: string,
@@ -20,7 +23,7 @@ export class FacturaController {
     @Query('sortBy') sortBy?: string,
     @Query('order') order?: string,
   ) {
-    return this.facturaService.findAll({
+    return this.facturaService.findAll(req.user, {
       search,
       estatus,
       page: page ? Number(page) : 1,
@@ -35,7 +38,12 @@ export class FacturaController {
    * los modulos con id numerico.
    */
   @Get(':numero')
-  findOne(@Param('numero') numero: string) {
-    return this.facturaService.findOne(numero);
+  findOne(@Request() req, @Param('numero') numero: string) {
+    return this.facturaService.findOne(req.user, numero);
+  }
+
+  @Delete(':numero')
+  remove(@Request() req, @Param('numero') numero: string) {
+    return this.facturaService.remove(req.user, numero);
   }
 }

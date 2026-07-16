@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, Request } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { ServicioService } from './servicio.service';
 
 @Controller('servicio')
@@ -51,9 +52,10 @@ export class ServicioController {
     return this.servicioService.findOne(+id);
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Post(':id/solicitar')
-  solicitar(@Param('id') id: string) {
-    return this.servicioService.solicitar(+id);
+  solicitar(@Param('id') id: string, @Request() req) {
+    return this.servicioService.solicitar(+id, req.user.id);
   }
 
   @Patch(':id')
