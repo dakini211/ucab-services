@@ -1,0 +1,646 @@
+<div class="layout" [class.sidebar-collapsed]="sidebarCollapsed()">
+
+  <!-- ═══════════════ SIDEBAR ═══════════════ -->
+  <aside class="sidebar" role="navigation" aria-label="Menú principal">
+    <div class="sidebar-header">
+      <div class="logo-block">
+        <div class="logo-icon">
+          <svg viewBox="0 0 40 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 2L8 12V28C8 36 14 43 20 46C26 43 32 36 32 28V12L20 2Z" fill="#E63946" opacity="0.9" />
+            <path d="M14 18V30M20 14V30M26 18V30" stroke="white" stroke-width="2.5" stroke-linecap="round" />
+            <path d="M11 30H29" stroke="#FFD700" stroke-width="2" stroke-linecap="round" />
+          </svg>
+        </div>
+        <div class="logo-text" *ngIf="!sidebarCollapsed()">
+          <span class="logo-title">UCAB</span>
+          <span class="logo-subtitle">UNIVERSIDAD CATÓLICA<br>ANDRÉS BELLO</span>
+        </div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <ul class="nav-list" role="list">
+        <li *ngFor="let item of navItems" class="nav-item">
+          <button class="nav-btn" [class.active]="currentRoute() === item.id" (click)="navigate(item)"
+            [id]="'nav-' + item.id" [title]="item.label"
+            [attr.aria-current]="currentRoute() === item.id ? 'page' : null">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="item.icon" />
+            </svg>
+            <span class="nav-label" *ngIf="!sidebarCollapsed()">{{ item.label }}</span>
+          </button>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="brand-footer">
+        <svg class="brand-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        </svg>
+        <div *ngIf="!sidebarCollapsed()">
+          <div class="brand-name">Services UCAB</div>
+          <div class="brand-sub">Módulo financiero</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══════════════ MAIN ═══════════════ -->
+  <div class="main-wrapper">
+
+    <!-- ── Topbar ── -->
+    <header class="topbar">
+      <button class="toggle-btn" (click)="toggleSidebar()" aria-label="Contraer menú">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
+      <div class="topbar-right">
+        <div class="user-chip">
+          <div class="user-avatar">{{ userInitials() }}</div>
+          <div class="user-info">
+            <span class="user-name">{{ userName() }}</span>
+            <span class="user-email">{{ userEmail() }}</span>
+          </div>
+        </div>
+        <button class="logout-btn" (click)="logout()" title="Cerrar sesión">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- ── Contenido ── -->
+    <main class="content">
+
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Finanzas</h1>
+          <p class="page-sub">Estados de cuenta, facturación y cobranza</p>
+        </div>
+        <button class="btn-primary" (click)="abrirModalCierre()">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          Cierre masivo del mes
+        </button>
+      </div>
+
+      <!-- ── Tarjetas de resumen ── -->
+      <div class="stats-grid" *ngIf="stats() as s">
+        <div class="stat-card">
+          <div class="stat-icon gold">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <div class="stat-body">
+            <span class="stat-value">{{ s.folios_abiertos }}</span>
+            <span class="stat-label">Folios abiertos</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon red">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div class="stat-body">
+            <span class="stat-value">{{ s.facturas_pendientes + s.facturas_parciales }}</span>
+            <span class="stat-label">Facturas por cobrar</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon green">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div class="stat-body">
+            <span class="stat-value">{{ s.facturas_pagadas }}</span>
+            <span class="stat-label">Facturas pagadas</span>
+          </div>
+        </div>
+
+        <div class="stat-card destacada">
+          <div class="stat-icon navy">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div class="stat-body">
+            <span class="stat-value money">{{ s.por_cobrar | number: '1.2-2' }}</span>
+            <span class="stat-label">Monto por cobrar</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Mensajes globales ── -->
+      <div class="alerta alerta-ok" *ngIf="formSuccess() && modalMode() === null">{{ formSuccess() }}</div>
+      <div class="alerta alerta-error" *ngIf="formError() && modalMode() === null">{{ formError() }}</div>
+
+      <!-- ── Panel de tabla ── -->
+      <section class="panel">
+
+        <!-- Pestañas -->
+        <div class="tabs" role="tablist">
+          <button class="tab" [class.active]="tab() === 'folios'" (click)="cambiarTab('folios')" role="tab"
+            [attr.aria-selected]="tab() === 'folios'">
+            Folios
+          </button>
+          <button class="tab" [class.active]="tab() === 'facturas'" (click)="cambiarTab('facturas')" role="tab"
+            [attr.aria-selected]="tab() === 'facturas'">
+            Facturas
+          </button>
+        </div>
+
+        <!-- Barra de filtros -->
+        <div class="filtros">
+          <div class="search-wrap">
+            <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input class="search-input" type="search"
+              [placeholder]="tab() === 'folios' ? 'Buscar por folio, miembro o cédula…' : 'Buscar por control, folio, miembro o cédula…'"
+              [value]="searchQuery()" (input)="onSearch($any($event.target).value)" aria-label="Buscar" />
+          </div>
+
+          <select class="select" [value]="filterEstado()" (change)="onFiltrarEstado($any($event.target).value)"
+            aria-label="Filtrar por estado">
+            <option value="todos">Todos</option>
+            <ng-container *ngIf="tab() === 'folios'">
+              <option value="abierto">Abierto</option>
+              <option value="facturado">Facturado</option>
+            </ng-container>
+            <ng-container *ngIf="tab() === 'facturas'">
+              <option value="pendiente">Pendiente</option>
+              <option value="parcial">Parcial</option>
+              <option value="pagada">Pagada</option>
+              <option value="anulada">Anulada</option>
+            </ng-container>
+          </select>
+
+          <select class="select" [value]="pageSize()" (change)="onCambiarPageSize($any($event.target).value)"
+            aria-label="Filas por página">
+            <option [value]="10">10 por página</option>
+            <option [value]="25">25 por página</option>
+            <option [value]="50">50 por página</option>
+          </select>
+        </div>
+
+        <!-- Tabla -->
+        <div class="tabla-wrap">
+          <table class="tabla">
+            <thead>
+              <tr>
+                <th *ngFor="let col of columnas()" [class.sortable]="col.ordenable"
+                  [class.activa]="sortBy() === col.campo" [class.money]="col.money" (click)="ordenarPor(col)"
+                  [attr.aria-sort]="ariaSort(col.campo)">
+                  {{ col.titulo }}
+                  <span class="flecha" *ngIf="col.ordenable">{{ flecha(col.campo) }}</span>
+                </th>
+                <th class="col-acciones"></th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <!-- FOLIOS -->
+              <ng-container *ngIf="tab() === 'folios' && !isLoading()">
+                <tr *ngFor="let f of folios(); trackBy: trackFolio">
+                  <td class="mono">{{ f.nro_de_folio }}</td>
+                  <td>
+                    <div class="celda-pila">
+                      <span>{{ f.miembro }}</span>
+                      <span class="tenue mono">V-{{ f.cedula_identidad }}</span>
+                    </div>
+                  </td>
+                  <td>{{ f.nombre_servicio }}</td>
+                  <td class="mono tenue">
+                    {{ f.fecha_inicio_mes | date: 'dd/MM/yyyy' }}
+                    <span *ngIf="f.fecha_fin_mes"> → {{ f.fecha_fin_mes | date: 'dd/MM/yyyy' }}</span>
+                  </td>
+                  <td class="money tenue">{{ f.cantidad_items }}</td>
+                  <td class="money"><strong>{{ f.total | number: '1.2-2' }}</strong></td>
+                  <td>
+                    <span class="estado-badge" [ngClass]="getEstadoBadgeClass(f.estado)">
+                      {{ getEstadoLabel(f.estado) }}
+                    </span>
+                  </td>
+                  <td class="col-acciones">
+                    <button *ngIf="f.estado === 'abierto'" class="btn-mini"
+                      [disabled]="f.cantidad_items === 0 || isSaving()"
+                      [title]="f.cantidad_items === 0 ? 'El folio no tiene ítems que facturar' : 'Emitir factura'"
+                      (click)="facturar(f)">
+                      Facturar
+                    </button>
+                    <button *ngIf="f.estado === 'facturado'" class="btn-mini ghost" (click)="verDetalleDeFolio(f)">
+                      {{ f.numero_de_control }}
+                    </button>
+                  </td>
+                </tr>
+              </ng-container>
+
+              <!-- FACTURAS -->
+              <ng-container *ngIf="tab() === 'facturas' && !isLoading()">
+                <tr *ngFor="let f of facturas(); trackBy: trackFactura">
+                  <td class="mono">{{ f.numero_de_control }}</td>
+                  <td>
+                    <div class="celda-pila">
+                      <span>{{ f.miembro }}</span>
+                      <span class="tenue mono">V-{{ f.cedula_identidad }}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="celda-pila">
+                      <span>{{ f.nombre_servicio }}</span>
+                      <span class="tenue mono">{{ f.nro_de_folio }}</span>
+                    </div>
+                  </td>
+                  <td class="mono tenue">{{ f.fecha_de_emision | date: 'dd/MM/yyyy' }}</td>
+                  <td class="money">{{ f.total | number: '1.2-2' }}</td>
+                  <td class="money verde">{{ f.pagado | number: '1.2-2' }}</td>
+                  <td class="money">
+                    <strong [class.pendiente]="f.saldo > 0" [class.saldado]="f.saldo === 0">
+                      {{ f.saldo | number: '1.2-2' }}
+                    </strong>
+                  </td>
+                  <td>
+                    <span class="estado-badge" [ngClass]="getEstadoBadgeClass(f.estatus)">
+                      {{ getEstadoLabel(f.estatus) }}
+                    </span>
+                  </td>
+                  <td class="col-acciones">
+                    <button class="btn-mini ghost" (click)="verDetalle(f.numero_de_control)">Ver</button>
+                  </td>
+                </tr>
+              </ng-container>
+
+              <!-- Cargando -->
+              <tr *ngIf="isLoading()">
+                <td [attr.colspan]="columnas().length + 1">
+                  <div class="estado-vacio">Cargando…</div>
+                </td>
+              </tr>
+
+              <!-- Vacío -->
+              <tr *ngIf="!isLoading() && total() === 0">
+                <td [attr.colspan]="columnas().length + 1">
+                  <div class="estado-vacio">
+                    <span *ngIf="searchQuery() || filterEstado() !== 'todos'">
+                      No hay resultados para esa búsqueda. Ajusta los filtros.
+                    </span>
+                    <span *ngIf="!searchQuery() && filterEstado() === 'todos'">
+                      Todavía no hay registros.
+                    </span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Paginado -->
+        <div class="paginado" *ngIf="total() > 0">
+          <span class="paginado-info">
+            {{ desde() }}–{{ hasta() }} de {{ total() }} registros
+          </span>
+          <div class="paginado-ctrl">
+            <button class="btn-page" [disabled]="currentPage() <= 1" (click)="irA(1)">«</button>
+            <button class="btn-page" [disabled]="currentPage() <= 1" (click)="irA(currentPage() - 1)">Anterior</button>
+            <span class="paginado-actual mono">{{ currentPage() }} / {{ totalPages() }}</span>
+            <button class="btn-page" [disabled]="currentPage() >= totalPages()"
+              (click)="irA(currentPage() + 1)">Siguiente</button>
+            <button class="btn-page" [disabled]="currentPage() >= totalPages()" (click)="irA(totalPages())">»</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: DETALLE DE FACTURA ═══════════════ -->
+<div class="modal-overlay" *ngIf="modalMode() === 'detalle'" (click)="closeModal()">
+  <div class="modal modal-lg" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+
+    <div class="modal-head">
+      <div>
+        <h2 class="modal-title mono" *ngIf="detalle() as d">{{ d.factura.numero_de_control }}</h2>
+        <p class="modal-sub" *ngIf="detalle() as d">
+          {{ d.factura.miembro }} · V-{{ d.factura.cedula_identidad }} ·
+          {{ d.factura.fecha_de_emision | date: 'dd/MM/yyyy' }}
+        </p>
+      </div>
+      <button class="modal-close" (click)="closeModal()" aria-label="Cerrar">×</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="alerta alerta-error" *ngIf="formError()">{{ formError() }}</div>
+      <div class="alerta alerta-ok" *ngIf="formSuccess()">{{ formSuccess() }}</div>
+
+      <div class="estado-vacio" *ngIf="!detalle() && !formError()">Cargando factura…</div>
+
+      <ng-container *ngIf="detalle() as d">
+        <!-- Cobranza -->
+        <div class="cobranza">
+          <div class="cobranza-cifras">
+            <div class="cifra">
+              <span class="cifra-label">Total facturado</span>
+              <span class="cifra-valor mono">{{ d.factura.total | number: '1.2-2' }}</span>
+            </div>
+            <div class="cifra">
+              <span class="cifra-label">Abonado</span>
+              <span class="cifra-valor mono verde">{{ d.factura.pagado | number: '1.2-2' }}</span>
+            </div>
+            <div class="cifra">
+              <span class="cifra-label">Saldo pendiente</span>
+              <span class="cifra-valor mono" [class.pendiente]="d.factura.saldo > 0"
+                [class.saldado]="d.factura.saldo === 0">
+                {{ d.factura.saldo | number: '1.2-2' }}
+              </span>
+            </div>
+            <span class="estado-badge estado-badge-lg" [ngClass]="getEstadoBadgeClass(d.factura.estatus)">
+              {{ getEstadoLabel(d.factura.estatus) }}
+            </span>
+          </div>
+
+          <div class="barra">
+            <div class="barra-fill" [style.width.%]="porcentajePagado()" [class.completa]="d.factura.saldo === 0"></div>
+          </div>
+        </div>
+
+        <!-- Cargos -->
+        <h3 class="seccion-titulo">Cargos consolidados</h3>
+        <table class="tabla tabla-compacta">
+          <thead>
+            <tr>
+              <th>Concepto</th>
+              <th class="money">Cant.</th>
+              <th class="money">Precio unit.</th>
+              <th class="money">IVA</th>
+              <th class="money">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let it of d.items; trackBy: trackConcepto">
+              <td>{{ it.concepto }}</td>
+              <td class="money">{{ it.cantidad }}</td>
+              <td class="money">{{ it.precio_unitario | number: '1.2-2' }}</td>
+              <td class="money tenue">{{ it.impuesto_ley | number: '1.0-2' }}%</td>
+              <td class="money"><strong>{{ it.total_linea | number: '1.2-2' }}</strong></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Abonos -->
+        <h3 class="seccion-titulo">Abonos recibidos</h3>
+        <div class="estado-vacio" *ngIf="d.pagos.length === 0">
+          Esta factura no tiene abonos registrados.
+        </div>
+        <table class="tabla tabla-compacta" *ngIf="d.pagos.length > 0">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Método</th>
+              <th>Referencia</th>
+              <th class="money">Monto</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of d.pagos; trackBy: trackPago">
+              <td class="mono tenue">{{ p.fecha_operacion | date: 'dd/MM/yyyy HH:mm' }}</td>
+              <td>{{ p.tipo }}</td>
+              <td class="mono tenue">{{ p.referencia || '—' }}</td>
+              <td class="money"><strong>{{ p.monto | number: '1.2-2' }}</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </ng-container>
+    </div>
+
+    <div class="modal-foot" *ngIf="detalle() as d">
+      <button class="btn-ghost" (click)="closeModal()">Cerrar</button>
+      <button class="btn-primary" *ngIf="d.factura.estatus === 'pendiente' || d.factura.estatus === 'parcial'"
+        (click)="abrirModalPago()">
+        Registrar abono
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: REGISTRAR ABONO ═══════════════ -->
+<div class="modal-overlay" *ngIf="modalMode() === 'pago'" (click)="closeModal()">
+  <div class="modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+
+    <div class="modal-head">
+      <div>
+        <h2 class="modal-title">Registrar abono</h2>
+        <p class="modal-sub mono">{{ pago().numero_de_control }}</p>
+      </div>
+      <button class="modal-close" (click)="closeModal()" aria-label="Cerrar">×</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="alerta alerta-error" *ngIf="formError()">{{ formError() }}</div>
+      <div class="alerta alerta-ok" *ngIf="formSuccess()">{{ formSuccess() }}</div>
+
+      <div class="form-row">
+        <label class="campo">
+          <span class="campo-label">Monto</span>
+          <input class="input mono" type="number" step="0.01" min="0.01" [value]="pago().monto || ''"
+            (input)="actualizarPago('monto', +$any($event.target).value)" placeholder="0.00" />
+        </label>
+
+        <label class="campo">
+          <span class="campo-label">Método de pago</span>
+          <select class="select" [value]="pago().tipo" (change)="actualizarPago('tipo', $any($event.target).value)">
+            <option value="zelle">Zelle</option>
+            <option value="tarjeta">Tarjeta</option>
+            <option value="pago_movil">Pago Móvil</option>
+            <option value="efectivo">Efectivo</option>
+            <option value="cripto">Criptomoneda</option>
+            <option value="tai">TAI (billetera)</option>
+          </select>
+        </label>
+
+        <button class="btn-ghost" type="button" (click)="pagarTodo()" *ngIf="detalle()">
+          Abonar saldo completo
+        </button>
+      </div>
+
+      <!-- Campos propios de cada subclase de Metodo_Pago -->
+      <div class="form-grid" [ngSwitch]="pago().tipo">
+
+        <ng-container *ngSwitchCase="'zelle'">
+          <label class="campo">
+            <span class="campo-label">Correo de origen</span>
+            <input class="input" [value]="pago().correo || ''"
+              (input)="actualizarPago('correo', $any($event.target).value)" />
+          </label>
+          <label class="campo">
+            <span class="campo-label">Nombre del titular</span>
+            <input class="input" [value]="pago().nombre || ''"
+              (input)="actualizarPago('nombre', $any($event.target).value)" />
+          </label>
+          <label class="campo">
+            <span class="campo-label">Código de confirmación</span>
+            <input class="input mono" [value]="pago().confirmacion || ''"
+              (input)="actualizarPago('confirmacion', $any($event.target).value)" />
+          </label>
+        </ng-container>
+
+        <ng-container *ngSwitchCase="'tarjeta'">
+          <label class="campo">
+            <span class="campo-label">N.º de tarjeta</span>
+            <input class="input mono" [value]="pago().nro_tarjeta || ''"
+              (input)="actualizarPago('nro_tarjeta', $any($event.target).value)" />
+          </label>
+          <label class="campo">
+            <span class="campo-label">Vencimiento</span>
+            <input class="input mono" placeholder="MM/AA" [value]="pago().vencimiento || ''"
+              (input)="actualizarPago('vencimiento', $any($event.target).value)" />
+          </label>
+          <label class="campo">
+            <span class="campo-label">Compañía</span>
+            <input class="input" [value]="pago().compania || ''"
+              (input)="actualizarPago('compania', $any($event.target).value)" />
+          </label>
+          <label class="campo">
+            <span class="campo-label">Red</span>
+            <select class="select" [value]="pago().red || 'Nacional'"
+              (change)="actualizarPago('red', $any($event.target).value)">
+              <option value="Nacional">Nacional</option>
+              <option value="Internacional">Internacional</option>
+            </select>
+          </label>
+        </ng-container>
+
+        <ng-container *ngSwitchCase="'pago_movil'">
+          <label class="campo">
+            <span class="campo-label">Teléfono emisor</span>
+            <input class="input mono" [value]="pago().telefono_emisor || ''"
+              (input)="actualizarPago('telefono_emisor', $any($event.target).value)" />
+          </label>
+          <label class="campo">
+            <span class="campo-label">Banco de origen</span>
+            <input class="input" [value]="pago().banco || ''"
+              (input)="actualizarPago('banco', $any($event.target).value)" />
+          </label>
+          <label class="campo">
+            <span class="campo-label">N.º de referencia</span>
+            <input class="input mono" [value]="pago().referencia || ''"
+              (input)="actualizarPago('referencia', $any($event.target).value)" />
+          </label>
+        </ng-container>
+
+        <ng-container *ngSwitchCase="'efectivo'">
+          <label class="campo">
+            <span class="campo-label">Tasa BCV</span>
+            <input class="input mono" type="number" step="0.00000001" [value]="pago().tasa || ''"
+              (input)="actualizarPago('tasa', +$any($event.target).value)" />
+          </label>
+          <p class="campo-nota">
+            Se registra el efectivo recibido y la tasa vigente para el cuadre de caja.
+          </p>
+        </ng-container>
+
+        <ng-container *ngSwitchCase="'cripto'">
+          <label class="campo">
+            <span class="campo-label">Hash de transacción (TXID)</span>
+            <input class="input mono" [value]="pago().dxid || ''"
+              (input)="actualizarPago('dxid', $any($event.target).value)" />
+          </label>
+          <label class="campo">
+            <span class="campo-label">Red</span>
+            <select class="select" [value]="pago().red || 'TRC20'"
+              (change)="actualizarPago('red', $any($event.target).value)">
+              <option value="TRC20">TRC20</option>
+              <option value="ERC20">ERC20</option>
+            </select>
+          </label>
+          <label class="campo">
+            <span class="campo-label">Billetera de origen</span>
+            <input class="input mono" [value]="pago().billetera || ''"
+              (input)="actualizarPago('billetera', $any($event.target).value)" />
+          </label>
+          <label class="campo">
+            <span class="campo-label">Tasa</span>
+            <input class="input mono" type="number" step="0.00000001" [value]="pago().tasa || ''"
+              (input)="actualizarPago('tasa', +$any($event.target).value)" />
+          </label>
+        </ng-container>
+
+        <ng-container *ngSwitchCase="'tai'">
+          <label class="campo">
+            <span class="campo-label">UID del chip NFC</span>
+            <input class="input mono" [value]="pago().uid || ''"
+              (input)="actualizarPago('uid', $any($event.target).value)" />
+          </label>
+          <label class="campo">
+            <span class="campo-label">Terminal POS</span>
+            <input class="input mono" [value]="pago().pos || ''"
+              (input)="actualizarPago('pos', $any($event.target).value)" />
+          </label>
+          <p class="campo-nota">
+            Descuenta del saldo de la billetera digital del miembro.
+          </p>
+        </ng-container>
+      </div>
+    </div>
+
+    <div class="modal-foot">
+      <button class="btn-ghost" (click)="closeModal()">Cancelar</button>
+      <button class="btn-primary" [disabled]="!puedeRegistrar() || isSaving()" (click)="registrarPago()">
+        {{ isSaving() ? 'Registrando…' : 'Registrar abono' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: CIERRE MASIVO ═══════════════ -->
+<div class="modal-overlay" *ngIf="modalMode() === 'cierre'" (click)="closeModal()">
+  <div class="modal modal-sm" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+
+    <div class="modal-head">
+      <div>
+        <h2 class="modal-title">Cierre masivo del mes</h2>
+        <p class="modal-sub">Convierte en factura todos los folios abiertos del período.</p>
+      </div>
+      <button class="modal-close" (click)="closeModal()" aria-label="Cerrar">×</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="alerta alerta-error" *ngIf="formError()">{{ formError() }}</div>
+      <div class="alerta alerta-ok" *ngIf="formSuccess()">{{ formSuccess() }}</div>
+
+      <label class="campo">
+        <span class="campo-label">Período a cerrar</span>
+        <input class="input mono" type="month" [value]="mesCierre()"
+          (input)="mesCierre.set($any($event.target).value)" />
+      </label>
+
+      <p class="campo-nota">
+        Los folios sin ítems se omiten y no interrumpen el lote.
+      </p>
+    </div>
+
+    <div class="modal-foot">
+      <button class="btn-ghost" (click)="closeModal()">Cancelar</button>
+      <button class="btn-primary" [disabled]="isSaving()" (click)="ejecutarCierre()">
+        {{ isSaving() ? 'Cerrando…' : 'Ejecutar cierre' }}
+      </button>
+    </div>
+  </div>
+</div>
