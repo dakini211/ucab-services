@@ -35,6 +35,7 @@ export class AuthService {
           },
         },
         egresado: true,
+        billetera_digital: true,
       },
     });
 
@@ -109,6 +110,8 @@ export class AuthService {
         nombre: `${miembro.primer_nombre}${miembro.segundo_nombre ? ' ' + miembro.segundo_nombre : ''} ${miembro.primer_apellido}`,
         rol,
         cedula: miembro.cedula_identidad,
+        tai_uid: miembro.billetera_digital?.uid || null,
+        tai_saldo: miembro.billetera_digital ? Number(miembro.billetera_digital.saldo) : null,
       },
     };
   }
@@ -120,6 +123,7 @@ export class AuthService {
         estudiante: true,
         personal_ucab: { include: { administrativo: { include: { admid_general: true } }, profesor: true } },
         egresado: true,
+        billetera_digital: true,
       },
     });
 
@@ -169,6 +173,8 @@ export class AuthService {
       telefono: miembro.telefono,
       estado_cuenta: miembro.estado_cuenta,
       ultima_conexion,
+      tai_uid: miembro.billetera_digital?.uid || null,
+      tai_saldo: miembro.billetera_digital ? Number(miembro.billetera_digital.saldo) : null,
     };
   }
 

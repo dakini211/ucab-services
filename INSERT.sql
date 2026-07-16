@@ -27,6 +27,7 @@ VALUES
 (1, '2022-09-01 08:00:00', NULL),
 (2, '2022-09-01 08:00:00', NULL),
 (3, '2022-09-01 08:00:00', NULL),
+
 (4, '2021-09-01 08:00:00', NULL),
 (5, '2018-09-01 08:00:00', NULL),
 (6, '2010-03-01 08:00:00', NULL),
@@ -40,7 +41,7 @@ VALUES
 INSERT INTO Historial_Contrasena (id_miembro, fecha_inicio, contrasena, fecha_fin)
 VALUES
 -- Contraseña vigente (fecha_fin NULL = activa)
-(1, '2022-09-01 08:00:00', '$2b$12$KIX8QeK1xLh5GkDJ3p9nOeB4ZmYcT7wRvN2sA1dF6gH0jP3qL8mUy', NULL),
+(1, '2022-09-01 08:00:00', '123456', NULL),
 (2, '2022-09-01 08:00:00', '$2b$12$LJY9RfL2yMi6HlEK4q0oPfC5AnZdU8xSwO3tB2eG7hI1kQ4rM9nVz', NULL),
 (3, '2022-09-01 08:00:00', '$2b$12$MKZ0SgM3zNj7ImFL5r1pQgD6BoAeV9yTxP4uC3fH8iJ2lR5sN0oWA', NULL),
 (4, '2021-09-01 08:00:00', '$2b$12$NLA1ThN4AOk8JnGM6s2qRhE7CpBfW0zUyQ5vD4gI9jK3mS6tO1pXB', NULL),
@@ -158,3 +159,38 @@ INSERT INTO Oferta (nombre_entidad, cargo, id_miembro) VALUES
 ('Banco Mercantil C.A.', 'Analista de Datos Jr', 1), -- Postulación de Carlos
 ('Empresas Polar', 'Pasante de Logística', 2);       -- Postulación de María
 
+
+--------------------------------------------------------------------------------
+-- SERVICIOS (Necesarios para el módulo financiero)
+--------------------------------------------------------------------------------
+INSERT INTO Servicio (id_servicio, nombre_servicio, descripcion, costo) VALUES
+(1, 'Bootcamp de Emprendimiento', 'Programa intensivo', 50.00),
+(2, 'Alquiler de Espacio Co-Working', 'Alquiler por jornada', 15.00),
+(3, 'Soporte Tecnico para Eventos', 'Soporte tecnico por hora', 45.00),
+(4, 'Asesoria Legal Básica', 'Consulta legal', 30.00),
+(5, 'Stand Comercial', 'Reserva de stand', 100.00);
+--------------------------------------------------------------------------------
+-- TARIFAS BASE (Historico_Tarifa inicial)
+--------------------------------------------------------------------------------
+INSERT INTO Historico_Tarifa (id_servicio, fecha_inicio, tarifa_precio) VALUES
+(1, '2025-01-01', 50.00), -- Tarifa base del Bootcamp
+(2, '2025-01-01', 15.00), -- Tarifa base del Co-Working
+(3, '2025-01-01', 45.00), -- Tarifa base de Soporte
+(4, '2025-01-01', 30.00),
+(5, '2025-01-01', 100.00);
+
+
+--------------------------------------------------------------------------------
+-- 8. BILLETERA DIGITAL (TAI)
+-- Asignar billeteras a los miembros base creados arriba con saldo 100.00
+--------------------------------------------------------------------------------
+INSERT INTO Billetera_digital (uid, id_miembro, saldo) VALUES
+('TAI-28001001-NFC', 1, 100.00),
+('TAI-28002002-NFC', 2, 100.00),
+('TAI-29003003-NFC', 3, 100.00),
+('TAI-27004004-NFC', 4, 100.00),
+('TAI-22005005-NFC', 5, 100.00),
+('TAI-18006006-NFC', 6, 100.00),
+('TAI-20007007-NFC', 7, 100.00),
+('TAI-30008008-NFC', 8, 100.00)
+ON CONFLICT (id_miembro) DO NOTHING;

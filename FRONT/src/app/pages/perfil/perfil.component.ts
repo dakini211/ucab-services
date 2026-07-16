@@ -43,6 +43,10 @@ interface MiembroDetalle {
       carga_horaria_semanal: number;
     };
   };
+  billetera_digital?: {
+    uid: string;
+    saldo: number | string;
+  };
 }
 
 interface NavItem {

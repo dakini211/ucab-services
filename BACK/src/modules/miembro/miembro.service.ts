@@ -57,6 +57,7 @@ export class MiembroService {
         include: { preparador: true },
       },
       egresado: true,
+      billetera_digital: true,
       personal_ucab: {
         include: { profesor: true, administrativo: true },
       },
@@ -99,6 +100,7 @@ export class MiembroService {
       include: {
         estudiante: { include: { preparador: true } },
         egresado: true,
+        billetera_digital: true,
         personal_ucab: { include: { profesor: true, administrativo: true } },
         historial_contrasena: { where: { fecha_fin: null }, take: 1 },
       },
@@ -113,6 +115,16 @@ export class MiembroService {
 
   async create(createDto: any) {
     const result = await this.prisma.miembro.create({ data: createDto });
+    
+    // Crear billetera digital automáticamente con saldo inicial de 100.00
+    await this.prisma.billetera_digital.create({
+      data: {
+        uid: `TAI-${result.cedula_identidad}-NFC`,
+        id_miembro: result.id_miembro,
+        saldo: 100.00
+      }
+    });
+
     return serializeBigInt(result);
   }
 

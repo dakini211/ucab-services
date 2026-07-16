@@ -153,18 +153,15 @@ export class ServicioService {
   }
 
   /**
-   * Crea una Solicitud_Servicio con estado 'aprobado' y abre el Folio
-   * correspondiente en una única transacción.
-   * 
-   * El nro_de_folio se genera como FOL-<timestamp> para garantizar unicidad.
-   * El folio se abre con fecha_inicio_mes = primer día del mes en curso.
+   * Crea una Solicitud_Servicio + Folio + Item de consumo base en una sola
+   * transacción. El ítem se carga con precio_unitario = NULL para que el
+   * trigger trg_congelar_precio_item congele la tarifa vigente desde
+   * Historico_Tarifa (regla pág. 4: "precio unitario tomado del historial
+   * de tarifas en la fecha exacta del cargo").
    */
   async solicitar(idServicio: number, idMiembro: number) {
     const ahora = new Date();
     const nroFolio = `FOL-${ahora.getTime()}`;
-
-    // Primer día del mes actual para fecha_inicio_mes
-    const inicioMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
 
     try {
       const [solicitud, folio] = await this.prisma.$transaction(async (tx) => {
@@ -174,7 +171,7 @@ export class ServicioService {
             id_miembro: BigInt(idMiembro),
             id_servicio: idServicio,
             fecha_de_creacion: ahora,
-            estado: 'aprobada', // The check constraint expects 'aprobada', not 'aprobado'
+            estado: 'aprobada',
           },
         });
 
@@ -186,11 +183,30 @@ export class ServicioService {
             fecha_de_creacion: ahora,
             nro_de_folio: nroFolio,
             estado: 'abierto',
-            // chk_folio_posterior_solicitud: fecha_inicio_mes >= fecha_de_creacion
-            // Set it to ahora to bypass check constraint failure when mid-month
             fecha_inicio_mes: ahora,
           },
         });
+
+        // 3. Cargar el ítem de consumo base (cargo del servicio)
+        //    precio_unitario = NULL → el trigger trg_congelar_precio_item
+        //    lo congela desde fn_tarifa_vigente(id_servicio, fecha_de_creacion)
+        const servicioInfo = await tx.servicio.findUnique({
+          where: { id_servicio: idServicio },
+          select: { nombre_servicio: true },
+        });
+
+        await tx.$executeRaw`
+          CALL sp_agregar_item_consumo(
+            p_id_miembro        => ${BigInt(idMiembro)},
+            p_id_servicio       => ${idServicio},
+            p_fecha_de_creacion => ${ahora}::timestamp,
+            p_nro_de_folio      => ${nroFolio},
+            p_concepto          => ${servicioInfo?.nombre_servicio ?? 'Servicio solicitado'},
+            p_cantidad          => 1,
+            p_impuesto_ley      => 16.00,
+            p_precio_unitario   => ${null}::numeric
+          )
+        `;
 
         return [s, f];
       });
@@ -212,7 +228,7 @@ export class ServicioService {
       console.error('Error al solicitar servicio:', error);
       throw new HttpException(
         error.message || 'Error al procesar la solicitud',
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }

@@ -588,14 +588,20 @@
           <label class="campo">
             <span class="campo-label">UID del chip NFC</span>
             <input class="input mono" [value]="pago().uid || ''"
-              (input)="actualizarPago('uid', $any($event.target).value)" />
+              (input)="actualizarPago('uid', $any($event.target).value)" 
+              [readonly]="taiUid() != null"
+              [class.bg-gray-100]="taiUid() != null" />
           </label>
           <label class="campo">
             <span class="campo-label">Terminal POS</span>
             <input class="input mono" [value]="pago().pos || ''"
-              (input)="actualizarPago('pos', $any($event.target).value)" />
+              (input)="actualizarPago('pos', $any($event.target).value)" readonly class="bg-gray-100" />
           </label>
-          <p class="campo-nota">
+          <p class="campo-nota" *ngIf="taiSaldo() !== null">
+            Saldo disponible en tu Billetera TAI: <strong style="color: #10B981">Bs. {{ taiSaldo() | number:'1.2-2' }}</strong>. 
+            El monto se descontará automáticamente.
+          </p>
+          <p class="campo-nota" *ngIf="taiSaldo() === null">
             Descuenta del saldo de la billetera digital del miembro.
           </p>
         </ng-container>

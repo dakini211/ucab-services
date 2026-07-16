@@ -75,6 +75,8 @@ export class FinanzasComponent implements OnInit, OnDestroy {
   userInitials = signal('US');
   userRol = signal('Miembro');
   canEdit = signal(false);
+  taiUid = signal<string | null>(null);
+  taiSaldo = signal<number | null>(null);
 
   /* ── Nav ───────────────────────────────────────────────── */
   readonly navItems: NavItem[] = [
@@ -169,6 +171,8 @@ export class FinanzasComponent implements OnInit, OnDestroy {
       );
       // Validar si el usuario tiene rol Admin o Administrativo para ciertas acciones
       this.canEdit.set(u.rol === 'Admin' || u.rol === 'Administrativo');
+      this.taiUid.set(u.tai_uid ?? null);
+      this.taiSaldo.set(u.tai_saldo ?? null);
     } catch { }
   }
 
@@ -370,7 +374,9 @@ export class FinanzasComponent implements OnInit, OnDestroy {
     this.pago.set({
       numero_de_control: d.factura.numero_de_control,
       monto: 0,
-      tipo: 'zelle',
+      tipo: 'tai',
+      uid: this.taiUid() ?? '',
+      pos: 'POS-CAJA-WEB'
     });
     this.modalMode.set('pago');
   }
