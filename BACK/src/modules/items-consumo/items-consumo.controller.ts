@@ -1,34 +1,49 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Query } from '@nestjs/common';
 import { ItemsConsumoService } from './items-consumo.service';
-import { CreateItemsConsumoDto } from './dto/create-items-consumo.dto';
-import { UpdateItemsConsumoDto } from './dto/update-items-consumo.dto';
 
+/** Prefijo global 'api' => /api/items-consumo */
 @Controller('items-consumo')
 export class ItemsConsumoController {
   constructor(private readonly itemsConsumoService: ItemsConsumoService) {}
 
-  @Post()
-  create(@Body() createItemsConsumoDto: CreateItemsConsumoDto) {
-    return this.itemsConsumoService.create(createItemsConsumoDto);
-  }
-
   @Get()
-  findAll() {
-    return this.itemsConsumoService.findAll();
+  findByFolio(
+    @Query('id_miembro') id_miembro: string,
+    @Query('id_servicio') id_servicio: string,
+    @Query('fecha_de_creacion') fecha_de_creacion: string,
+    @Query('nro_de_folio') nro_de_folio: string,
+  ) {
+    return this.itemsConsumoService.findByFolio({
+      id_miembro,
+      id_servicio: +id_servicio,
+      fecha_de_creacion,
+      nro_de_folio,
+    });
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.itemsConsumoService.findOne(+id);
+  @Post()
+  create(@Body() dto: any) {
+    return this.itemsConsumoService.create(dto);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateItemsConsumoDto: UpdateItemsConsumoDto) {
-    return this.itemsConsumoService.update(+id, updateItemsConsumoDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.itemsConsumoService.remove(+id);
+  /**
+   * La PK tiene 5 columnas, asi que no cabe en :id.
+   * Se recibe por query params.
+   */
+  @Delete()
+  remove(
+    @Query('id_miembro') id_miembro: string,
+    @Query('id_servicio') id_servicio: string,
+    @Query('fecha_de_creacion') fecha_de_creacion: string,
+    @Query('nro_de_folio') nro_de_folio: string,
+    @Query('concepto') concepto: string,
+  ) {
+    return this.itemsConsumoService.remove({
+      id_miembro,
+      id_servicio: +id_servicio,
+      fecha_de_creacion,
+      nro_de_folio,
+      concepto,
+    });
   }
 }

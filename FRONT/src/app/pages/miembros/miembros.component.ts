@@ -48,10 +48,10 @@ export class MiembrosComponent implements OnInit, OnDestroy {
   currentRoute = signal('miembros');
 
   /* ── User ──────────────────────────────────────────────── */
-  userName     = signal('Usuario');
-  userEmail    = signal('');
+  userName = signal('Usuario');
+  userEmail = signal('');
   userInitials = signal('US');
-  canEdit      = signal(false);
+  canEdit = signal(false);
 
   /* ── Form ──────────────────────────────────────────────── */
   miembroForm!: FormGroup;
@@ -295,7 +295,7 @@ export class MiembrosComponent implements OnInit, OnDestroy {
   toggleSidebar(): void { this.sidebarCollapsed.update((v) => !v); }
 
   navigate(item: NavItem): void {
-    const implementedRoutes = ['/dashboard', '/perfil', '/miembros', '/edificaciones', '/catalogo', '/espacios'];
+    const implementedRoutes = ['/dashboard', '/perfil', '/miembros', '/edificaciones', '/catalogo', '/espacios', '/finanzas'];
     if (implementedRoutes.includes(item.route)) {
       this.currentRoute.set(item.id);
       this.router.navigate([item.route]);

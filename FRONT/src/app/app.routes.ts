@@ -59,6 +59,13 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'finanzas',
+    loadComponent: () =>
+      import('./pages/finanzas/finanzas.component').then((m) => m.FinanzasComponent),
+    title: 'Finanzas | UCAB-Services',
+    canActivate: [authGuard],
+  },
+  {
     path: '**',
     redirectTo: 'login',
   },

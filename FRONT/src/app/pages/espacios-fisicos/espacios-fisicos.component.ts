@@ -33,77 +33,77 @@ interface CalendarDay {
 })
 export class EspaciosFisicosComponent implements OnInit, OnDestroy {
   private readonly espaciosService = inject(EspaciosFisicosService);
-  private readonly authService     = inject(AuthService);
-  private readonly router          = inject(Router);
-  private readonly fb              = inject(FormBuilder);
-  private readonly destroy$        = new Subject<void>();
-  private readonly searchSubject   = new Subject<string>();
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly fb = inject(FormBuilder);
+  private readonly destroy$ = new Subject<void>();
+  private readonly searchSubject = new Subject<string>();
 
   /* ── UI State ───────────────────────────────────────────── */
   sidebarCollapsed = signal(false);
-  isLoading        = signal(true);
-  isSaving         = signal(false);
-  modalMode        = signal<ModalMode>(null);
-  selectedEspacio  = signal<EspacioFisico | null>(null);
-  openMenuId       = signal<number | null>(null);
-  currentRoute     = signal('espacios');
+  isLoading = signal(true);
+  isSaving = signal(false);
+  modalMode = signal<ModalMode>(null);
+  selectedEspacio = signal<EspacioFisico | null>(null);
+  openMenuId = signal<number | null>(null);
+  currentRoute = signal('espacios');
 
   /* ── Data ──────────────────────────────────────────────── */
-  espacios    = signal<EspacioFisico[]>([]);
-  total       = signal(0);
-  totalPages  = signal(0);
+  espacios = signal<EspacioFisico[]>([]);
+  total = signal(0);
+  totalPages = signal(0);
   currentPage = signal(1);
-  pageSize    = signal(10);
+  pageSize = signal(10);
 
   /* ── Filters ────────────────────────────────────────────── */
-  searchQuery      = signal('');
-  filterSede       = signal('');
+  searchQuery = signal('');
+  filterSede = signal('');
   filterEdificacion = signal('');
-  filterTipo       = signal('');
+  filterTipo = signal('');
   filterDisponibilidad = signal('');
-  sedes            = signal<string[]>([]);
-  edificaciones    = signal<string[]>([]);
-  tiposEspacio     = signal<string[]>([]);
+  sedes = signal<string[]>([]);
+  edificaciones = signal<string[]>([]);
+  tiposEspacio = signal<string[]>([]);
 
   /* ── Calendar ────────────────────────────────────────────── */
-  calendarMonth    = signal(new Date().getMonth());
-  calendarYear     = signal(new Date().getFullYear());
-  reservas         = signal<ReservaCalendario[]>([]);
+  calendarMonth = signal(new Date().getMonth());
+  calendarYear = signal(new Date().getFullYear());
+  reservas = signal<ReservaCalendario[]>([]);
   calendarEspacioNombre = signal('Seleccione un espacio');
-  showMesModal     = signal(false);
+  showMesModal = signal(false);
 
   /* ── User ──────────────────────────────────────────────── */
-  userName     = signal('Usuario');
-  userEmail    = signal('');
+  userName = signal('Usuario');
+  userEmail = signal('');
   userInitials = signal('US');
-  canEdit      = signal(false);
+  canEdit = signal(false);
 
   /* ── Form ──────────────────────────────────────────────── */
   espacioForm!: FormGroup;
   reservaForm!: FormGroup;
-  formError   = signal('');
+  formError = signal('');
   formSuccess = signal('');
 
   /* ── Nav ────────────────────────────────────────────────── */
   readonly navItems: NavItem[] = [
-    { id: 'inicio',       label: 'Inicio',                route: '/dashboard',     icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
-    { id: 'perfil',       label: 'Mi perfil',             route: '/perfil',        icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
-    { id: 'miembros',     label: 'Miembros',              route: '/miembros',      icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z' },
-    { id: 'edificaciones',label: 'Edificaciones',         route: '/edificaciones', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
-    { id: 'espacios',     label: 'Espacios físicos',      route: '/espacios',      icon: 'M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z' },
-    { id: 'tramites',     label: 'Trámites y Solicitudes',route: '/tramites',      icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
-    { id: 'servicios',    label: 'Servicios',             route: '/catalogo',      icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
-    { id: 'reservaciones',label: 'Reservaciones',         route: '/reservaciones', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
-    { id: 'finanzas',     label: 'Finanzas',              route: '/finanzas',      icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
-    { id: 'reportes',     label: 'Reportes',              route: '/reportes',      icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
-    { id: 'configuracion',label: 'Configuración',         route: '/configuracion', icon: 'M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4' },
-    { id: 'seguridad',    label: 'Seguridad',             route: '/seguridad',     icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' },
+    { id: 'inicio', label: 'Inicio', route: '/dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
+    { id: 'perfil', label: 'Mi perfil', route: '/perfil', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
+    { id: 'miembros', label: 'Miembros', route: '/miembros', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z' },
+    { id: 'edificaciones', label: 'Edificaciones', route: '/edificaciones', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
+    { id: 'espacios', label: 'Espacios físicos', route: '/espacios', icon: 'M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z' },
+    { id: 'tramites', label: 'Trámites y Solicitudes', route: '/tramites', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
+    { id: 'servicios', label: 'Servicios', route: '/catalogo', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
+    { id: 'reservaciones', label: 'Reservaciones', route: '/reservaciones', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
+    { id: 'finanzas', label: 'Finanzas', route: '/finanzas', icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
+    { id: 'reportes', label: 'Reportes', route: '/reportes', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
+    { id: 'configuracion', label: 'Configuración', route: '/configuracion', icon: 'M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4' },
+    { id: 'seguridad', label: 'Seguridad', route: '/seguridad', icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' },
   ];
 
   /* ── Computed ────────────────────────────────────────────── */
   pages = computed(() => {
     const total = this.totalPages();
-    const curr  = this.currentPage();
+    const curr = this.currentPage();
     const pages: (number | '...')[] = [];
     if (total <= 7) {
       for (let i = 1; i <= total; i++) pages.push(i);
@@ -118,7 +118,7 @@ export class EspaciosFisicosComponent implements OnInit, OnDestroy {
   });
 
   showingFrom = computed(() => (this.currentPage() - 1) * this.pageSize() + 1);
-  showingTo   = computed(() => Math.min(this.currentPage() * this.pageSize(), this.total()));
+  showingTo = computed(() => Math.min(this.currentPage() * this.pageSize(), this.total()));
 
   hasActiveFilters = computed(() =>
     !!this.filterSede() || !!this.filterEdificacion() || !!this.filterTipo() || !!this.filterDisponibilidad()
@@ -126,14 +126,14 @@ export class EspaciosFisicosComponent implements OnInit, OnDestroy {
 
   /** Días del mes actual para el calendario */
   calendarDays = computed<CalendarDay[]>(() => {
-    const year  = this.calendarYear();
+    const year = this.calendarYear();
     const month = this.calendarMonth();
     const firstDay = new Date(year, month, 1).getDay();  // 0=Dom
     // Ajustar para que empiece en Lunes (0=Lun)
     const startOffset = (firstDay + 6) % 7;
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const daysInPrev  = new Date(year, month, 0).getDate();
-    const today       = new Date();
+    const daysInPrev = new Date(year, month, 0).getDate();
+    const today = new Date();
 
     const days: CalendarDay[] = [];
 
@@ -160,8 +160,8 @@ export class EspaciosFisicosComponent implements OnInit, OnDestroy {
   });
 
   calendarMonthLabel = computed(() => {
-    const names = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
-                   'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    const names = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
     return `${names[this.calendarMonth()]} ${this.calendarYear()}`;
   });
 
@@ -174,7 +174,7 @@ export class EspaciosFisicosComponent implements OnInit, OnDestroy {
   /** Agrupa todas las reservas del mes por fecha para el modal */
   reservasPorDia = computed(() => {
     const month = this.calendarMonth();
-    const year  = this.calendarYear();
+    const year = this.calendarYear();
     const map = new Map<string, ReservaCalendario[]>();
     this.reservas()
       .filter(r => {
@@ -239,19 +239,19 @@ export class EspaciosFisicosComponent implements OnInit, OnDestroy {
   /* ── Forms ─────────────────────────────────────────────── */
   private buildForms(): void {
     this.espacioForm = this.fb.group({
-      numero:        ['', Validators.required],
-      edificacion:   ['', Validators.required],
-      tipo_espacio:  ['', Validators.required],
-      capacidad:     [null, [Validators.required, Validators.min(1)]],
-      disponibilidad:['Disponible', Validators.required],
-      sede:          ['', Validators.required],
-      descripcion:   [''],
+      numero: ['', Validators.required],
+      edificacion: ['', Validators.required],
+      tipo_espacio: ['', Validators.required],
+      capacidad: [null, [Validators.required, Validators.min(1)]],
+      disponibilidad: ['Disponible', Validators.required],
+      sede: ['', Validators.required],
+      descripcion: [''],
     });
 
     this.reservaForm = this.fb.group({
       fecha_inicio: ['', Validators.required],
-      fecha_fin:    ['', Validators.required],
-      motivo:       ['', Validators.required],
+      fecha_fin: ['', Validators.required],
+      motivo: ['', Validators.required],
     });
   }
 
@@ -259,13 +259,13 @@ export class EspaciosFisicosComponent implements OnInit, OnDestroy {
   loadEspacios(): void {
     this.isLoading.set(true);
     this.espaciosService.getAll({
-      search:         this.searchQuery()           || undefined,
-      sede:           this.filterSede()            || undefined,
-      edificacion:    this.filterEdificacion()     || undefined,
-      tipo_espacio:   this.filterTipo()            || undefined,
-      disponibilidad: this.filterDisponibilidad()  || undefined,
-      page:           this.currentPage(),
-      limit:          this.pageSize(),
+      search: this.searchQuery() || undefined,
+      sede: this.filterSede() || undefined,
+      edificacion: this.filterEdificacion() || undefined,
+      tipo_espacio: this.filterTipo() || undefined,
+      disponibilidad: this.filterDisponibilidad() || undefined,
+      page: this.currentPage(),
+      limit: this.pageSize(),
     }).subscribe({
       next: (res) => {
         this.espacios.set(res.data || []);
@@ -278,9 +278,9 @@ export class EspaciosFisicosComponent implements OnInit, OnDestroy {
   }
 
   private loadFiltrosAuxiliares(): void {
-    this.espaciosService.getSedes().subscribe({ next: (s) => this.sedes.set(s), error: () => {} });
-    this.espaciosService.getEdificaciones().subscribe({ next: (e) => this.edificaciones.set(e), error: () => {} });
-    this.espaciosService.getTipos().subscribe({ next: (t) => this.tiposEspacio.set(t), error: () => {} });
+    this.espaciosService.getSedes().subscribe({ next: (s) => this.sedes.set(s), error: () => { } });
+    this.espaciosService.getEdificaciones().subscribe({ next: (e) => this.edificaciones.set(e), error: () => { } });
+    this.espaciosService.getTipos().subscribe({ next: (t) => this.tiposEspacio.set(t), error: () => { } });
   }
 
   private loadReservas(espacioId: number): void {
@@ -288,7 +288,7 @@ export class EspaciosFisicosComponent implements OnInit, OnDestroy {
       espacioId,
       this.calendarMonth() + 1,
       this.calendarYear()
-    ).subscribe({ next: (r) => this.reservas.set(r), error: () => {} });
+    ).subscribe({ next: (r) => this.reservas.set(r), error: () => { } });
   }
 
   /* ── Filters ────────────────────────────────────────────── */
@@ -317,10 +317,10 @@ export class EspaciosFisicosComponent implements OnInit, OnDestroy {
     this.loadEspacios();
   }
 
-  prevPage():  void { this.goToPage(this.currentPage() - 1); }
-  nextPage():  void { this.goToPage(this.currentPage() + 1); }
+  prevPage(): void { this.goToPage(this.currentPage() - 1); }
+  nextPage(): void { this.goToPage(this.currentPage() + 1); }
   firstPage(): void { this.goToPage(1); }
-  lastPage():  void { this.goToPage(this.totalPages()); }
+  lastPage(): void { this.goToPage(this.totalPages()); }
 
   /* ── Calendar Nav ───────────────────────────────────────── */
   prevMonth(): void {
@@ -381,13 +381,13 @@ export class EspaciosFisicosComponent implements OnInit, OnDestroy {
     this.formError.set('');
     this.formSuccess.set('');
     this.espacioForm.patchValue({
-      numero:         e.numero,
-      edificacion:    e.edificacion,
-      tipo_espacio:   e.tipo_espacio,
-      capacidad:      e.capacidad,
+      numero: e.numero,
+      edificacion: e.edificacion,
+      tipo_espacio: e.tipo_espacio,
+      capacidad: e.capacidad,
       disponibilidad: e.disponibilidad,
-      sede:           e.sede,
-      descripcion:    e.descripcion ?? '',
+      sede: e.sede,
+      descripcion: e.descripcion ?? '',
     });
     this.openMenuId.set(null);
     this.modalMode.set('editar');
@@ -451,7 +451,7 @@ export class EspaciosFisicosComponent implements OnInit, OnDestroy {
     if (!e) return;
     this.isSaving.set(true);
     this.espaciosService.delete(e.id).subscribe({
-      next:  () => { this.isSaving.set(false); this.closeModal(); this.loadEspacios(); },
+      next: () => { this.isSaving.set(false); this.closeModal(); this.loadEspacios(); },
       error: () => this.isSaving.set(false),
     });
   }
@@ -466,7 +466,7 @@ export class EspaciosFisicosComponent implements OnInit, OnDestroy {
     this.isSaving.set(true);
     this.formError.set('');
     this.espaciosService.reservar(e.id, this.reservaForm.value).subscribe({
-      next:  () => { this.isSaving.set(false); this.formSuccess.set('¡Reserva realizada con éxito!'); setTimeout(() => this.closeModal(), 1400); },
+      next: () => { this.isSaving.set(false); this.formSuccess.set('¡Reserva realizada con éxito!'); setTimeout(() => this.closeModal(), 1400); },
       error: (err) => { this.isSaving.set(false); this.formError.set(err?.error?.message ?? 'Error al reservar.'); },
     });
   }
@@ -475,7 +475,7 @@ export class EspaciosFisicosComponent implements OnInit, OnDestroy {
     this.openMenuId.set(null);
     this.espaciosService.marcarDisponible(e.id).subscribe({
       next: () => this.loadEspacios(),
-      error: () => {},
+      error: () => { },
     });
   }
 
@@ -483,7 +483,7 @@ export class EspaciosFisicosComponent implements OnInit, OnDestroy {
   toggleSidebar(): void { this.sidebarCollapsed.update((v) => !v); }
 
   navigate(item: NavItem): void {
-    const implementedRoutes = ['/dashboard', '/perfil', '/miembros', '/edificaciones', '/catalogo', '/espacios'];
+    const implementedRoutes = ['/dashboard', '/perfil', '/miembros', '/edificaciones', '/catalogo', '/espacios', '/finanzas'];
     if (implementedRoutes.includes(item.route)) {
       this.currentRoute.set(item.id);
       this.router.navigate([item.route]);
@@ -500,29 +500,29 @@ export class EspaciosFisicosComponent implements OnInit, OnDestroy {
   /* ── Helpers ────────────────────────────────────────────── */
   getDisponibilidadClass(d: string): string {
     switch (d) {
-      case 'Disponible':               return 'badge-disponible';
-      case 'Parcialmente disponible':  return 'badge-parcial';
-      case 'No disponible':            return 'badge-nodisponible';
-      default:                         return '';
+      case 'Disponible': return 'badge-disponible';
+      case 'Parcialmente disponible': return 'badge-parcial';
+      case 'No disponible': return 'badge-nodisponible';
+      default: return '';
     }
   }
 
   getRecursoIcon(tipo: string): string {
     const map: Record<string, string> = {
-      'proyector':    'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2h-2',
-      'microfono':    'M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3zM19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8',
-      'parlante':     'M15.536 8.464a5 5 0 010 7.072M12 6v12M8.464 8.464a5 5 0 000 7.072',
-      'computadora':  'M9 17H7A5 5 0 017 7h2M15 7h2a5 5 0 010 10h-2M8 12h8',
-      'wifi':         'M5 12.55a11 11 0 0114.08 0M1.42 9a16 16 0 0121.16 0M8.53 16.11a6 6 0 016.95 0M12 20h.01',
-      'televisor':    'M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zM8 21h8M12 17v4',
-      'pizarron':     'M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 004 17V3h16v14H6.5M4 19.5v.5',
-      'laboratorio':  'M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v4m0 0H5m4 0h10M5 7v14a2 2 0 002 2h10a2 2 0 002-2V7',
+      'proyector': 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2h-2',
+      'microfono': 'M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3zM19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8',
+      'parlante': 'M15.536 8.464a5 5 0 010 7.072M12 6v12M8.464 8.464a5 5 0 000 7.072',
+      'computadora': 'M9 17H7A5 5 0 017 7h2M15 7h2a5 5 0 010 10h-2M8 12h8',
+      'wifi': 'M5 12.55a11 11 0 0114.08 0M1.42 9a16 16 0 0121.16 0M8.53 16.11a6 6 0 016.95 0M12 20h.01',
+      'televisor': 'M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zM8 21h8M12 17v4',
+      'pizarron': 'M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 004 17V3h16v14H6.5M4 19.5v.5',
+      'laboratorio': 'M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v4m0 0H5m4 0h10M5 7v14a2 2 0 002 2h10a2 2 0 002-2V7',
     };
     return map[tipo.toLowerCase()] ?? 'M12 6v6m0 0v6m0-6h6m-6 0H6';
   }
 
   getReservaColor(r: ReservaCalendario): string {
-    const colors = ['#E63946','#3B82F6','#F59E0B','#8B5CF6','#22C55E','#06B6D4'];
+    const colors = ['#E63946', '#3B82F6', '#F59E0B', '#8B5CF6', '#22C55E', '#06B6D4'];
     return r.color ?? colors[r.id % colors.length];
   }
 

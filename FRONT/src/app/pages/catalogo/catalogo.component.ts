@@ -23,46 +23,46 @@ interface NavItem { id: string; label: string; route: string; icon: string; }
 })
 export class CatalogoComponent implements OnInit, OnDestroy {
   private readonly catalogoService = inject(CatalogoService);
-  private readonly authService     = inject(AuthService);
-  private readonly router          = inject(Router);
-  private readonly fb              = inject(FormBuilder);
-  private readonly destroy$        = new Subject<void>();
-  private readonly searchSubject   = new Subject<string>();
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly fb = inject(FormBuilder);
+  private readonly destroy$ = new Subject<void>();
+  private readonly searchSubject = new Subject<string>();
 
   /* ── UI State ───────────────────────────────────────────── */
   sidebarCollapsed = signal(false);
-  isLoading        = signal(true);
-  isSaving         = signal(false);
-  modalMode        = signal<ModalMode>(null);
+  isLoading = signal(true);
+  isSaving = signal(false);
+  modalMode = signal<ModalMode>(null);
   selectedServicio = signal<Servicio | null>(null);
-  openMenuId       = signal<number | null>(null);
-  currentRoute     = signal('catalogo');
+  openMenuId = signal<number | null>(null);
+  currentRoute = signal('catalogo');
 
   /* ── Data ──────────────────────────────────────────────── */
-  servicios   = signal<Servicio[]>([]);
-  total       = signal(0);
-  totalPages  = signal(0);
+  servicios = signal<Servicio[]>([]);
+  total = signal(0);
+  totalPages = signal(0);
   currentPage = signal(1);
-  pageSize    = signal(5);
+  pageSize = signal(5);
 
   /* ── Filters ────────────────────────────────────────────── */
-  searchQuery     = signal('');
+  searchQuery = signal('');
   filterCategoria = signal('');
-  filterSede      = signal('');
-  filterEstado    = signal('');
-  filterTipo      = signal('');
-  categorias      = signal<string[]>([]);
-  sedes           = signal<string[]>([]);
+  filterSede = signal('');
+  filterEstado = signal('');
+  filterTipo = signal('');
+  categorias = signal<string[]>([]);
+  sedes = signal<string[]>([]);
 
   /* ── User ──────────────────────────────────────────────── */
-  userName     = signal('Usuario');
-  userEmail    = signal('');
+  userName = signal('Usuario');
+  userEmail = signal('');
   userInitials = signal('US');
-  canEdit      = signal(false);
+  canEdit = signal(false);
 
   /* ── Form ──────────────────────────────────────────────── */
   servicioForm!: FormGroup;
-  formError   = signal('');
+  formError = signal('');
   formSuccess = signal('');
 
   /* ── Nav ────────────────────────────────────────────────── */
@@ -84,7 +84,7 @@ export class CatalogoComponent implements OnInit, OnDestroy {
   /* ── Computed ────────────────────────────────────────────── */
   pages = computed(() => {
     const total = this.totalPages();
-    const curr  = this.currentPage();
+    const curr = this.currentPage();
     const pages: (number | '...')[] = [];
     if (total <= 7) {
       for (let i = 1; i <= total; i++) pages.push(i);
@@ -99,7 +99,7 @@ export class CatalogoComponent implements OnInit, OnDestroy {
   });
 
   showingFrom = computed(() => (this.currentPage() - 1) * this.pageSize() + 1);
-  showingTo   = computed(() => Math.min(this.currentPage() * this.pageSize(), this.total()));
+  showingTo = computed(() => Math.min(this.currentPage() * this.pageSize(), this.total()));
 
   hasActiveFilters = computed(() =>
     !!this.filterCategoria() || !!this.filterSede() || !!this.filterEstado() || !!this.filterTipo()
@@ -152,13 +152,13 @@ export class CatalogoComponent implements OnInit, OnDestroy {
   /* ── Form ──────────────────────────────────────────────── */
   private buildForm(): void {
     this.servicioForm = this.fb.group({
-      nombre:      ['', Validators.required],
+      nombre: ['', Validators.required],
       descripcion: ['', Validators.required],
-      categoria:   ['', Validators.required],
-      sede:        ['', Validators.required],
-      tipo:        ['Digital', Validators.required],
+      categoria: ['', Validators.required],
+      sede: ['', Validators.required],
+      tipo: ['Digital', Validators.required],
       precio_base: [null],
-      estado:      ['Borrador', Validators.required],
+      estado: ['Borrador', Validators.required],
     });
   }
 
@@ -166,13 +166,13 @@ export class CatalogoComponent implements OnInit, OnDestroy {
   loadServicios(): void {
     this.isLoading.set(true);
     this.catalogoService.getAll({
-      search:    this.searchQuery()     || undefined,
+      search: this.searchQuery() || undefined,
       categoria: this.filterCategoria() || undefined,
-      sede:      this.filterSede()      || undefined,
-      estado:    this.filterEstado()    || undefined,
-      tipo:      this.filterTipo()      || undefined,
-      page:      this.currentPage(),
-      limit:     this.pageSize(),
+      sede: this.filterSede() || undefined,
+      estado: this.filterEstado() || undefined,
+      tipo: this.filterTipo() || undefined,
+      page: this.currentPage(),
+      limit: this.pageSize(),
     }).subscribe({
       next: (res) => {
         this.servicios.set(res.data || []);
@@ -187,14 +187,14 @@ export class CatalogoComponent implements OnInit, OnDestroy {
   loadCategorias(): void {
     this.catalogoService.getCategorias().subscribe({
       next: (c) => this.categorias.set(c),
-      error: () => {},
+      error: () => { },
     });
   }
 
   loadSedes(): void {
     this.catalogoService.getSedes().subscribe({
       next: (s) => this.sedes.set(s),
-      error: () => {},
+      error: () => { },
     });
   }
 
@@ -224,10 +224,10 @@ export class CatalogoComponent implements OnInit, OnDestroy {
     this.loadServicios();
   }
 
-  prevPage():  void { this.goToPage(this.currentPage() - 1); }
-  nextPage():  void { this.goToPage(this.currentPage() + 1); }
+  prevPage(): void { this.goToPage(this.currentPage() - 1); }
+  nextPage(): void { this.goToPage(this.currentPage() + 1); }
   firstPage(): void { this.goToPage(1); }
-  lastPage():  void { this.goToPage(this.totalPages()); }
+  lastPage(): void { this.goToPage(this.totalPages()); }
 
   /* ── Kebab Menu ─────────────────────────────────────────── */
   toggleMenu(event: MouseEvent, id: number): void {
@@ -256,13 +256,13 @@ export class CatalogoComponent implements OnInit, OnDestroy {
     this.formError.set('');
     this.formSuccess.set('');
     this.servicioForm.patchValue({
-      nombre:      s.nombre,
+      nombre: s.nombre,
       descripcion: s.descripcion,
-      categoria:   s.categoria,
-      sede:        s.sede,
-      tipo:        s.tipo,
+      categoria: s.categoria,
+      sede: s.sede,
+      tipo: s.tipo,
       precio_base: s.precio_base,
-      estado:      s.estado,
+      estado: s.estado,
     });
     this.openMenuId.set(null);
     this.modalMode.set('modificar');
@@ -320,7 +320,7 @@ export class CatalogoComponent implements OnInit, OnDestroy {
     if (!s) return;
     this.isSaving.set(true);
     this.catalogoService.delete(s.id).subscribe({
-      next:  () => { this.isSaving.set(false); this.closeModal(); this.loadServicios(); },
+      next: () => { this.isSaving.set(false); this.closeModal(); this.loadServicios(); },
       error: () => this.isSaving.set(false),
     });
   }
@@ -330,7 +330,7 @@ export class CatalogoComponent implements OnInit, OnDestroy {
     if (!s) return;
     this.isSaving.set(true);
     this.catalogoService.solicitar(s.id).subscribe({
-      next:  () => { this.isSaving.set(false); this.formSuccess.set('¡Solicitud enviada con éxito!'); setTimeout(() => this.closeModal(), 1400); },
+      next: () => { this.isSaving.set(false); this.formSuccess.set('¡Solicitud enviada con éxito!'); setTimeout(() => this.closeModal(), 1400); },
       error: (err) => { this.isSaving.set(false); this.formError.set(err?.error?.message ?? 'Error al solicitar.'); },
     });
   }
@@ -339,7 +339,7 @@ export class CatalogoComponent implements OnInit, OnDestroy {
   toggleSidebar(): void { this.sidebarCollapsed.update((v) => !v); }
 
   navigate(item: NavItem): void {
-    const implementedRoutes = ['/dashboard', '/perfil', '/miembros', '/edificaciones', '/catalogo', '/espacios'];
+    const implementedRoutes = ['/dashboard', '/perfil', '/miembros', '/edificaciones', '/catalogo', '/espacios', '/finanzas'];
     if (implementedRoutes.includes(item.route)) {
       this.currentRoute.set(item.id);
       this.router.navigate([item.route]);
@@ -368,10 +368,10 @@ export class CatalogoComponent implements OnInit, OnDestroy {
 
   getCategoriaIcon(categoria: string): string {
     const map: Record<string, string> = {
-      'Académicos':      'M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z',
+      'Académicos': 'M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z',
       'Administrativos': 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
-      'Estudiantiles':   'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z',
-      'Tecnológicos':    'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2h-2',
+      'Estudiantiles': 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z',
+      'Tecnológicos': 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2h-2',
     };
     return map[categoria] ?? 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z';
   }
