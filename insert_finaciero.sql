@@ -197,63 +197,24 @@ CALL sp_registrar_pago(
 );
 
 
---------------------------------------------------------------------------------
--- 7. VERIFICACION (opcional - para la correccion)
---------------------------------------------------------------------------------
-
--- 7.1 Estado general del modulo financiero
--- SELECT f.numero_de_control, f.estatus, f.saldo,
---        fn_total_folio(f.id_miembro, f.id_servicio, f.fecha_de_creacion, f.nro_de_folio) AS total,
---        fn_total_pagado(f.numero_de_control) AS pagado,
---        fn_saldo_factura(f.numero_de_control) AS saldo_recalculado
--- FROM Factura f
--- ORDER BY f.numero_de_control;
---
--- Esperado:
---   FAC-2026-000001 | pagada  |   0.00 |  92.00 |  92.00 |   0.00
---   FAC-2026-000002 | parcial |  53.68 | 113.68 |  60.00 |  53.68
-
-
--- 7.2 DEMOSTRACION DEL CONGELADO DE PRECIOS
--- El item de Carlos conserva 50.00 aunque la tarifa de hoy sea 65.00.
--- SELECT ic.concepto, ic.precio_unitario AS precio_congelado,
---        fn_tarifa_vigente(ic.id_servicio, CURRENT_TIMESTAMP) AS tarifa_hoy
--- FROM Items_Consumo ic
--- WHERE ic.nro_de_folio = 'FOL-202602-00001';
-
-
--- 7.3 DEMOSTRACION DEL CIERRE MASIVO (folio de Elena, julio 2026)
--- CALL sp_cierre_masivo_folios('2026-07-15');
--- SELECT * FROM Factura WHERE nro_de_folio = 'FOL-202607-00003';
-
-
--- 7.4 DEMOSTRACION DEL BLOQUEO DE FOLIO FACTURADO (debe fallar)
--- CALL sp_agregar_item_consumo(1, 1, '2026-02-10 09:00:00', 'FOL-202602-00001', 'Cargo tardio', 1, 16.00, 10.00);
--- -> ERROR: El folio FOL-202602-00001 ya fue facturado...
-
-
- --------------------------------------------------------------------------------
--- INSERT DEL ADMINISTRADOR GENERAL (ID auto-generado)
---------------------------------------------------------------------------------
-
 -- 1. Primero se registra como Miembro (Superclase base)
 INSERT INTO Miembro (cedula_identidad, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, fecha_nacimiento, telefono, correo_institucional, direccion_habitacion, total_sesiones, estado_cuenta)
-VALUES 
+VALUES
 (12009009, 'Carmen', 'Alicia', 'Ortiz', 'Mendoza', '1970-05-14', '0414-5556677', 'c.ortiz@ucab.edu.ve', 'Urb. Macaracuay, Calle 2, Caracas', 0, 'activa');
 
 -- 2. Se registra como Personal UCAB (Subclase nivel 1)
 INSERT INTO Personal_ucab (id_miembro)
-VALUES 
+VALUES
 ((SELECT id_miembro FROM Miembro WHERE cedula_identidad = 12009009));
 
 -- 3. Se registra como Administrativo (Subclase nivel 2)
 INSERT INTO Administrativo (id_miembro, carga_horaria_semanal, unidad_presupuestaria)
-VALUES 
+VALUES
 ((SELECT id_miembro FROM Miembro WHERE cedula_identidad = 12009009), 40, 'Dirección General de Administración');
 
 -- 4. Finalmente, se registra como Admid_General (Subclase nivel 3)
 INSERT INTO Admid_General (id_miembro)
-VALUES 
+VALUES
 ((SELECT id_miembro FROM Miembro WHERE cedula_identidad = 12009009));
 
 
@@ -264,15 +225,15 @@ VALUES
 
 -- 1. Historial_Miembro (Registra cuándo ingresó a la universidad/sistema)
 INSERT INTO Historial_Miembro (id_miembro, fecha_inicio, fecha_fin)
-VALUES 
+VALUES
 ((SELECT id_miembro FROM Miembro WHERE cedula_identidad = 12009009), '2025-04-01 08:00:00', NULL);
 
 -- 2. Historial_Contrasena (Se le asigna su primera contraseña encriptada)
 INSERT INTO Historial_Contrasena (id_miembro, fecha_inicio, contrasena, fecha_fin)
-VALUES 
+VALUES
 ((SELECT id_miembro FROM Miembro WHERE cedula_identidad = 12009009), '2025-04-01 08:00:00', '123456', NULL);
 
 -- 3. Historial_Sesiones (Registramos su primera sesión en el sistema)
 INSERT INTO Historial_Sesiones (id_miembro, lugar_conexion, direccion_ip, fecha_inicio, hora_inicio, hora_fin)
-VALUES 
+VALUES
 ((SELECT id_miembro FROM Miembro WHERE cedula_identidad = 12009009), 'Campus Caracas - Dirección General', '192.168.3.100', '2025-04-02', '08:30:00', '16:00:00');

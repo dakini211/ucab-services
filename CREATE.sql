@@ -1,6 +1,7 @@
 -------------------------------------------------------------------------------
 -- 1. BLOQUE: MIEMBRO Y SUS HISTORIALES
 --------------------------------------------------------------------------------
+
 CREATE TABLE Miembro (
     id_miembro BIGSERIAL PRIMARY KEY,          
     cedula_identidad INTEGER UNIQUE NOT NULL, 
@@ -118,7 +119,7 @@ CREATE TABLE Administrativo (
 -- 3. BLOQUE: FAMILIARES Y CARGAS
 --------------------------------------------------------------------------------
 CREATE TABLE Familiar (
-    cedula VARCHAR(15) PRIMARY KEY,             
+    cedula INTEGER PRIMARY KEY,             
     id_personal_ucab BIGINT NOT NULL,          
     nombre_familiar VARCHAR(100) NOT NULL,      
     parentesco VARCHAR(50) NOT NULL,            
@@ -132,7 +133,7 @@ CREATE TABLE Familiar (
 );
 
 CREATE TABLE cargo_mayor (
-    cedula VARCHAR(15) PRIMARY KEY,             
+    cedula INTEGER PRIMARY KEY,             
     estudios VARCHAR(150) NOT NULL,             
     
     CONSTRAINT fk_mayor_familiar FOREIGN KEY (cedula)
@@ -140,7 +141,7 @@ CREATE TABLE cargo_mayor (
 );
 
 CREATE TABLE cargo_menor (
-    cedula VARCHAR(15) PRIMARY KEY,             
+    cedula INTEGER PRIMARY KEY,             
     vacunacion TEXT,                            
     educacion_inicial VARCHAR(150),             
     
@@ -284,21 +285,28 @@ CREATE TABLE Servicio (
     
     CONSTRAINT chk_costo_positivo CHECK (costo >= 0)
 );
+
 CREATE TABLE Solicitud_servicio (
-    id_miembro BIGINT NOT NULL,                  
-    id_servicio INT NOT NULL,                    
-    fecha_de_creacion TIMESTAMP NOT NULL,      
-    estado VARCHAR(50) NOT NULL,
-    resolucion TEXT,             
-    
-    CONSTRAINT pk_solicitud_servicio PRIMARY KEY (id_miembro, id_servicio, fecha_de_creacion),
-    
-    CONSTRAINT fk_solicitud_miembro FOREIGN KEY (id_miembro)
-        REFERENCES Miembro (id_miembro) ON DELETE CASCADE,
-        
-    CONSTRAINT fk_solicitud_servicio FOREIGN KEY (id_servicio)
-        REFERENCES Servicio (id_servicio) ON DELETE RESTRICT
+   id_miembro BIGINT NOT NULL,
+   id_servicio INT NOT NULL,
+   fecha_de_creacion TIMESTAMP NOT NULL,
+   estado VARCHAR(50) NOT NULL,
+   resolucion TEXT,
+ 
+   CONSTRAINT pk_solicitud_servicio PRIMARY KEY (id_miembro, id_servicio, fecha_de_creacion),
+ 
+   CONSTRAINT fk_solicitud_miembro FOREIGN KEY (id_miembro)
+       REFERENCES Miembro (id_miembro) ON DELETE CASCADE,
+ 
+   CONSTRAINT fk_solicitud_servicio FOREIGN KEY (id_servicio)
+       REFERENCES Servicio (id_servicio) ON DELETE RESTRICT,
+ 
+   -- Dominio del estado. 'aprobada' es OBLIGATORIO en la lista:
+   -- sp_reservar_espacio() en pl.sql inserta ese valor literal.
+   CONSTRAINT chk_estado_solicitud
+       CHECK (estado IN ('pendiente', 'aprobada', 'rechazada', 'finalizada'))
 );
+
 
 
 
@@ -310,7 +318,7 @@ CREATE TABLE Acompanante (
     id_miembro BIGINT NOT NULL,
     id_servicio INT NOT NULL,
     fecha_de_creacion TIMESTAMP NOT NULL,      
-    ci VARCHAR(20) NOT NULL,
+    ci INT NOT NULL,
     
     
     nombre VARCHAR(150) NOT NULL,
@@ -363,66 +371,109 @@ CONSTRAINT fk_publica_entidad_prestadora FOREIGN KEY (nombre_entidad) REFERENCES
 --------------------------------------------------------------------------------
 
 CREATE TABLE Folio (
-    id_miembro BIGINT NOT NULL,
-    id_servicio INT NOT NULL,
-    fecha_de_creacion TIMESTAMP NOT NULL,
-    nro_de_folio VARCHAR(50) NOT NULL,
-    
-    estado VARCHAR(50) NOT NULL,
-    fecha_inicio_mes DATE NOT NULL,
-    fecha_fin_mes DATE,
-    
-    CONSTRAINT pk_folio PRIMARY KEY (id_miembro, id_servicio, fecha_de_creacion, nro_de_folio),
-    CONSTRAINT fk_folio_solicitud FOREIGN KEY (id_miembro, id_servicio, fecha_de_creacion)
-        REFERENCES Solicitud_servicio (id_miembro, id_servicio, fecha_de_creacion) 
-        ON DELETE CASCADE ON UPDATE CASCADE
+   id_miembro BIGINT NOT NULL,
+   id_servicio INT NOT NULL,
+   fecha_de_creacion TIMESTAMP NOT NULL,
+   nro_de_folio VARCHAR(50) NOT NULL,
+ 
+   estado VARCHAR(50) NOT NULL,
+   fecha_inicio_mes DATE NOT NULL,
+   fecha_fin_mes DATE,
+ 
+   CONSTRAINT pk_folio PRIMARY KEY (id_miembro, id_servicio, fecha_de_creacion, nro_de_folio),
+ 
+   CONSTRAINT fk_folio_solicitud FOREIGN KEY (id_miembro, id_servicio, fecha_de_creacion)
+       REFERENCES Solicitud_servicio (id_miembro, id_servicio, fecha_de_creacion)
+       ON DELETE CASCADE ON UPDATE CASCADE,
+
+   CONSTRAINT chk_estado_folio
+       CHECK (estado IN ('abierto', 'facturado')),
+
+   -- fecha_fin_mes NULL = folio del mes en curso, aun sin cerrar.
+   CONSTRAINT chk_fechas_folio
+       CHECK (fecha_fin_mes IS NULL OR fecha_fin_mes >= fecha_inicio_mes),
+
+   -- (fecha_de_creacion viaja en la PK del folio, por eso se puede comparar aqui)
+   CONSTRAINT chk_folio_posterior_solicitud
+       CHECK (fecha_inicio_mes >= fecha_de_creacion::DATE)
 );
+
 
 CREATE TABLE Items_Consumo (
-    id_miembro BIGINT NOT NULL,
-    id_servicio INT NOT NULL,
-    fecha_de_creacion TIMESTAMP NOT NULL,
-    nro_de_folio VARCHAR(50) NOT NULL,
-    concepto VARCHAR(150) NOT NULL,
-    
-    cantidad INT NOT NULL,
-    impuesto_ley NUMERIC(5, 2) NOT NULL,
-    precio_unitario NUMERIC(15, 2) NOT NULL, -- Valor congelado históricamente
-    
-    CONSTRAINT pk_items_consumo PRIMARY KEY (id_miembro, id_servicio, fecha_de_creacion, nro_de_folio, concepto),
-    CONSTRAINT fk_items_folio FOREIGN KEY (id_miembro, id_servicio, fecha_de_creacion, nro_de_folio)
-        REFERENCES Folio (id_miembro, id_servicio, fecha_de_creacion, nro_de_folio) 
-        ON DELETE CASCADE ON UPDATE CASCADE
+   id_miembro BIGINT NOT NULL,
+   id_servicio INT NOT NULL,
+   fecha_de_creacion TIMESTAMP NOT NULL,
+   nro_de_folio VARCHAR(50) NOT NULL,
+   concepto VARCHAR(150) NOT NULL,
+ 
+   cantidad INT NOT NULL,
+   impuesto_ley NUMERIC(5, 2) NOT NULL,
+   precio_unitario NUMERIC(15, 2) NOT NULL, -- Valor congelado historicamente
+ 
+   CONSTRAINT pk_items_consumo PRIMARY KEY (id_miembro, id_servicio, fecha_de_creacion, nro_de_folio, concepto),
+ 
+   CONSTRAINT fk_items_folio FOREIGN KEY (id_miembro, id_servicio, fecha_de_creacion, nro_de_folio)
+       REFERENCES Folio (id_miembro, id_servicio, fecha_de_creacion, nro_de_folio)
+       ON DELETE CASCADE ON UPDATE CASCADE,
+ 
+   -- Una linea de cargo sin unidades no tiene sentido de negocio.
+   CONSTRAINT chk_cantidad_items
+       CHECK (cantidad > 0), 
+
+   CONSTRAINT chk_precio_unitario_items
+       CHECK (precio_unitario >= 0),
+ 
+
+   CONSTRAINT chk_impuesto_ley_items
+       CHECK (impuesto_ley >= 0)
 );
 
 
-
---------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- TABLA9: FACTURA
 --------------------------------------------------------------------------------
 
 
 CREATE TABLE Factura (
-    numero_de_control VARCHAR(50) NOT NULL,
-    fecha_de_emision TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    estatus VARCHAR(50) NOT NULL,
-    
-    
-    id_miembro BIGINT NOT NULL,
-    id_servicio INT NOT NULL,
-    fecha_de_creacion TIMESTAMP NOT NULL,
-    nro_de_folio VARCHAR(50) NOT NULL,
-    
-    CONSTRAINT pk_factura PRIMARY KEY (numero_de_control),
-    
-    -- UNIQUE garantiza que un folio no se convierta en dos facturas
-    CONSTRAINT uq_factura_folio UNIQUE (id_miembro, id_servicio, fecha_de_creacion, nro_de_folio),
-    
-    -- Integridad referencial
-    CONSTRAINT fk_factura_folio FOREIGN KEY (id_miembro, id_servicio, fecha_de_creacion, nro_de_folio)
-        REFERENCES Folio (id_miembro, id_servicio, fecha_de_creacion, nro_de_folio) 
-        ON DELETE RESTRICT ON UPDATE CASCADE
+   saldo NUMERIC(10, 2) NOT NULL,
+   numero_de_control VARCHAR(50) NOT NULL,
+   fecha_de_emision TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+   estatus VARCHAR(50) NOT NULL,
+ 
+   id_miembro BIGINT NOT NULL,
+   id_servicio INT NOT NULL,
+   fecha_de_creacion TIMESTAMP NOT NULL,
+   nro_de_folio VARCHAR(50) NOT NULL,
+ 
+   CONSTRAINT pk_factura PRIMARY KEY (numero_de_control),
+ 
+   -- UNIQUE garantiza que un folio no se convierta en dos facturas
+   CONSTRAINT uq_factura_folio UNIQUE (id_miembro, id_servicio, fecha_de_creacion, nro_de_folio),
+ 
+   CONSTRAINT fk_factura_folio FOREIGN KEY (id_miembro, id_servicio, fecha_de_creacion, nro_de_folio)
+       REFERENCES Folio (id_miembro, id_servicio, fecha_de_creacion, nro_de_folio)
+       ON DELETE RESTRICT ON UPDATE CASCADE,
+ 
+   CONSTRAINT chk_estatus_factura
+       CHECK (estatus IN ('pendiente', 'parcial', 'pagada', 'anulada')),
+
+   CONSTRAINT chk_saldo_factura
+       CHECK (saldo >= 0),
+ 
+
+   CONSTRAINT chk_saldo_vs_estatus
+       CHECK (
+           (estatus = 'pagada'    AND saldo = 0) OR
+           (estatus = 'pendiente' AND saldo > 0) OR
+           (estatus = 'parcial'   AND saldo > 0) OR
+           (estatus = 'anulada')
+       ),
+ 
+   
+   CONSTRAINT chk_fecha_emision_factura
+       CHECK (fecha_de_emision >= fecha_de_creacion)
 );
+
 
 
 --------------------------------------------------------------------------------
@@ -441,6 +492,7 @@ CREATE TABLE Tasa_Cambio (
 
 
 CREATE TABLE Metodo_Pago (
+    monto NUMERIC(10, 2) NOT NULL,
     numero_de_control VARCHAR(50) NOT NULL,
     fecha_operacion TIMESTAMP NOT NULL,
     
@@ -449,6 +501,7 @@ CREATE TABLE Metodo_Pago (
     CONSTRAINT fk_metodo_factura FOREIGN KEY (numero_de_control) 
         REFERENCES Factura (numero_de_control) ON DELETE CASCADE
 );
+
 
 
 CREATE TABLE Obtiene (
@@ -572,3 +625,16 @@ CREATE TABLE Billetera_digital (
         
     CONSTRAINT chk_saldo_positivo CHECK (saldo >= 0)
 );
+
+
+
+CREATE TABLE Admid_General (
+    id_miembro BIGINT PRIMARY KEY,
+
+
+    CONSTRAINT fk_admid_general_administrativo 
+        FOREIGN KEY (id_miembro) 
+        REFERENCES Administrativo (id_miembro) 
+        ON DELETE CASCADE
+);
+
