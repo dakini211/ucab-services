@@ -120,6 +120,7 @@ CREATE TABLE Administrativo (
 --------------------------------------------------------------------------------
 CREATE TABLE Familiar (
     cedula INTEGER PRIMARY KEY,             
+    cedula INTEGER PRIMARY KEY,             
     id_personal_ucab BIGINT NOT NULL,          
     nombre_familiar VARCHAR(100) NOT NULL,      
     parentesco VARCHAR(50) NOT NULL,            
@@ -286,6 +287,7 @@ CREATE TABLE Servicio (
     CONSTRAINT chk_costo_positivo CHECK (costo >= 0)
 );
 
+
 CREATE TABLE Solicitud_servicio (
    id_miembro BIGINT NOT NULL,
    id_servicio INT NOT NULL,
@@ -396,10 +398,65 @@ CREATE TABLE Folio (
    -- (fecha_de_creacion viaja en la PK del folio, por eso se puede comparar aqui)
    CONSTRAINT chk_folio_posterior_solicitud
        CHECK (fecha_inicio_mes >= fecha_de_creacion::DATE)
+   id_miembro BIGINT NOT NULL,
+   id_servicio INT NOT NULL,
+   fecha_de_creacion TIMESTAMP NOT NULL,
+   nro_de_folio VARCHAR(50) NOT NULL,
+ 
+   estado VARCHAR(50) NOT NULL,
+   fecha_inicio_mes DATE NOT NULL,
+   fecha_fin_mes DATE,
+ 
+   CONSTRAINT pk_folio PRIMARY KEY (id_miembro, id_servicio, fecha_de_creacion, nro_de_folio),
+ 
+   CONSTRAINT fk_folio_solicitud FOREIGN KEY (id_miembro, id_servicio, fecha_de_creacion)
+       REFERENCES Solicitud_servicio (id_miembro, id_servicio, fecha_de_creacion)
+       ON DELETE CASCADE ON UPDATE CASCADE,
+
+   CONSTRAINT chk_estado_folio
+       CHECK (estado IN ('abierto', 'facturado')),
+
+   -- fecha_fin_mes NULL = folio del mes en curso, aun sin cerrar.
+   CONSTRAINT chk_fechas_folio
+       CHECK (fecha_fin_mes IS NULL OR fecha_fin_mes >= fecha_inicio_mes),
+
+   -- (fecha_de_creacion viaja en la PK del folio, por eso se puede comparar aqui)
+   CONSTRAINT chk_folio_posterior_solicitud
+       CHECK (fecha_inicio_mes >= fecha_de_creacion::DATE)
 );
 
 
 CREATE TABLE Items_Consumo (
+   id_miembro BIGINT NOT NULL,
+   id_servicio INT NOT NULL,
+   fecha_de_creacion TIMESTAMP NOT NULL,
+   nro_de_folio VARCHAR(50) NOT NULL,
+   concepto VARCHAR(150) NOT NULL,
+ 
+   cantidad INT NOT NULL,
+   impuesto_ley NUMERIC(5, 2) NOT NULL,
+   precio_unitario NUMERIC(15, 2) NOT NULL, -- Valor congelado historicamente
+ 
+   CONSTRAINT pk_items_consumo PRIMARY KEY (id_miembro, id_servicio, fecha_de_creacion, nro_de_folio, concepto),
+ 
+   CONSTRAINT fk_items_folio FOREIGN KEY (id_miembro, id_servicio, fecha_de_creacion, nro_de_folio)
+       REFERENCES Folio (id_miembro, id_servicio, fecha_de_creacion, nro_de_folio)
+       ON DELETE CASCADE ON UPDATE CASCADE,
+ 
+   -- Una linea de cargo sin unidades no tiene sentido de negocio.
+   CONSTRAINT chk_cantidad_items
+       CHECK (cantidad > 0), 
+
+   CONSTRAINT chk_precio_unitario_items
+       CHECK (precio_unitario >= 0),
+ 
+
+   CONSTRAINT chk_impuesto_ley_items
+       CHECK (impuesto_ley >= 0)
+);
+
+
+-------------------------------------------------------------------------------
    id_miembro BIGINT NOT NULL,
    id_servicio INT NOT NULL,
    fecha_de_creacion TIMESTAMP NOT NULL,
@@ -435,6 +492,43 @@ CREATE TABLE Items_Consumo (
 
 
 CREATE TABLE Factura (
+   saldo NUMERIC(10, 2) NOT NULL,
+   numero_de_control VARCHAR(50) NOT NULL,
+   fecha_de_emision TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+   estatus VARCHAR(50) NOT NULL,
+ 
+   id_miembro BIGINT NOT NULL,
+   id_servicio INT NOT NULL,
+   fecha_de_creacion TIMESTAMP NOT NULL,
+   nro_de_folio VARCHAR(50) NOT NULL,
+ 
+   CONSTRAINT pk_factura PRIMARY KEY (numero_de_control),
+ 
+   -- UNIQUE garantiza que un folio no se convierta en dos facturas
+   CONSTRAINT uq_factura_folio UNIQUE (id_miembro, id_servicio, fecha_de_creacion, nro_de_folio),
+ 
+   CONSTRAINT fk_factura_folio FOREIGN KEY (id_miembro, id_servicio, fecha_de_creacion, nro_de_folio)
+       REFERENCES Folio (id_miembro, id_servicio, fecha_de_creacion, nro_de_folio)
+       ON DELETE RESTRICT ON UPDATE CASCADE,
+ 
+   CONSTRAINT chk_estatus_factura
+       CHECK (estatus IN ('pendiente', 'parcial', 'pagada', 'anulada')),
+
+   CONSTRAINT chk_saldo_factura
+       CHECK (saldo >= 0),
+ 
+
+   CONSTRAINT chk_saldo_vs_estatus
+       CHECK (
+           (estatus = 'pagada'    AND saldo = 0) OR
+           (estatus = 'pendiente' AND saldo > 0) OR
+           (estatus = 'parcial'   AND saldo > 0) OR
+           (estatus = 'anulada')
+       ),
+ 
+   
+   CONSTRAINT chk_fecha_emision_factura
+       CHECK (fecha_de_emision >= fecha_de_creacion)
    saldo NUMERIC(10, 2) NOT NULL,
    numero_de_control VARCHAR(50) NOT NULL,
    fecha_de_emision TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
