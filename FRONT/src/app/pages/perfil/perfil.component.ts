@@ -101,11 +101,21 @@ export class PerfilComponent implements OnInit, OnDestroy {
   showNueva = signal(false);
   showConfirmar = signal(false);
 
+  /* ── Familiar form ──────────────────────────────────────── */
+  familiarForm!: FormGroup;
+  showFamiliarModal = signal(false);
+  isSavingFamiliar = signal(false);
+  familiarFormError = signal('');
+  familiarFormSuccess = signal('');
+
   /* ── Familiares / Beneficiarios ─────────────────────────── */
   familiares = signal<FamiliarDetalle[]>([]);
   isPersonalUcab = computed(() => {
     const rol = this.userRol();
     return rol === 'Profesor' || rol === 'Administrativo';
+  });
+  canManageFamiliares = computed(() => {
+    return this.isPersonalUcab() || this.userRol() === 'Admin';
   });
 
   /* ── Nav ────────────────────────────────────────────────── */
@@ -178,8 +188,8 @@ export class PerfilComponent implements OnInit, OnDestroy {
         next: (m) => {
           this.miembro.set(m);
           this.isLoading.set(false);
-          // Si es personal UCAB, cargar sus familiares
-          if (this.isPersonalUcab()) {
+          // Si es personal UCAB o Admin, cargar familiares
+          if (this.canManageFamiliares()) {
             this.loadFamiliares();
           }
         },
@@ -191,15 +201,24 @@ export class PerfilComponent implements OnInit, OnDestroy {
   }
 
   private loadFamiliares(): void {
-    this.miembrosService.getMisFamiliares()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (lista) => this.familiares.set(lista),
-        error: () => this.familiares.set([]),
-      });
+    if (this.userRol() === 'Admin') {
+      this.miembrosService.getTodosFamiliares()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (lista) => this.familiares.set(lista),
+          error: () => this.familiares.set([]),
+        });
+    } else {
+      this.miembrosService.getMisFamiliares()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (lista) => this.familiares.set(lista),
+          error: () => this.familiares.set([]),
+        });
+    }
   }
 
-  /* ── Password form builder ──────────────────────────────── */
+  /* ── Form builders ──────────────────────────────────────── */
   private buildPasswordForm(): void {
     this.passwordForm = this.fb.group(
       {
@@ -211,6 +230,36 @@ export class PerfilComponent implements OnInit, OnDestroy {
       },
       { validators: passwordMatchValidator }
     );
+
+    this.familiarForm = this.fb.group({
+      cedula: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+      nombre_familiar: ['', Validators.required],
+      parentesco: ['', Validators.required],
+      edad_familiar: ['', [Validators.required, Validators.min(0)]],
+      estudios: [''],
+      vacunacion: [''],
+      educacion_inicial: ['']
+    });
+
+    this.familiarForm.get('edad_familiar')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(edad => {
+      const form = this.familiarForm;
+      if (edad >= 18) {
+        form.get('estudios')?.setValidators([Validators.required]);
+        form.get('vacunacion')?.clearValidators();
+        form.get('educacion_inicial')?.clearValidators();
+      } else if (edad !== null && edad >= 0 && edad < 18) {
+        form.get('estudios')?.clearValidators();
+        form.get('vacunacion')?.setValidators([Validators.required]);
+        form.get('educacion_inicial')?.setValidators([Validators.required]);
+      } else {
+        form.get('estudios')?.clearValidators();
+        form.get('vacunacion')?.clearValidators();
+        form.get('educacion_inicial')?.clearValidators();
+      }
+      form.get('estudios')?.updateValueAndValidity({ emitEvent: false });
+      form.get('vacunacion')?.updateValueAndValidity({ emitEvent: false });
+      form.get('educacion_inicial')?.updateValueAndValidity({ emitEvent: false });
+    });
   }
 
   /* ── Password modal ─────────────────────────────────────── */
@@ -268,6 +317,55 @@ export class PerfilComponent implements OnInit, OnDestroy {
           err?.error?.message ?? 'Ocurrió un error al cambiar la contraseña. Inténtalo de nuevo.'
         );
       },
+    });
+  }
+
+  /* ── Familiar Modal ─────────────────────────────────────── */
+  openFamiliarModal(): void {
+    this.familiarFormError.set('');
+    this.familiarFormSuccess.set('');
+    this.familiarForm.reset({
+      cedula: '',
+      nombre_familiar: '',
+      parentesco: '',
+      edad_familiar: ''
+    });
+    this.showFamiliarModal.set(true);
+  }
+
+  closeFamiliarModal(): void {
+    this.showFamiliarModal.set(false);
+  }
+
+  submitFamiliar(): void {
+    if (this.familiarForm.invalid) {
+      this.familiarForm.markAllAsTouched();
+      return;
+    }
+    
+    this.isSavingFamiliar.set(true);
+    this.familiarFormError.set('');
+    
+    const val = this.familiarForm.value;
+    this.miembrosService.registrarFamiliar(
+      Number(val.cedula),
+      val.nombre_familiar,
+      val.parentesco,
+      Number(val.edad_familiar),
+      val.edad_familiar >= 18 ? val.estudios : undefined,
+      val.edad_familiar < 18 ? val.vacunacion : undefined,
+      val.edad_familiar < 18 ? val.educacion_inicial : undefined
+    ).subscribe({
+      next: () => {
+        this.isSavingFamiliar.set(false);
+        this.familiarFormSuccess.set('¡Familiar registrado exitosamente!');
+        this.loadFamiliares();
+        setTimeout(() => { this.closeFamiliarModal(); }, 1500);
+      },
+      error: (err) => {
+        this.isSavingFamiliar.set(false);
+        this.familiarFormError.set(err?.error?.message ?? 'Ocurrió un error al registrar el familiar.');
+      }
     });
   }
 
@@ -329,6 +427,7 @@ export class PerfilComponent implements OnInit, OnDestroy {
   }
 
   get f() { return this.passwordForm.controls; }
+  get famF() { return this.familiarForm.controls; }
 }
 
 

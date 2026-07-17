@@ -14,10 +14,11 @@ export interface OfertaLaboral {
   estatus_vacante: 'disponible' | 'finalizada';
   razon_social: string;
   rif: string;
-  /** Cantidad de miembros postulados. Solo la usa la vista de admin_general. */
+  /** Cantidad de miembros postulados. */
   cantidad_postulantes: number;
 }
 
+/** Mismo contrato PLANO que devuelven ServicioService y MiembroService. */
 export interface OfertasLaboralesResponse {
   data: OfertaLaboral[];
   total: number;
@@ -45,6 +46,8 @@ export interface GetOfertasParams {
   estatus?: string;
   page?: number;
   limit?: number;
+  sortBy?: string;
+  order?: 'asc' | 'desc';
 }
 
 // ── Service ─────────────────────────────────────────────────────────────────
@@ -57,9 +60,11 @@ export class OfertasLaboralesService {
   getAll(params: GetOfertasParams = {}): Observable<OfertasLaboralesResponse> {
     let p = new HttpParams();
     if (params.search)  p = p.set('search', params.search);
-    if (params.estatus) p = p.set('estatus', params.estatus);
+    if (params.estatus && params.estatus !== 'todos') p = p.set('estatus', params.estatus);
     if (params.page)    p = p.set('page', params.page.toString());
     if (params.limit)   p = p.set('limit', params.limit.toString());
+    if (params.sortBy)  p = p.set('sortBy', params.sortBy);
+    if (params.order)   p = p.set('order', params.order);
     return this.http.get<OfertasLaboralesResponse>(`${this.API}/ofertas_laborales`, { params: p });
   }
 
@@ -70,20 +75,31 @@ export class OfertasLaboralesService {
     return this.http.get<OfertaLaboral>(`${this.API}/ofertas_laborales/detail`, { params: p });
   }
 
-  /** Solo accesible para admin_general (rol 'Admin'). */
   getStats(): Observable<OfertasStats> {
     return this.http.get<OfertasStats>(`${this.API}/ofertas_laborales/stats`);
   }
 
   /**
-   * Postula al miembro autenticado (tomado del JWT en el backend) a la oferta.
+   * Postula al miembro autenticado (el backend lo toma del JWT).
    * Los errores de negocio llegan en err.error.error.
+   *
+   * RUTA CAMBIADA: antes era POST /api/oferta, ahora vive bajo el módulo
+   * unificado de ofertas laborales.
    */
   aplicar(nombre_entidad: string, cargo: string): Observable<{ ok: boolean; mensaje: string }> {
-    return this.http.post<{ ok: boolean; mensaje: string }>(`${this.API}/oferta`, { nombre_entidad, cargo });
+    return this.http.post<{ ok: boolean; mensaje: string }>(
+      `${this.API}/ofertas_laborales/postular`,
+      { nombre_entidad, cargo },
+    );
   }
 
+  /** RUTA CAMBIADA: antes era GET /api/oferta/mis-postulaciones. */
   misPostulaciones(): Observable<Postulacion[]> {
-    return this.http.get<Postulacion[]>(`${this.API}/oferta/mis-postulaciones`);
+    return this.http.get<Postulacion[]>(`${this.API}/ofertas_laborales/mis-postulaciones`);
+  }
+
+  /** Vacantes sugeridas según el perfil del miembro (fn_ofertas_sugeridas). */
+  sugeridas(): Observable<OfertaLaboral[]> {
+    return this.http.get<OfertaLaboral[]>(`${this.API}/ofertas_laborales/sugeridas`);
   }
 }

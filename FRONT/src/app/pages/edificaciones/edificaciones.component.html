@@ -312,7 +312,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn-secondary" id="btn-cerrar-detalle" (click)="closeModal()">Cerrar</button>
-      <button class="btn-primary" id="btn-editar-desde-ver" (click)="openEdit(selectedEdificacion()!)">Editar</button>
+      <button *ngIf="canEdit()" class="btn-primary" id="btn-editar-desde-ver" (click)="openEdit(selectedEdificacion()!)">Editar</button>
     </div>
   </div>
 </div>

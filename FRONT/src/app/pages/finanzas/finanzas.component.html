@@ -550,7 +550,7 @@
         <ng-container *ngSwitchCase="'efectivo'">
           <label class="campo">
             <span class="campo-label">Tasa BCV</span>
-            <input class="input mono" type="number" step="0.00000001" [value]="pago().tasa || ''"
+            <input class="input mono" type="text" [value]="formatTasa(pago().tasa ?? undefined)"
               (input)="actualizarPago('tasa', +$any($event.target).value)" />
           </label>
           <p class="campo-nota">
@@ -579,7 +579,7 @@
           </label>
           <label class="campo">
             <span class="campo-label">Tasa</span>
-            <input class="input mono" type="number" step="0.00000001" [value]="pago().tasa || ''"
+            <input class="input mono" type="text" [value]="formatTasa(pago().tasa ?? undefined)"
               (input)="actualizarPago('tasa', +$any($event.target).value)" />
           </label>
         </ng-container>

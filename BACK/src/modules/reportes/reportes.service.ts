@@ -9,24 +9,22 @@ export class ReportesService {
    * BLOQUE 1 — KPIs Generales
    * ══════════════════════════════════════════════════════════ */
   async getKpisGenerales() {
-    const [
-      totalMiembros,
-      estudiantes, profesores, administrativos, egresados,
-      miembrosPorEstado,
-      totalFamiliares,
-      familiaresCargoMayor,
-      familiaresCargoMenor,
-    ] = await Promise.all([
-      this.prisma.miembro.count(),
-      this.prisma.estudiante.count(),
-      this.prisma.profesor.count(),
-      this.prisma.administrativo.count(),
-      this.prisma.egresado.count(),
-      this.prisma.miembro.groupBy({ by: ['estado_cuenta'], _count: { _all: true } }),
-      this.prisma.familiar.count(),
-      this.prisma.cargo_mayor.count(),
-      this.prisma.cargo_menor.count(),
-    ]);
+    // Para mayor legibilidad en la defensa, hacemos las consultas por separado.
+    // Aunque Promise.all es más rápido, así es mucho más fácil de explicar.
+    const totalMiembros = await this.prisma.miembro.count();
+    const estudiantes = await this.prisma.estudiante.count();
+    const profesores = await this.prisma.profesor.count();
+    const administrativos = await this.prisma.administrativo.count();
+    const egresados = await this.prisma.egresado.count();
+
+    const miembrosPorEstado = await this.prisma.miembro.groupBy({ 
+      by: ['estado_cuenta'], 
+      _count: { _all: true } 
+    });
+
+    const totalFamiliares = await this.prisma.familiar.count();
+    const familiaresCargoMayor = await this.prisma.cargo_mayor.count();
+    const familiaresCargoMenor = await this.prisma.cargo_menor.count();
 
     return {
       totalMiembros,
@@ -53,35 +51,38 @@ export class ReportesService {
    * ══════════════════════════════════════════════════════════ */
   async getReporteServicios(filtros: { estado?: string; desde?: string; hasta?: string } = {}) {
     const where: any = {};
-    if (filtros.estado) where.estado = filtros.estado;
+    
+    // Aplicamos los filtros si el usuario los provee desde el frontend
+    if (filtros.estado) {
+      where.estado = filtros.estado;
+    }
+    
+    // Rango de fechas para las solicitudes
     if (filtros.desde || filtros.hasta) {
       where.fecha_de_creacion = {};
       if (filtros.desde) where.fecha_de_creacion.gte = new Date(filtros.desde);
       if (filtros.hasta) where.fecha_de_creacion.lte = new Date(`${filtros.hasta}T23:59:59`);
     }
 
-    const [
-      totalServicios,
-      solicitudesPorEstado,
-      serviciosMasSolicitados,
-    ] = await Promise.all([
-      this.prisma.servicio.count(),
-      this.prisma.solicitud_servicio.groupBy({
-        by: ['estado'],
-        where,
-        _count: { _all: true },
-        orderBy: { _count: { estado: 'desc' } },
-      }),
-      this.prisma.solicitud_servicio.groupBy({
-        by: ['id_servicio'],
-        where,
-        _count: { _all: true },
-        orderBy: { _count: { id_servicio: 'desc' } },
-        take: 10,
-      }),
-    ]);
+    const totalServicios = await this.prisma.servicio.count();
+    
+    const solicitudesPorEstado = await this.prisma.solicitud_servicio.groupBy({
+      by: ['estado'],
+      where,
+      _count: { _all: true },
+      orderBy: { _count: { estado: 'desc' } },
+    });
+    
+    const serviciosMasSolicitados = await this.prisma.solicitud_servicio.groupBy({
+      by: ['id_servicio'],
+      where,
+      _count: { _all: true },
+      // Aquí el orderBy debe coincidir con lo que estamos agrupando o contando
+      orderBy: { _count: { id_servicio: 'desc' } },
+      take: 10,
+    });
 
-    // Enriquecer con nombre del servicio
+    // Enriquecer la respuesta con el nombre real del servicio
     const servicioIds = serviciosMasSolicitados.map((s) => s.id_servicio);
     const serviciosData = await this.prisma.servicio.findMany({
       where: { id_servicio: { in: servicioIds } },
@@ -115,30 +116,26 @@ export class ReportesService {
     const whereRecursos: any = {};
     if (filtros.edificacion) whereRecursos.nombre_edificacion = filtros.edificacion;
 
-    const [
-      totalEdificaciones,
-      totalEspacios,
-      espaciosPorEstado,
-      recursosPorEstado,
-    ] = await Promise.all([
-      this.prisma.edificacion.count(),
-      this.prisma.espacio_fisico.count({ where: whereEspacios }),
-      this.prisma.espacio_fisico.groupBy({
-        by: ['tipo_inmobiliario'],
-        where: whereEspacios,
-        _count: { _all: true },
-      }),
-      this.prisma.recurso_tecnologicos.groupBy({
-        by: ['estado_mantenimiento'],
-        where: whereRecursos,
-        _count: { _all: true },
-      }),
-    ]);
+    const totalEdificaciones = await this.prisma.edificacion.count();
+    const totalEspacios = await this.prisma.espacio_fisico.count({ where: whereEspacios });
+    
+    const espaciosPorTipo = await this.prisma.espacio_fisico.groupBy({
+      by: ['tipo_inmobiliario'],
+      where: whereEspacios,
+      _count: { _all: true },
+    });
+    
+    const recursosPorEstado = await this.prisma.recurso_tecnologicos.groupBy({
+      by: ['estado_mantenimiento'],
+      where: whereRecursos,
+      _count: { _all: true },
+    });
 
     return {
       totalEdificaciones,
       totalEspacios,
-      espaciosPorEstado: espaciosPorEstado.map((r) => ({
+      // Se mapea tipo_inmobiliario como 'estado' solo porque el frontend lo consume así en sus gráficas
+      espaciosPorEstado: espaciosPorTipo.map((r) => ({
         estado: r.tipo_inmobiliario,
         total: r._count._all,
       })),
@@ -157,6 +154,8 @@ export class ReportesService {
   ) {
     const whereFolio: any = {};
     if (filtros.estado) whereFolio.estado = filtros.estado;
+    
+    // Rango de fechas para los folios (basado en fecha_inicio_mes)
     if (filtros.desde || filtros.hasta) {
       whereFolio.fecha_inicio_mes = {};
       if (filtros.desde) whereFolio.fecha_inicio_mes.gte = new Date(filtros.desde);
@@ -169,39 +168,37 @@ export class ReportesService {
       if (origen) whereTasas.moneda_origen = origen;
       if (destino) whereTasas.moneda_destino = destino;
     }
+    
+    // Rango de fechas para las tasas de cambio
     if (filtros.desde || filtros.hasta) {
       whereTasas.fecha_vigencia = {};
       if (filtros.desde) whereTasas.fecha_vigencia.gte = new Date(filtros.desde);
       if (filtros.hasta) whereTasas.fecha_vigencia.lte = new Date(`${filtros.hasta}T23:59:59`);
     }
 
-    const [
-      facturas,
-      saldosBilleteras,
-      tasasCambio,
-    ] = await Promise.all([
-      this.prisma.folio.groupBy({
-        by: ['estado'],
-        where: whereFolio,
-        _count: { _all: true },
-      }),
-      this.prisma.billetera_digital.aggregate({
-        _sum: { saldo: true },
-        _avg: { saldo: true },
-        _count: { _all: true },
-      }),
-      this.prisma.tasa_cambio.findMany({
-        where: whereTasas,
-        orderBy: { fecha_vigencia: 'desc' },
-        take: 5,
-        select: {
-          moneda_origen: true,
-          moneda_destino: true,
-          valor_tasa: true,
-          fecha_vigencia: true,
-        },
-      }),
-    ]);
+    const facturas = await this.prisma.folio.groupBy({
+      by: ['estado'],
+      where: whereFolio,
+      _count: { _all: true },
+    });
+    
+    const saldosBilleteras = await this.prisma.billetera_digital.aggregate({
+      _sum: { saldo: true },
+      _avg: { saldo: true },
+      _count: { _all: true },
+    });
+    
+    const tasasCambio = await this.prisma.tasa_cambio.findMany({
+      where: whereTasas,
+      orderBy: { fecha_vigencia: 'desc' },
+      take: 5,
+      select: {
+        moneda_origen: true,
+        moneda_destino: true,
+        valor_tasa: true,
+        fecha_vigencia: true,
+      },
+    });
 
     return {
       foliosPorEstado: facturas.map((r) => ({
@@ -233,25 +230,21 @@ export class ReportesService {
     if (filtros.entidad) wherePostulaciones.nombre_entidad = filtros.entidad;
     if (filtros.estatus) wherePostulaciones.oferta_laboral = { estatus_vacante: filtros.estatus };
 
-    const [
-      totalOfertas,
-      ofertasPorEstatus,
-      postulacionesPorOferta,
-    ] = await Promise.all([
-      this.prisma.oferta_laboral.count({ where: whereOfertaLaboral }),
-      this.prisma.oferta_laboral.groupBy({
-        by: ['estatus_vacante'],
-        where: filtros.entidad ? { nombre_entidad: filtros.entidad } : {},
-        _count: { _all: true },
-      }),
-      this.prisma.oferta.groupBy({
-        by: ['nombre_entidad', 'cargo'],
-        where: wherePostulaciones,
-        _count: { _all: true },
-        orderBy: { _count: { id_miembro: 'desc' } },
-        take: 10,
-      }),
-    ]);
+    const totalOfertas = await this.prisma.oferta_laboral.count({ where: whereOfertaLaboral });
+    
+    const ofertasPorEstatus = await this.prisma.oferta_laboral.groupBy({
+      by: ['estatus_vacante'],
+      where: filtros.entidad ? { nombre_entidad: filtros.entidad } : {},
+      _count: { _all: true },
+    });
+    
+    const postulacionesPorOferta = await this.prisma.oferta.groupBy({
+      by: ['nombre_entidad', 'cargo'],
+      where: wherePostulaciones,
+      _count: { id_miembro: true },
+      orderBy: { _count: { id_miembro: 'desc' } },
+      take: 10,
+    });
 
     return {
       totalOfertas,
@@ -262,7 +255,7 @@ export class ReportesService {
       topOfertasMasPostuladas: postulacionesPorOferta.map((r) => ({
         entidad: r.nombre_entidad,
         cargo: r.cargo,
-        totalPostulaciones: r._count._all,
+        totalPostulaciones: r._count?.id_miembro ?? 0,
       })),
     };
   }
@@ -281,39 +274,13 @@ export class ReportesService {
       entidades,
       pares,
     ] = await Promise.all([
-      this.prisma.solicitud_servicio.findMany({
-        distinct: ['estado'],
-        select: { estado: true },
-        orderBy: { estado: 'asc' },
-      }),
-      this.prisma.folio.findMany({
-        distinct: ['estado'],
-        select: { estado: true },
-        orderBy: { estado: 'asc' },
-      }),
-      this.prisma.espacio_fisico.findMany({
-        distinct: ['tipo_inmobiliario'],
-        select: { tipo_inmobiliario: true },
-        orderBy: { tipo_inmobiliario: 'asc' },
-      }),
-      this.prisma.edificacion.findMany({
-        distinct: ['nombre_edificacion'],
-        select: { nombre_edificacion: true },
-        orderBy: { nombre_edificacion: 'asc' },
-      }),
-      this.prisma.oferta_laboral.findMany({
-        distinct: ['estatus_vacante'],
-        select: { estatus_vacante: true },
-        orderBy: { estatus_vacante: 'asc' },
-      }),
-      this.prisma.organizacion_externa.findMany({
-        select: { nombre_entidad: true },
-        orderBy: { nombre_entidad: 'asc' },
-      }),
-      this.prisma.tasa_cambio.findMany({
-        distinct: ['moneda_origen', 'moneda_destino'],
-        select: { moneda_origen: true, moneda_destino: true },
-      }),
+      this.prisma.solicitud_servicio.findMany({ distinct: ['estado'], select: { estado: true }, orderBy: { estado: 'asc' } }),
+      this.prisma.folio.findMany({ distinct: ['estado'], select: { estado: true }, orderBy: { estado: 'asc' } }),
+      this.prisma.espacio_fisico.findMany({ distinct: ['tipo_inmobiliario'], select: { tipo_inmobiliario: true }, orderBy: { tipo_inmobiliario: 'asc' } }),
+      this.prisma.edificacion.findMany({ distinct: ['nombre_edificacion'], select: { nombre_edificacion: true }, orderBy: { nombre_edificacion: 'asc' } }),
+      this.prisma.oferta_laboral.findMany({ distinct: ['estatus_vacante'], select: { estatus_vacante: true }, orderBy: { estatus_vacante: 'asc' } }),
+      this.prisma.organizacion_externa.findMany({ select: { nombre_entidad: true }, orderBy: { nombre_entidad: 'asc' } }),
+      this.prisma.tasa_cambio.findMany({ distinct: ['moneda_origen', 'moneda_destino'], select: { moneda_origen: true, moneda_destino: true } }),
     ]);
 
     return {
@@ -332,14 +299,12 @@ export class ReportesService {
    *  (endpoint único que agrega todo para IA / token)
    * ══════════════════════════════════════════════════════════ */
   async getResumenCompleto() {
-    const [kpis, servicios, infraestructura, finanzas, ofertas] =
-      await Promise.all([
-        this.getKpisGenerales(),
-        this.getReporteServicios(),
-        this.getReporteInfraestructura(),
-        this.getReporteFinanzas(),
-        this.getReporteOfertasLaborales(),
-      ]);
+    // Al separar las promesas, si un reporte falla es más fácil debugear.
+    const kpis = await this.getKpisGenerales();
+    const servicios = await this.getReporteServicios();
+    const infraestructura = await this.getReporteInfraestructura();
+    const finanzas = await this.getReporteFinanzas();
+    const ofertas = await this.getReporteOfertasLaborales();
 
     return {
       generadoEn: new Date().toISOString(),
@@ -357,46 +322,34 @@ export class ReportesService {
   private _detectarCuellosDeBottella(data: any): string[] {
     const alertas: string[] = [];
 
-    // Miembros suspendidos / bloqueados
-    const suspendidos = data.kpis.miembrosPorEstado.find(
+    // Validamos de forma segura usando optional chaining (?.) para evitar errores 500
+    // en caso de que alguna consulta devuelva arreglos vacíos o falten datos.
+
+    // 1. Miembros suspendidos / bloqueados
+    const suspendidos = data.kpis?.miembrosPorEstado?.find(
       (e: any) => e.estado === 'suspendida',
     );
-    if (suspendidos?.total > 10) {
-      alertas.push(
-        `⚠️ Alta cantidad de miembros suspendidos: ${suspendidos.total}`,
-      );
+    if (suspendidos && suspendidos.total > 10) {
+      alertas.push(`⚠️ Alta cantidad de miembros suspendidos: ${suspendidos.total}`);
     }
 
-    // Solicitudes pendientes sin resolver
-    const pendientes = data.servicios.solicitudesPorEstado.find(
+    // 2. Solicitudes pendientes sin resolver
+    const pendientes = data.servicios?.solicitudesPorEstado?.find(
       (e: any) => e.estado === 'pendiente',
     );
-    if (pendientes?.total > 20) {
-      alertas.push(
-        `⚠️ Cuello de botella en solicitudes pendientes: ${pendientes.total} sin resolver`,
-      );
+    if (pendientes && pendientes.total > 20) {
+      alertas.push(`⚠️ Cuello de botella en solicitudes pendientes: ${pendientes.total} sin resolver`);
     }
 
-    // Espacios fuera de servicio
-    const espaciosBloqueados = data.infraestructura.espaciosPorEstado.find(
-      (e: any) => e.estado === 'no_disponible' || e.estado === 'mantenimiento',
-    );
-    if (espaciosBloqueados?.total > 5) {
-      alertas.push(
-        `⚠️ ${espaciosBloqueados.total} espacios físicos fuera de servicio`,
-      );
-    }
-
-    // Recursos en mantenimiento
-    const recursosEnMant = data.infraestructura.recursosTecnologicos.find(
+    // 3. Recursos en mantenimiento
+    const recursosEnMant = data.infraestructura?.recursosTecnologicos?.find(
       (e: any) => e.estado === 'mantenimiento',
     );
-    if (recursosEnMant?.total > 3) {
-      alertas.push(
-        `⚠️ ${recursosEnMant.total} recursos tecnológicos en mantenimiento`,
-      );
+    if (recursosEnMant && recursosEnMant.total > 3) {
+      alertas.push(`⚠️ ${recursosEnMant.total} recursos tecnológicos en mantenimiento`);
     }
 
+    // Si no hay problemas, devolveremos un estado positivo
     if (alertas.length === 0) {
       alertas.push('✅ No se detectaron cuellos de botella críticos.');
     }

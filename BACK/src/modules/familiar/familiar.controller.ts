@@ -12,7 +12,7 @@ export class FamiliarController {
   async registrarFamiliar(@Req() req, @Body() dto: CreateFamiliarDto) {
     const user = req.user;
     if (user.rol !== 'Profesor' && user.rol !== 'Administrativo') {
-      throw new HttpException('Solo el Personal UCAB puede registrar familiares', HttpStatus.FORBIDDEN);
+      throw new HttpException('Solo el Profesor y Administrativo pueden registrar familiares', HttpStatus.FORBIDDEN);
     }
     return this.familiarService.registrarFamiliar(user.id, dto);
   }
@@ -22,8 +22,18 @@ export class FamiliarController {
   async getMisFamiliares(@Req() req) {
     const user = req.user;
     if (user.rol !== 'Profesor' && user.rol !== 'Administrativo') {
-      throw new HttpException('Solo el Personal UCAB tiene beneficiarios', HttpStatus.FORBIDDEN);
+      throw new HttpException('Solo el Profesor y Administrativo tienen beneficiarios', HttpStatus.FORBIDDEN);
     }
     return this.familiarService.getMisFamiliares(user.id);
+  }
+
+  @Get('todos')
+  @UseGuards(AuthGuard('jwt'))
+  async getTodosFamiliares(@Req() req) {
+    const user = req.user;
+    if (user.rol !== 'Admin') {
+      throw new HttpException('Solo el Admin General puede ver todos los familiares asignados', HttpStatus.FORBIDDEN);
+    }
+    return this.familiarService.getTodosFamiliares();
   }
 }

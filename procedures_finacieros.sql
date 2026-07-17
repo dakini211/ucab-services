@@ -304,3 +304,5 @@ CREATE TRIGGER trg_actualizar_saldo_factura
     AFTER INSERT ON Metodo_Pago
     FOR EACH ROW
     EXECUTE FUNCTION trg_fn_actualizar_saldo_factura();
+
+

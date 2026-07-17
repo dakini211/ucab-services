@@ -404,6 +404,14 @@ export class FinanzasComponent implements OnInit, OnDestroy {
     return !!p.monto && p.monto > 0 && !!p.tipo;
   }
 
+  formatTasa(tasa: number | null | undefined): string {
+    if (!tasa) return '';
+    if (tasa < 0.0001 && tasa > 0) {
+      return tasa.toFixed(8).replace(/\.?0+$/, '');
+    }
+    return tasa.toString();
+  }
+
   registrarPago(): void {
     this.isSaving.set(true);
     this.formError.set('');

@@ -5,5 +5,6 @@ import { OfertaLaboralController } from './oferta-laboral.controller';
 @Module({
   controllers: [OfertaLaboralController],
   providers: [OfertaLaboralService],
+  exports: [OfertaLaboralService],
 })
 export class OfertaLaboralModule {}

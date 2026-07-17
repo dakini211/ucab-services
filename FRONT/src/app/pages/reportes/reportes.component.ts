@@ -106,9 +106,6 @@ export class ReportesComponent implements OnInit, OnDestroy {
     this.reportesService.getOpcionesFiltro()
       .pipe(takeUntil(this.destroy$))
       .subscribe({ next: (o) => this.opciones.set(o) });
-    this.reportesService.getResumenCompleto()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({ next: (r) => this.alertas.set(r.alertas) });
   }
 
   ngOnDestroy(): void {
@@ -135,15 +132,16 @@ export class ReportesComponent implements OnInit, OnDestroy {
   /* ── Load all reports in parallel ──────────────────── */
   loadAllReports(): void {
     this.isLoading.set(true);
-    this.reportesService.getTodosLosReportes()
+    this.reportesService.getResumenCompleto()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => {
-          this.kpis.set(data.kpis);
+          this.kpis.set(data.kpisGenerales);
           this.servicios.set(data.servicios);
           this.infraestructura.set(data.infraestructura);
           this.finanzas.set(data.finanzas);
-          this.ofertas.set(data.ofertas);
+          this.ofertas.set(data.ofertasLaborales);
+          this.alertas.set(data.alertas);
           this.lastRefresh.set(new Date());
           this.isLoading.set(false);
         },

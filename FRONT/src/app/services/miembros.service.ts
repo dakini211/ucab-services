@@ -31,6 +31,7 @@ export interface FamiliarDetalle {
   tipo: 'Mayor' | 'Menor';
   cargo_mayor?: { estudios: string } | null;
   cargo_menor?: { vacunacion: string | null; educacion_inicial: string | null } | null;
+  titular?: string; // Para administradores que ven todos
 }
 
 export interface CreateMiembroDto {
@@ -110,5 +111,9 @@ export class MiembrosService {
 
   getMisFamiliares(): Observable<FamiliarDetalle[]> {
     return this.http.get<FamiliarDetalle[]>(`${this.API}/familiar/mis-familiares`);
+  }
+
+  getTodosFamiliares(): Observable<FamiliarDetalle[]> {
+    return this.http.get<FamiliarDetalle[]>(`${this.API}/familiar/todos`);
   }
 }

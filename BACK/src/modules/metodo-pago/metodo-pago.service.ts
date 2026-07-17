@@ -47,7 +47,7 @@ export class MetodoPagoService {
         p_numero_de_control => ${dto.numero_de_control},
         p_monto             => ${Number(dto.monto)}::numeric,
         p_tipo              => ${dto.tipo},
-        p_fecha_operacion   => ${fecha}::timestamp,
+        p_fecha_operacion   => ${fecha},
         p_correo            => ${dto.correo ?? null}::varchar,
         p_nombre            => ${dto.nombre ?? null}::varchar,
         p_confirmacion      => ${dto.confirmacion ?? null}::varchar,

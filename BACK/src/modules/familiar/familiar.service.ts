@@ -45,7 +45,39 @@ export class FamiliarService {
       parentesco: f.parentesco,
       edad_familiar: f.edad_familiar,
       fecha_de_inicio: f.fecha_de_inicio,
-      tipo: f.edad_familiar > 18 ? 'Mayor' : 'Menor',
+      tipo: f.edad_familiar >= 18 ? 'Mayor' : 'Menor',
+      cargo_mayor: f.cargo_mayor ? { estudios: f.cargo_mayor.estudios } : null,
+      cargo_menor: f.cargo_menor
+        ? {
+            vacunacion: f.cargo_menor.vacunacion,
+            educacion_inicial: f.cargo_menor.educacion_inicial,
+          }
+        : null,
+    }));
+  }
+
+  async getTodosFamiliares() {
+    const familiares = await this.prisma.familiar.findMany({
+      include: {
+        cargo_mayor: true,
+        cargo_menor: true,
+        personal_ucab: {
+          include: {
+            miembro: true,
+          }
+        }
+      },
+      orderBy: { nombre_familiar: 'asc' },
+    });
+
+    return familiares.map(f => ({
+      cedula: f.cedula,
+      nombre_familiar: f.nombre_familiar,
+      parentesco: f.parentesco,
+      edad_familiar: f.edad_familiar,
+      fecha_de_inicio: f.fecha_de_inicio,
+      tipo: f.edad_familiar >= 18 ? 'Mayor' : 'Menor',
+      titular: f.personal_ucab?.miembro ? `${f.personal_ucab.miembro.primer_nombre} ${f.personal_ucab.miembro.primer_apellido}` : 'Desconocido',
       cargo_mayor: f.cargo_mayor ? { estudios: f.cargo_mayor.estudios } : null,
       cargo_menor: f.cargo_menor
         ? {

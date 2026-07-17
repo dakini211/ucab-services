@@ -1,0 +1,229 @@
+# UCAB-Services
+
+Plataforma de gestión de servicios electrónicos de la Universidad Católica Andrés Bello.
+Sistema transaccional (OLTP) que integra los campus de Montalbán y Guayana.
+
+## Ambiente de desarrollo
+
+| Componente | Tecnología |
+|---|---|
+| **SGBD** | PostgreSQL 16 (PL/pgSQL) |
+| **Backend** | NestJS 11 + Prisma 7 + JWT/Passport |
+| **Frontend** | Angular 21 (standalone components) |
+| **Runtime** | Node.js 20+ |
+
+---
+
+## 1. Base de datos
+
+### 1.1 Crear la base
+
+```bash
+createdb -U postgres services_ucab
+```
+
+### 1.2 Ejecutar los scripts EN ESTE ORDEN
+
+El orden no es opcional. Los datos de prueba dependen de que los triggers ya
+existan: si se cargan antes, los precios no se congelan y los ítems fallan.
+
+```bash
+psql -U postgres -d services_ucab -f DROP.sql                    # 1. limpieza
+psql -U postgres -d services_ucab -f CREATE.sql                  # 2. tablas + constraints
+psql -U postgres -d services_ucab -f INSERT.sql                  # 3. datos base
+psql -U postgres -d services_ucab -f procedures_finacieros.sql   # 4. funciones + triggers
+psql -U postgres -d services_ucab -f pl_financiero.sql           # 5. procedimientos financieros
+psql -U postgres -d services_ucab -f pl_familiar_y_oferta.sql    # 6. procedimientos varios
+psql -U postgres -d services_ucab -f INSERT_FINANCIERO.sql       # 7. datos del módulo financiero
+psql -U postgres -d services_ucab -f insert_faltantes.sql        # 8. datos de entidades restantes
+psql -U postgres -d services_ucab -f seguridad.sql               # 9. roles, cuentas y privilegios
+```
+
+### 1.3 Verificar que no quede ninguna tabla vacía
+
+Obligatorio antes de entregar: sin datos en cada entidad no se revisa el proyecto.
+
+```sql
+ANALYZE;
+
+SELECT relname AS tabla, n_live_tup AS filas
+FROM pg_stat_user_tables
+WHERE schemaname = 'public'
+ORDER BY n_live_tup ASC, relname;
+```
+
+Si alguna tabla aparece con 0 filas, hay que cargarla antes de la entrega.
+
+### 1.4 Estado esperado tras la carga
+
+```sql
+SELECT numero_de_control, estatus, saldo FROM Factura ORDER BY numero_de_control;
+```
+
+| N.º de control | Estatus | Saldo |
+|---|---|---|
+| FAC-2026-000001 | pagada | 0.00 |
+| FAC-2026-000002 | parcial | 53.68 |
+| FAC-2026-000003 | pagada | 0.00 |
+
+---
+
+## 2. Backend
+
+```bash
+cd BACK
+npm install
+```
+
+Crear `BACK/.env`:
+
+```env
+DATABASE_URL="postgresql://svc_app:cambiar_esto_app@localhost:5432/services_ucab?schema=public"
+JWT_SECRET="una_clave_larga_y_aleatoria_para_produccion"
+```
+
+> **Nota de seguridad:** el usuario es `svc_app`, no `postgres`. Lo crea
+> `seguridad.sql`. Cambia la contraseña ahí antes de la entrega.
+> Si `seguridad.sql` no se ha ejecutado, usa `postgres` temporalmente.
+
+Generar el cliente de Prisma y levantar:
+
+```bash
+npx prisma db pull      # introspecta el esquema real
+npx prisma generate     # genera el cliente tipado
+npm run start:dev       # http://localhost:3000/api
+```
+
+Verificar:
+
+```bash
+curl http://localhost:3000/api/health
+```
+
+---
+
+## 3. Frontend
+
+```bash
+cd FRONT
+npm install
+npm start               # http://localhost:4200
+```
+
+El backend debe estar corriendo en el puerto 3000 (el CORS ya está configurado
+para `http://localhost:4200`).
+
+---
+
+## 4. Credenciales de prueba
+
+| Usuario | Correo | Rol |
+|---|---|---|
+| Carlos Ramírez | `c.ramirez@ucab.edu.ve` | Estudiante |
+| Elena Castillo | `e.castillo@ucab.edu.ve` | Profesor |
+
+Las contraseñas están en `INSERT.sql`, tabla `Historial_Contrasena`.
+
+---
+
+## 5. Arquitectura: dónde vive la lógica
+
+**La lógica de negocio vive en PostgreSQL, no en NestJS.** El backend no calcula
+totales, no resta saldos y no decide estatus: solo invoca procedimientos y
+traduce los errores del gestor a HTTP.
+
+Consecuencia práctica: si alguien inserta un pago con `psql`, por fuera de la
+aplicación, el saldo de la factura se actualiza igual.
+
+### Reglas automatizadas en el gestor
+
+| Mecanismo | Regla |
+|---|---|
+| `trg_congelar_precio_item` | El precio se toma de `Historico_Tarifa` a la fecha del cargo y queda congelado |
+| `trg_bloquear_folio_facturado` | Un folio facturado no admite cambios en sus ítems |
+| `trg_actualizar_saldo_factura` | Al insertar un pago, recalcula el saldo y marca `pagada` |
+| `sp_generar_factura` | Convierte un folio en factura consolidando sus cargos |
+| `sp_cierre_masivo_folios` | Cierre mensual: factura todos los folios abiertos |
+| `sp_aplicar_oferta_laboral` | Valida mayoría de edad, cuenta activa y no duplicar postulación |
+| `fn_total_folio` | Atributo derivado `Total` del ER: se calcula, no se almacena |
+
+### Paginado, búsqueda y ordenamiento
+
+Los tres se resuelven **en el servidor** (`LIMIT`/`OFFSET`/`ORDER BY`), no en el
+navegador. Las columnas ordenables pasan por una lista blanca en
+`BACK/src/common/utils/pagination.util.ts`: `ORDER BY` no admite parámetros en
+PostgreSQL, así que sin esa lista `?sortBy=` sería una inyección SQL directa.
+
+---
+
+## 6. Seguridad
+
+Hay **dos capas**, y hacen falta las dos:
+
+| Capa | Dónde | Qué protege |
+|---|---|---|
+| Aplicación | JWT + guards de NestJS | Qué ve cada rol en la interfaz |
+| **Gestor** | `sql/seguridad.sql` | Qué puede hacer cada cuenta **aunque se conecte por psql** |
+
+La segunda es la que exige el enunciado. Los roles del JWT se saltan
+conectándose directo a la base; los del gestor no.
+
+| Rol | Puede |
+|---|---|
+| `ucab_admin` | DML completo. **No** DDL: no puede hacer DROP TABLE |
+| `ucab_finanzas` | Lee todo; escribe solo en el módulo financiero. **Sin DELETE** |
+| `ucab_miembro` | Lee catálogos y sus datos; crea solicitudes y pagos |
+| `ucab_consulta` | Solo lectura (reportes) |
+
+Cuentas: `svc_app` (la aplicación) y `svc_reportes` (solo lectura).
+
+Demostración para la corrección:
+
+```sql
+SET ROLE ucab_finanzas;
+DELETE FROM Factura WHERE numero_de_control = 'FAC-2026-000001';
+-- ERROR: permiso denegado para la tabla factura
+RESET ROLE;
+```
+
+---
+
+## 7. Guion de demostración
+
+1. **Congelado de precios** — folio `FOL-202602-00001`: el bootcamp cargó a
+   `50.00`, la tarifa vigente al 10/02/2026, aunque hoy vale `65.00`.
+   ```sql
+   SELECT ic.concepto, ic.precio_unitario AS congelado,
+          fn_tarifa_vigente(ic.id_servicio, CURRENT_TIMESTAMP) AS hoy
+   FROM Items_Consumo ic WHERE ic.nro_de_folio = 'FOL-202602-00001';
+   ```
+2. **Abonos parciales** — factura `FAC-2026-000002`, saldo `53.68`. Registrar un
+   abono desde Finanzas y ver el estatus pasar a `pagada` solo.
+3. **Folio congelado** — intentar cargar un ítem a un folio facturado: el trigger
+   lo rechaza y el mensaje llega hasta la interfaz.
+4. **Postulación** — un miembro suspendido (Luis) no puede postularse.
+5. **Seguridad** — el `SET ROLE ucab_finanzas` de arriba.
+
+---
+
+## 8. Estructura del repositorio
+
+```
+BACK/          API NestJS
+  src/modules/   un módulo por entidad
+  src/common/    filtros y utilidades compartidas
+  prisma/        schema.prisma
+FRONT/         Aplicación Angular
+  src/app/pages/     páginas
+  src/app/services/  clientes HTTP
+sql/           Scripts de base de datos
+docs/          Modelo E-R corregido
+```
+
+---
+
+## 9. Pendiente
+
+- [ ] Reportes con JasperReports/jsreport (los endpoints de `BACK/src/modules/reportes/` devuelven JSON, falta el artefacto de la herramienta)
+- [ ] Endpoint para que las organizaciones externas publiquen ofertas
+- [ ] Emparejamiento inteligente de ofertas por perfil del miembro
