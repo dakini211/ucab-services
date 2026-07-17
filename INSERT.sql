@@ -105,11 +105,57 @@ VALUES
 
 
 --------------------------------------------------------------------------------
--- 1. SEDES (Si no las tienes ya insertadas)
+-- 1. SEDES 
 --------------------------------------------------------------------------------
 INSERT INTO Sede (nombre_sede, tarifa_min, tarifa_max) VALUES
 ('Sede Montalbán', 10.00, 500.00),
 ('Sede Guayana', 8.00, 350.00);
+
+--------------------------------------------------------------------------------
+-- 1.1. POBLAR EDIFICACIONES
+-- Nota: La llave primaria es compuesta (nombre_edificacion, direccion_interna)
+--------------------------------------------------------------------------------
+INSERT INTO Edificacion (nombre_edificacion, direccion_interna, nombre_sede) VALUES
+-- Edificaciones Sede Montalbán
+('Edificio Cincuentenario', 'Módulo 1 - Entrada Principal', 'Sede Montalbán'),
+('Edificio de Aulas', 'Módulo 2 - Zona Central', 'Sede Montalbán'),
+('Centro Loyola', 'Zona Deportiva - Oeste', 'Sede Montalbán'),
+('Biblioteca Central', 'Zona Norte', 'Sede Montalbán'),
+
+-- Edificaciones Sede Guayana
+('Edificio Principal', 'Campus Puerto Ordaz - Bloque A', 'Sede Guayana'),
+('Biblioteca Guayana', 'Campus Puerto Ordaz - Bloque B', 'Sede Guayana');
+
+--------------------------------------------------------------------------------
+-- 1.2. POBLAR ESPACIOS FÍSICOS
+-- Nota: Deben coincidir exactamente con (nombre_edificacion, direccion_interna)
+--------------------------------------------------------------------------------
+INSERT INTO Espacio_Fisico (nro, nombre_edificacion, direccion_interna, tipo_inmobiliario, capacidad_maxima_aforo) VALUES
+-- Espacios en el Edificio Cincuentenario (Montalbán)
+(101, 'Edificio Cincuentenario', 'Módulo 1 - Entrada Principal', 'Aula tradicional', 45),
+(102, 'Edificio Cincuentenario', 'Módulo 1 - Entrada Principal', 'Laboratorio de Computación', 25),
+(103, 'Edificio Cincuentenario', 'Módulo 1 - Entrada Principal', 'Sala de Reuniones', 15),
+
+-- Espacios en el Edificio de Aulas (Montalbán)
+(201, 'Edificio de Aulas', 'Módulo 2 - Zona Central', 'Aula tradicional', 60),
+(202, 'Edificio de Aulas', 'Módulo 2 - Zona Central', 'Auditorio Principal', 250),
+(203, 'Edificio de Aulas', 'Módulo 2 - Zona Central', 'Sala de Usos Múltiples', 80),
+
+-- Espacios en Biblioteca Central (Montalbán)
+(1, 'Biblioteca Central', 'Zona Norte', 'Sala de Lectura Silenciosa', 100),
+(2, 'Biblioteca Central', 'Zona Norte', 'Cubículo de Estudio', 6),
+
+-- Espacios en Centro Loyola (Montalbán)
+(1, 'Centro Loyola', 'Zona Deportiva - Oeste', 'Cancha Techada', 300),
+
+-- Espacios en Edificio Principal (Guayana)
+(101, 'Edificio Principal', 'Campus Puerto Ordaz - Bloque A', 'Aula tradicional', 40),
+(102, 'Edificio Principal', 'Campus Puerto Ordaz - Bloque A', 'Laboratorio de Física', 20),
+(103, 'Edificio Principal', 'Campus Puerto Ordaz - Bloque A', 'Aula de Dibujo', 30),
+
+-- Espacios en Biblioteca Guayana
+(1, 'Biblioteca Guayana', 'Campus Puerto Ordaz - Bloque B', 'Sala de Lectura General', 80);
+
 
 --------------------------------------------------------------------------------
 -- 2. ENTIDADES PRESTADORAS (Clase Padre)
