@@ -216,11 +216,3 @@ FRONT/         Aplicación Angular
 sql/           Scripts de base de datos
 docs/          Modelo E-R corregido
 ```
-
----
-
-## 9. Pendiente
-
-- [ ] Reportes con JasperReports/jsreport (los endpoints de `BACK/src/modules/reportes/` devuelven JSON, falta el artefacto de la herramienta)
-- [ ] Endpoint para que las organizaciones externas publiquen ofertas
-- [ ] Emparejamiento inteligente de ofertas por perfil del miembro
