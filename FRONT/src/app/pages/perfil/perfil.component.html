@@ -20,7 +20,7 @@
 
     <nav class="sidebar-nav">
       <ul class="nav-list" role="list">
-        <li *ngFor="let item of navItems" class="nav-item">
+        <li *ngFor="let item of visibleNavItems()" class="nav-item">
           <button
             class="nav-btn"
             [class.active]="currentRoute() === item.id"
@@ -299,6 +299,63 @@
                     <span class="info-value">Aún no tienes una billetera asignada.</span>
                   </div>
                 </ng-template>
+              </div>
+            </div>
+          </div>
+
+          <!-- Beneficiarios (solo Personal UCAB) -->
+          <div class="detail-card beneficiarios-card" *ngIf="isPersonalUcab()">
+            <div class="card-header">
+              <div class="card-icon-wrap" style="color: #0EA5E9; background: rgba(14, 165, 233, 0.1);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+              </div>
+              <h3 class="card-title">Beneficiarios</h3>
+              <span class="beneficiarios-count" *ngIf="familiares().length > 0">{{ familiares().length }}</span>
+            </div>
+            <div class="card-body">
+              <div class="empty-beneficiarios" *ngIf="familiares().length === 0">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                <p>No tienes beneficiarios registrados aún.</p>
+              </div>
+              <div class="beneficiarios-list" *ngIf="familiares().length > 0">
+                <div class="beneficiario-item" *ngFor="let f of familiares()">
+                  <div class="beneficiario-header">
+                    <div class="beneficiario-avatar">{{ f.nombre_familiar.charAt(0).toUpperCase() }}</div>
+                    <div class="beneficiario-main">
+                      <span class="beneficiario-nombre">{{ f.nombre_familiar }}</span>
+                      <span class="beneficiario-parentesco">{{ f.parentesco }}</span>
+                    </div>
+                    <span class="beneficiario-tipo-badge" [class.mayor]="f.tipo === 'Mayor'" [class.menor]="f.tipo === 'Menor'">
+                      {{ f.tipo === 'Mayor' ? 'Cargo Mayor' : 'Cargo Menor' }}
+                    </span>
+                  </div>
+                  <div class="beneficiario-detalles">
+                    <div class="beneficiario-dato">
+                      <span class="dato-label">Cédula</span>
+                      <span class="dato-valor">{{ f.cedula }}</span>
+                    </div>
+                    <div class="beneficiario-dato">
+                      <span class="dato-label">Edad</span>
+                      <span class="dato-valor">{{ f.edad_familiar }} años</span>
+                    </div>
+                    <ng-container *ngIf="f.cargo_mayor">
+                      <div class="beneficiario-dato full">
+                        <span class="dato-label">Nivel de estudios</span>
+                        <span class="dato-valor accent">{{ f.cargo_mayor.estudios }}</span>
+                      </div>
+                    </ng-container>
+                    <ng-container *ngIf="f.cargo_menor">
+                      <div class="beneficiario-dato">
+                        <span class="dato-label">Vacunación</span>
+                        <span class="dato-valor">{{ f.cargo_menor.vacunacion || '—' }}</span>
+                      </div>
+                      <div class="beneficiario-dato">
+                        <span class="dato-label">Educación inicial</span>
+                        <span class="dato-valor">{{ f.cargo_menor.educacion_inicial || '—' }}</span>
+                      </div>
+                    </ng-container>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

@@ -11,7 +11,7 @@ model acompanante {
   id_miembro         BigInt
   id_servicio        Int
   fecha_de_creacion  DateTime           @db.Timestamp(6)
-  ci                 Int
+  ci                 String             @db.VarChar(20)
   nombre             String             @db.VarChar(150)
   activo             String             @db.VarChar(50)
   solicitud_servicio solicitud_servicio @relation(fields: [id_miembro, id_servicio, fecha_de_creacion], references: [id_miembro, id_servicio, fecha_de_creacion], onDelete: Cascade, onUpdate: NoAction, map: "fk_acompanante_solicitud")
@@ -49,13 +49,12 @@ model cargo_menor {
 }
 
 model criptomoneda {
-  numero_de_control String      @db.VarChar(50)
-  fecha_operacion   DateTime    @db.Timestamp(6)
-  dxid              String      @unique @db.VarChar(255)
-  red               String      @db.VarChar(50)
-  billetera         String      @db.VarChar(255)
-  tasa              Decimal     @db.Decimal(20, 8)
-  metodo_pago       metodo_pago @relation(fields: [numero_de_control, fecha_operacion], references: [numero_de_control, fecha_operacion], onDelete: Cascade, onUpdate: NoAction, map: "fk_cripto_metodo")
+  numero_de_control String   @db.VarChar(50)
+  fecha_operacion   DateTime @db.Timestamp(6)
+  dxid              String   @unique @db.VarChar(255)
+  red               String   @db.VarChar(50)
+  billetera         String   @db.VarChar(255)
+  tasa              Decimal  @db.Decimal(20, 8)
 
   @@id([numero_de_control, fecha_operacion], map: "pk_cripto")
 }
@@ -71,11 +70,10 @@ model edificacion {
 }
 
 model efectivo {
-  numero_de_control String      @db.VarChar(50)
-  fecha_operacion   DateTime    @db.Timestamp(6)
-  monto             Decimal     @db.Decimal(15, 2)
-  tasa              Decimal     @db.Decimal(20, 8)
-  metodo_pago       metodo_pago @relation(fields: [numero_de_control, fecha_operacion], references: [numero_de_control, fecha_operacion], onDelete: Cascade, onUpdate: NoAction, map: "fk_efectivo_metodo")
+  numero_de_control String   @db.VarChar(50)
+  fecha_operacion   DateTime @db.Timestamp(6)
+  monto             Decimal  @db.Decimal(15, 2)
+  tasa              Decimal  @db.Decimal(20, 8)
 
   @@id([numero_de_control, fecha_operacion], map: "pk_efectivo")
 }
@@ -249,17 +247,10 @@ model items_consumo {
 }
 
 model metodo_pago {
-  monto             Decimal       @db.Decimal(10, 2)
-  numero_de_control String        @db.VarChar(50)
-  fecha_operacion   DateTime      @db.Timestamp(6)
-  criptomoneda      criptomoneda?
-  efectivo          efectivo?
-  factura           factura       @relation(fields: [numero_de_control], references: [numero_de_control], onDelete: Cascade, onUpdate: NoAction, map: "fk_metodo_factura")
-  obtiene           obtiene?
-  pago_movil        pago_movil?
-  tai               tai?
-  tarjeta           tarjeta?
-  zelle             zelle?
+  monto             Decimal  @db.Decimal(10, 2)
+  numero_de_control String   @db.VarChar(50)
+  fecha_operacion   DateTime @db.Timestamp(6)
+  factura           factura  @relation(fields: [numero_de_control], references: [numero_de_control], onDelete: Cascade, onUpdate: NoAction, map: "fk_metodo_factura")
 
   @@id([numero_de_control, fecha_operacion], map: "pk_metodo_pago")
 }
@@ -295,7 +286,6 @@ model obtiene {
   moneda_origen     String      @db.VarChar(10)
   moneda_destino    String      @db.VarChar(10)
   fecha_vigencia    DateTime    @db.Timestamp(6)
-  metodo_pago       metodo_pago @relation(fields: [numero_de_control, fecha_operacion], references: [numero_de_control, fecha_operacion], onDelete: Cascade, onUpdate: NoAction, map: "fk_obtiene_metodo")
   tasa_cambio       tasa_cambio @relation(fields: [moneda_origen, moneda_destino, fecha_vigencia], references: [moneda_origen, moneda_destino, fecha_vigencia], onUpdate: NoAction, map: "fk_obtiene_tasa")
 
   @@id([numero_de_control, fecha_operacion, moneda_origen, moneda_destino, fecha_vigencia], map: "pk_obtiene")
@@ -346,12 +336,11 @@ model organizacion_externa {
 }
 
 model pago_movil {
-  numero_de_control String      @db.VarChar(50)
-  fecha_operacion   DateTime    @db.Timestamp(6)
-  telefono_emisor   String      @db.VarChar(20)
-  banco             String      @db.VarChar(50)
-  referencia        String      @unique @db.VarChar(50)
-  metodo_pago       metodo_pago @relation(fields: [numero_de_control, fecha_operacion], references: [numero_de_control, fecha_operacion], onDelete: Cascade, onUpdate: NoAction, map: "fk_pm_metodo")
+  numero_de_control String   @db.VarChar(50)
+  fecha_operacion   DateTime @db.Timestamp(6)
+  telefono_emisor   String   @db.VarChar(20)
+  banco             String   @db.VarChar(50)
+  referencia        String   @unique @db.VarChar(50)
 
   @@id([numero_de_control, fecha_operacion], map: "pk_pago_movil")
 }
@@ -434,24 +423,22 @@ model solicitud_servicio {
 }
 
 model tai {
-  numero_de_control String      @db.VarChar(50)
-  fecha_operacion   DateTime    @db.Timestamp(6)
-  uid               String      @db.VarChar(100)
-  pos               String      @db.VarChar(50)
-  remanente         Decimal     @db.Decimal(15, 2)
-  metodo_pago       metodo_pago @relation(fields: [numero_de_control, fecha_operacion], references: [numero_de_control, fecha_operacion], onDelete: Cascade, onUpdate: NoAction, map: "fk_tai_metodo")
+  numero_de_control String   @db.VarChar(50)
+  fecha_operacion   DateTime @db.Timestamp(6)
+  uid               String   @db.VarChar(100)
+  pos               String   @db.VarChar(50)
+  remanente         Decimal  @db.Decimal(15, 2)
 
   @@id([numero_de_control, fecha_operacion], map: "pk_tai")
 }
 
 model tarjeta {
-  numero_de_control String      @db.VarChar(50)
-  fecha_operacion   DateTime    @db.Timestamp(6)
-  nro_tarjeta       String      @db.VarChar(20)
-  vencimiento       String      @db.VarChar(5)
-  compania          String      @db.VarChar(50)
-  red               String      @db.VarChar(20)
-  metodo_pago       metodo_pago @relation(fields: [numero_de_control, fecha_operacion], references: [numero_de_control, fecha_operacion], onDelete: Cascade, onUpdate: NoAction, map: "fk_tarjeta_metodo")
+  numero_de_control String   @db.VarChar(50)
+  fecha_operacion   DateTime @db.Timestamp(6)
+  nro_tarjeta       String   @db.VarChar(20)
+  vencimiento       String   @db.VarChar(5)
+  compania          String   @db.VarChar(50)
+  red               String   @db.VarChar(20)
 
   @@id([numero_de_control, fecha_operacion], map: "pk_tarjeta")
 }
@@ -467,12 +454,11 @@ model tasa_cambio {
 }
 
 model zelle {
-  numero_de_control String      @db.VarChar(50)
-  fecha_operacion   DateTime    @db.Timestamp(6)
-  correo            String      @db.VarChar(150)
-  nombre            String      @db.VarChar(150)
-  confirmacion      String      @unique @db.VarChar(100)
-  metodo_pago       metodo_pago @relation(fields: [numero_de_control, fecha_operacion], references: [numero_de_control, fecha_operacion], onDelete: Cascade, onUpdate: NoAction, map: "fk_zelle_metodo")
+  numero_de_control String   @db.VarChar(50)
+  fecha_operacion   DateTime @db.Timestamp(6)
+  correo            String   @db.VarChar(150)
+  nombre            String   @db.VarChar(150)
+  confirmacion      String   @unique @db.VarChar(100)
 
   @@id([numero_de_control, fecha_operacion], map: "pk_zelle")
 }

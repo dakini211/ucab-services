@@ -1,34 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Body, Controller, Get, Post, Request, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { OfertaService } from './oferta.service';
 import { CreateOfertaDto } from './dto/create-oferta.dto';
-import { UpdateOfertaDto } from './dto/update-oferta.dto';
 
+/** Prefijo global 'api' (main.ts) => /api/oferta */
+@UseGuards(AuthGuard('jwt'))
 @Controller('oferta')
 export class OfertaController {
   constructor(private readonly ofertaService: OfertaService) {}
 
+  @Get('mis-postulaciones')
+  misPostulaciones(@Request() req) {
+    return this.ofertaService.misPostulaciones(req.user);
+  }
+
   @Post()
-  create(@Body() createOfertaDto: CreateOfertaDto) {
-    return this.ofertaService.create(createOfertaDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.ofertaService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.ofertaService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateOfertaDto: UpdateOfertaDto) {
-    return this.ofertaService.update(+id, updateOfertaDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.ofertaService.remove(+id);
+  aplicar(@Request() req, @Body() dto: CreateOfertaDto) {
+    return this.ofertaService.aplicar(req.user, dto);
   }
 }

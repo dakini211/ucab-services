@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -80,22 +80,16 @@ export class DashboardComponent implements OnInit {
       icon: 'M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z',
     },
     {
-      id: 'tramites',
-      label: 'Trámites y Solicitudes',
-      route: '/tramites',
-      icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
-    },
-    {
       id: 'servicios',
       label: 'Servicios',
       route: '/catalogo',
       icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z',
     },
     {
-      id: 'reservaciones',
-      label: 'Reservaciones',
-      route: '/reservaciones',
-      icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
+      id: 'ofertas-laborales',
+      label: 'Ofertas Laborales',
+      route: '/ofertas-laborales',
+      icon: 'M20 7h-4V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2H4a2 2 0 00-2 2v9a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zM10 5h4v2h-4V5zm10 13H4V9h16v9z',
     },
     {
       id: 'finanzas',
@@ -123,31 +117,22 @@ export class DashboardComponent implements OnInit {
     },
   ];
 
+  /** Ofertas Laborales: Estudiante y Admin. Reportes: solo Admin (admin_general). */
+  visibleNavItems = computed(() =>
+    this.navItems.filter((item) => {
+      if (item.id === 'ofertas-laborales') return this.user()?.rol === 'Estudiante' || this.user()?.rol === 'Admin';
+      if (item.id === 'reportes') return this.user()?.rol === 'Admin';
+      return true;
+    })
+  );
+
   /* ── Quick access items ─────────────────────────────────── */
   readonly quickAccessItems = [
-    {
-      id: 'crear-solicitud',
-      label: 'Crear solicitud',
-      route: '/tramites/nueva',
-      icon: 'M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
-    },
     {
       id: 'buscar-miembro',
       label: 'Buscar miembro',
       route: '/miembros/buscar',
       icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7',
-    },
-    {
-      id: 'reservar-espacio',
-      label: 'Reservar espacio',
-      route: '/reservaciones/nueva',
-      icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
-    },
-    {
-      id: 'mis-solicitudes',
-      label: 'Mis solicitudes',
-      route: '/tramites/mis-solicitudes',
-      icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
     },
     {
       id: 'mis-pagos',
@@ -223,7 +208,7 @@ export class DashboardComponent implements OnInit {
 
   /* ── Navigation ─────────────────────────────────────────── */
   navigate(item: NavItem): void {
-    const implementedRoutes = ['/dashboard', '/miembros', '/edificaciones', '/catalogo', '/espacios', '/perfil', '/finanzas'];
+    const implementedRoutes = ['/dashboard', '/miembros', '/edificaciones', '/catalogo', '/espacios', '/perfil', '/finanzas', '/ofertas-laborales', '/reportes'];
     if (implementedRoutes.includes(item.route)) {
       this.currentRoute.set(item.id);
       this.router.navigate([item.route]);
@@ -277,3 +262,5 @@ export class DashboardComponent implements OnInit {
     this.currentDateTime.set(`Hoy, ${time} — ${date}`);
   }
 }
+
+

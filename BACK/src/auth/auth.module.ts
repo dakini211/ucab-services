@@ -7,7 +7,7 @@ import { JwtStrategy } from './jwt.strategy';
 
 import * as crypto from 'crypto';
 
-export const jwtSecret = process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
+export const jwtSecret = process.env.JWT_SECRET || 'ucab-services-dev-secret-key-123';
 
 @Module({
   imports: [

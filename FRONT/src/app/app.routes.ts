@@ -2,6 +2,8 @@ import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth.guard';
 import { adminGuard } from './guards/admin.guard';
 import { guestGuard } from './guards/guest.guard';
+import { ofertasLaboralesGuard } from './guards/ofertas-laborales.guard';
+import { reportesGuard } from './guards/reportes.guard';
 
 export const routes: Routes = [
   {
@@ -64,6 +66,20 @@ export const routes: Routes = [
       import('./pages/finanzas/finanzas.component').then((m) => m.FinanzasComponent),
     title: 'Finanzas | UCAB-Services',
     canActivate: [authGuard],
+  },
+  {
+    path: 'ofertas-laborales',
+    loadComponent: () =>
+      import('./pages/ofertas-laborales/ofertas-laborales.component').then((m) => m.OfertasLaboralesComponent),
+    title: 'Ofertas Laborales | UCAB-Services',
+    canActivate: [ofertasLaboralesGuard],
+  },
+  {
+    path: 'reportes',
+    loadComponent: () =>
+      import('./pages/reportes/reportes.component').then((m) => m.ReportesComponent),
+    title: 'Reportes y Análisis | UCAB-Services',
+    canActivate: [reportesGuard],
   },
   {
     path: '**',

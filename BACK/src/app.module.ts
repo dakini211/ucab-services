@@ -45,6 +45,7 @@ import { TaiModule } from './modules/tai/tai.module';
 import { TarjetaModule } from './modules/tarjeta/tarjeta.module';
 import { TasaCambioModule } from './modules/tasa-cambio/tasa-cambio.module';
 import { ZelleModule } from './modules/zelle/zelle.module';
+import { ReportesModule } from './modules/reportes/reportes.module';
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { ZelleModule } from './modules/zelle/zelle.module';
     PagoMovilModule, PersonalUcabModule, PreparadorModule, ProfesorModule,
     PublicaModule, RecursoTecnologicosModule, SedeModule, ServicioModule,
     SolicitudServicioModule, TaiModule, TarjetaModule, TasaCambioModule, ZelleModule,
+    ReportesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

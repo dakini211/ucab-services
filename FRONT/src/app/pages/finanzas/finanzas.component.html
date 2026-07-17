@@ -20,7 +20,7 @@
 
     <nav class="sidebar-nav">
       <ul class="nav-list" role="list">
-        <li *ngFor="let item of navItems" class="nav-item">
+        <li *ngFor="let item of visibleNavItems()" class="nav-item">
           <button class="nav-btn" [class.active]="currentRoute() === item.id" (click)="navigate(item)"
             [id]="'nav-' + item.id" [title]="item.label"
             [attr.aria-current]="currentRoute() === item.id ? 'page' : null">

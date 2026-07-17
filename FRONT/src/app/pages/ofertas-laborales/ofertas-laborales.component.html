@@ -1,0 +1,398 @@
+<div class="layout" [class.sidebar-collapsed]="sidebarCollapsed()">
+
+  <!-- ═══════════════ SIDEBAR ═══════════════ -->
+  <aside class="sidebar" role="navigation" aria-label="Menú principal">
+    <div class="sidebar-header">
+      <div class="logo-block">
+        <div class="logo-icon">
+          <svg viewBox="0 0 40 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 2L8 12V28C8 36 14 43 20 46C26 43 32 36 32 28V12L20 2Z" fill="#E63946" opacity="0.9"/>
+            <path d="M14 18V30M20 14V30M26 18V30" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M11 30H29" stroke="#FFD700" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="logo-text" *ngIf="!sidebarCollapsed()">
+          <span class="logo-title">UCAB</span>
+          <span class="logo-subtitle">UNIVERSIDAD CATÓLICA<br>ANDRÉS BELLO</span>
+        </div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <ul class="nav-list" role="list">
+        <li *ngFor="let item of visibleNavItems()" class="nav-item">
+          <button
+            class="nav-btn"
+            [class.active]="currentRoute() === item.id"
+            (click)="navigate(item)"
+            [id]="'nav-' + item.id"
+            [title]="item.label"
+            [attr.aria-current]="currentRoute() === item.id ? 'page' : null"
+          >
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path [attr.d]="item.icon"/>
+            </svg>
+            <span class="nav-label" *ngIf="!sidebarCollapsed()">{{ item.label }}</span>
+          </button>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-footer" *ngIf="!sidebarCollapsed()">
+      <div class="brand-footer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="brand-icon"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <div>
+          <p class="brand-name">UCAB-Services</p>
+          <p class="brand-sub">Plataforma oficial</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══════════════ MAIN ═══════════════ -->
+  <div class="main-wrapper">
+
+    <!-- Topbar -->
+    <header class="topbar" role="banner">
+      <button class="toggle-btn" id="btn-toggle-sidebar" (click)="toggleSidebar()" aria-label="Colapsar menú">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      <div class="topbar-right">
+        <div class="user-menu-wrapper">
+          <div class="user-menu" id="user-menu" role="button" tabindex="0">
+            <div class="user-avatar">{{ userInitials() }}</div>
+            <div class="user-info">
+              <span class="user-name">{{ userName() }}</span>
+              <span class="user-email">{{ userEmail() }}</span>
+            </div>
+            <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <button class="logout-btn" (click)="logout()" id="btn-logout" title="Cerrar sesión">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <main class="page-content" role="main">
+
+      <!-- Page Header -->
+      <section class="page-header-section">
+        <div class="page-header-info">
+          <h1 class="page-title">Ofertas Laborales</h1>
+          <div class="title-underline"></div>
+          <p class="page-subtitle" *ngIf="isEstudiante()">Explora las ofertas laborales disponibles de nuestras entidades aliadas y postúlate.</p>
+          <p class="page-subtitle" *ngIf="isAdmin()">Consulta las ofertas laborales publicadas y la cantidad de miembros postulados a cada una.</p>
+        </div>
+      </section>
+
+      <!-- Stats (solo admin_general) -->
+      <section class="stats-row" *ngIf="isAdmin() && stats() as s" aria-label="Estadísticas de ofertas laborales">
+        <article class="stat-card">
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 7h-4V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2H4a2 2 0 00-2 2v9a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zM10 5h4v2h-4V5zm10 13H4V9h16v9z"/></svg></div>
+          <p class="stat-number">{{ s.total_ofertas }}</p>
+          <p class="stat-label">Ofertas publicadas</p>
+        </article>
+        <article class="stat-card">
+          <div class="stat-icon stat-icon-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg></div>
+          <p class="stat-number">{{ s.ofertas_disponibles }}</p>
+          <p class="stat-label">Vacantes disponibles</p>
+        </article>
+        <article class="stat-card">
+          <div class="stat-icon stat-icon-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
+          <p class="stat-number">{{ s.ofertas_con_postulantes }}</p>
+          <p class="stat-label">Ofertas con miembros postulados</p>
+        </article>
+        <article class="stat-card">
+          <div class="stat-icon stat-icon-gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg></div>
+          <p class="stat-number">{{ s.total_postulaciones }}</p>
+          <p class="stat-label">Postulaciones de miembros</p>
+        </article>
+      </section>
+
+      <!-- Filters bar -->
+      <section class="filters-section" aria-label="Filtros de ofertas laborales">
+        <div class="filters-row">
+          <div class="filter-group filter-search">
+            <label class="filter-label" for="filter-search">Buscar</label>
+            <input id="filter-search" type="text" class="filter-select filter-input"
+              placeholder="Cargo o entidad..."
+              [ngModel]="searchQuery()"
+              (ngModelChange)="onSearch($event)" />
+          </div>
+
+          <div class="filter-group">
+            <label class="filter-label" for="filter-estatus">Estatus</label>
+            <select id="filter-estatus" class="filter-select"
+              [ngModel]="filterEstatus()"
+              (ngModelChange)="filterEstatus.set($event); onFilterChange()">
+              <option value="">Todos los estatus</option>
+              <option value="disponible">Disponible</option>
+              <option value="finalizada">Finalizada</option>
+            </select>
+          </div>
+
+          <button class="btn-clear-filters" id="btn-limpiar-filtros"
+            [class.has-filters]="hasActiveFilters()"
+            (click)="clearFilters()"
+            title="Limpiar filtros">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+            </svg>
+            Limpiar filtros
+          </button>
+        </div>
+      </section>
+
+      <!-- Table -->
+      <section class="table-section">
+        <div class="table-wrapper" role="region" aria-label="Ofertas laborales">
+
+          <div *ngIf="isLoading()" class="table-loading">
+            <div class="spinner"></div>
+            <span>Cargando ofertas laborales...</span>
+          </div>
+
+          <table *ngIf="!isLoading()" class="data-table" role="table">
+            <thead>
+              <tr>
+                <th scope="col">Cargo / Entidad</th>
+                <th scope="col">Perfil buscado</th>
+                <th scope="col">Fecha de oferta</th>
+                <th scope="col">Estatus</th>
+                <th scope="col" *ngIf="isAdmin()">Postulantes</th>
+                <th scope="col" class="col-accion">Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="ofertas().length === 0">
+                <td [attr.colspan]="isAdmin() ? 6 : 5" class="empty-row">No se encontraron ofertas laborales.</td>
+              </tr>
+              <tr *ngFor="let o of ofertas(); trackBy: trackById" class="table-row">
+
+                <!-- Cargo / Entidad -->
+                <td class="col-nombre">
+                  <div class="service-name-cell">
+                    <div class="service-icon-circle">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                           stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 7h-4V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2H4a2 2 0 00-2 2v9a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zM10 5h4v2h-4V5zm10 13H4V9h16v9z"/>
+                      </svg>
+                    </div>
+                    <div class="service-name-info">
+                      <span class="service-name-title">{{ o.cargo }}</span>
+                      <span class="service-name-desc">{{ o.razon_social }}</span>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- Perfil buscado -->
+                <td class="col-perfil">{{ o.perfil_buscado }}</td>
+
+                <!-- Fecha -->
+                <td class="col-fecha">{{ formatFecha(o.fecha_oferta) }}</td>
+
+                <!-- Estatus -->
+                <td class="col-estado">
+                  <span class="estado-badge" [ngClass]="getEstatusBadgeClass(o.estatus_vacante)">{{ o.estatus_vacante }}</span>
+                </td>
+
+                <!-- Postulantes (solo admin) -->
+                <td class="col-postulantes" *ngIf="isAdmin()">
+                  <span class="postulantes-badge">{{ o.cantidad_postulantes }}</span>
+                </td>
+
+                <!-- Acción: kebab -->
+                <td class="col-accion">
+                  <div class="kebab-wrapper">
+                    <button
+                      class="kebab-btn"
+                      [id]="'btn-menu-' + o.nombre_entidad + '-' + o.cargo"
+                      (click)="toggleMenu($event, o.nombre_entidad + '::' + o.cargo)"
+                      aria-label="Acciones"
+                      [attr.aria-expanded]="openMenuId() === o.nombre_entidad + '::' + o.cargo"
+                    >
+                      <svg viewBox="0 0 24 24" fill="currentColor">
+                        <circle cx="12" cy="5"  r="1.5"/>
+                        <circle cx="12" cy="12" r="1.5"/>
+                        <circle cx="12" cy="19" r="1.5"/>
+                      </svg>
+                    </button>
+
+                    <div class="kebab-dropdown" *ngIf="openMenuId() === o.nombre_entidad + '::' + o.cargo" (click)="$event.stopPropagation()">
+                      <button class="dropdown-item" [id]="'btn-consultar-' + o.nombre_entidad + '-' + o.cargo" (click)="openConsultar(o)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        Ver detalle
+                      </button>
+                      <ng-container *ngIf="isEstudiante()">
+                        <div class="dropdown-divider"></div>
+                        <button
+                          class="dropdown-item item-primary"
+                          [id]="'btn-postular-' + o.nombre_entidad + '-' + o.cargo"
+                          [disabled]="yaPostulado(o) || o.estatus_vacante !== 'disponible'"
+                          (click)="openPostular(o)">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                          {{ yaPostulado(o) ? 'Ya postulado' : 'Postularme' }}
+                        </button>
+                      </ng-container>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-bar" *ngIf="!isLoading() && ofertas().length > 0">
+          <span class="showing-info">
+            Mostrando {{ showingFrom() }} a {{ showingTo() }} de {{ total() }} ofertas
+          </span>
+
+          <div class="pagination-controls">
+            <button class="page-btn" id="btn-primera-pagina" (click)="firstPage()" [disabled]="currentPage() === 1" aria-label="Primera página">«</button>
+            <button class="page-btn" id="btn-anterior-pagina" (click)="prevPage()"  [disabled]="currentPage() === 1" aria-label="Página anterior">‹</button>
+
+            <ng-container *ngFor="let p of pages()">
+              <button *ngIf="isNumber(p)" class="page-btn" [class.active]="p === currentPage()"
+                [id]="'btn-pagina-' + p" (click)="goToPage(p)">{{ p }}</button>
+              <span *ngIf="!isNumber(p)" class="page-ellipsis">...</span>
+            </ng-container>
+
+            <button class="page-btn" id="btn-siguiente-pagina" (click)="nextPage()" [disabled]="currentPage() === totalPages()" aria-label="Página siguiente">›</button>
+            <button class="page-btn" id="btn-ultima-pagina"    (click)="lastPage()" [disabled]="currentPage() === totalPages()" aria-label="Última página">»</button>
+          </div>
+
+          <div class="page-size-control">
+            <span>Mostrar</span>
+            <select id="select-por-pagina" class="page-size-select" [ngModel]="pageSize()" (ngModelChange)="pageSize.set(+$event); currentPage.set(1); loadOfertas()">
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+            </select>
+            <span>por página</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="page-footer">
+        <div class="footer-copyright">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          UCAB-Services es una plataforma oficial de la Universidad Católica Andrés Bello.
+        </div>
+      </footer>
+    </main>
+  </div><!-- /main-wrapper -->
+</div><!-- /layout -->
+
+
+<!-- ═══════════════ MODAL CONSULTAR ═══════════════ -->
+<div class="modal-overlay" *ngIf="modalMode() === 'consultar'" (click)="closeModal()" role="dialog" aria-modal="true">
+  <div class="modal-card modal-lg" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Detalle de la oferta laboral</h2>
+      <button class="modal-close" (click)="closeModal()" id="btn-cerrar-consultar" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" *ngIf="selectedOferta() as o">
+      <div class="detail-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M20 7h-4V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2H4a2 2 0 00-2 2v9a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zM10 5h4v2h-4V5zm10 13H4V9h16v9z"/>
+        </svg>
+      </div>
+      <div class="detail-grid">
+        <div class="detail-item detail-full">
+          <span class="detail-label">Cargo</span>
+          <span class="detail-value detail-value-lg">{{ o.cargo }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Entidad</span>
+          <span class="detail-value">{{ o.razon_social }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">RIF</span>
+          <span class="detail-value">{{ o.rif }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Fecha de oferta</span>
+          <span class="detail-value">{{ formatFecha(o.fecha_oferta) }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Estatus</span>
+          <span class="estado-badge" [ngClass]="getEstatusBadgeClass(o.estatus_vacante)">{{ o.estatus_vacante }}</span>
+        </div>
+        <div class="detail-item" *ngIf="isAdmin()">
+          <span class="detail-label">Miembros postulados</span>
+          <span class="postulantes-badge">{{ o.cantidad_postulantes }}</span>
+        </div>
+        <div class="detail-item detail-full">
+          <span class="detail-label">Perfil buscado</span>
+          <span class="detail-value">{{ o.perfil_buscado }}</span>
+        </div>
+        <div class="detail-item detail-full">
+          <span class="detail-label">Responsabilidades</span>
+          <span class="detail-value">{{ o.responsabilidades }}</span>
+        </div>
+        <div class="detail-item detail-full">
+          <span class="detail-label">Beneficios</span>
+          <span class="detail-value">{{ o.beneficios }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" id="btn-cerrar-detalle" (click)="closeModal()">Cerrar</button>
+      <button
+        *ngIf="isEstudiante() && selectedOferta() as o"
+        class="btn-primary"
+        id="btn-postular-desde-consultar"
+        [disabled]="yaPostulado(selectedOferta()!) || selectedOferta()!.estatus_vacante !== 'disponible'"
+        (click)="openPostular(selectedOferta()!)">
+        {{ yaPostulado(selectedOferta()!) ? 'Ya postulado' : 'Postularme' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════ MODAL POSTULAR ═══════════════ -->
+<div class="modal-overlay" *ngIf="modalMode() === 'postular'" (click)="closeModal()" role="dialog" aria-modal="true">
+  <div class="modal-card modal-sm" (click)="$event.stopPropagation()">
+    <div class="modal-header modal-header-info">
+      <div class="warn-icon warn-icon-blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+      </div>
+      <h2 class="modal-title">Postularme a la oferta</h2>
+    </div>
+    <div class="modal-body">
+      <p class="confirm-text">
+        ¿Confirmas tu postulación al cargo
+        <strong>{{ selectedOferta()?.cargo }}</strong>?
+      </p>
+      <div class="solicitar-detail" *ngIf="selectedOferta() as o">
+        <div class="solicitar-row">
+          <span class="solicitar-key">Entidad</span>
+          <span class="solicitar-val">{{ o.razon_social }}</span>
+        </div>
+        <div class="solicitar-row">
+          <span class="solicitar-key">Fecha de oferta</span>
+          <span class="solicitar-val">{{ formatFecha(o.fecha_oferta) }}</span>
+        </div>
+      </div>
+      <p class="form-error-msg"   *ngIf="formError()">{{ formError() }}</p>
+      <p class="form-success-msg" *ngIf="formSuccess()">{{ formSuccess() }}</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" id="btn-cancelar-postular" (click)="closeModal()">Cancelar</button>
+      <button class="btn-primary" id="btn-confirmar-postular" (click)="confirmPostular()" [disabled]="isSaving()">
+        {{ isSaving() ? 'Enviando...' : 'Confirmar postulación' }}
+      </button>
+    </div>
+  </div>
+</div>

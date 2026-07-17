@@ -20,7 +20,7 @@
 
     <nav class="sidebar-nav">
       <ul class="nav-list" role="list">
-        <li *ngFor="let item of navItems" class="nav-item">
+        <li *ngFor="let item of visibleNavItems()" class="nav-item">
           <button
             class="nav-btn"
             [class.active]="currentRoute() === item.id"
@@ -88,6 +88,26 @@
           <p class="page-subtitle">Administra los miembros de la comunidad universitaria.</p>
           <div class="title-underline"></div>
         </div>
+        <div class="page-actions" *ngIf="userRol() === 'Profesor' || userRol() === 'Administrativo'">
+          <!-- Contador de familiares -->
+          <span class="familiares-counter" [class.at-limit]="limiteFamiliaresAlcanzado()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex-shrink:0"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+            {{ misFamiliares().length }}/5 beneficiarios
+          </span>
+          <button
+            class="btn-primary"
+            (click)="openFamiliar()"
+            id="btn-add-familiar"
+            [disabled]="limiteFamiliaresAlcanzado()"
+            [title]="limiteFamiliaresAlcanzado() ? 'Ha alcanzado el límite máximo de 5 beneficiarios' : 'Agregar un nuevo familiar'"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+              <path d="M16 21v-2a4 4 0 00-4-4H5c-1.2 0-2 .8-2 2v2M16 3.13a4 4 0 010 7.75M23 21v-2a4 4 0 00-3-3.87M12 7a4 4 0 100-8 4 4 0 000 8z"/><path d="M9 11a4 4 0 100-8 4 4 0 000 8z"/>
+            </svg>
+            {{ limiteFamiliaresAlcanzado() ? 'Límite alcanzado' : 'Agregar familiar' }}
+          </button>
+        </div>
+
       </section>
 
       <!-- Filters bar -->
@@ -396,6 +416,93 @@
         (click)="confirmDeactivate()"
         [disabled]="isSaving()"
       >{{ isSaving() ? 'Procesando...' : (selectedMiembro()?.estado_cuenta === 'activa' ? 'Sí, suspender' : 'Sí, activar') }}</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL AGREGAR FAMILIAR ═══════════════ -->
+<div class="modal-overlay" *ngIf="modalMode() === 'familiar'" (click)="closeModal()" role="dialog" aria-modal="true">
+  <div class="modal-card modal-lg" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Agregar familiar</h2>
+      <button class="modal-close" (click)="closeModal()" id="btn-cerrar-modal-familiar" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <form [formGroup]="familiarForm" class="form-grid" (ngSubmit)="saveFamiliar()" id="form-familiar">
+        <div class="form-group">
+          <label for="f-ced-fam">Cédula del familiar *</label>
+          <input id="f-ced-fam" type="text" class="form-input" formControlName="cedula" placeholder="Ej: 15123456" />
+          <span class="field-error" *ngIf="familiarForm.get('cedula')?.invalid && familiarForm.get('cedula')?.touched">Cédula inválida.</span>
+        </div>
+
+        <div class="form-group">
+          <label for="f-nom-fam">Nombre completo *</label>
+          <input id="f-nom-fam" type="text" class="form-input" formControlName="nombre_familiar" placeholder="Ej: Juan Pérez" />
+          <span class="field-error" *ngIf="familiarForm.get('nombre_familiar')?.invalid && familiarForm.get('nombre_familiar')?.touched">Nombre requerido.</span>
+        </div>
+
+        <div class="form-group">
+          <label for="f-par-fam">Parentesco *</label>
+          <select id="f-par-fam" class="form-input" formControlName="parentesco">
+            <option value="">Seleccione...</option>
+            <option value="Esposo/a">Esposo/a</option>
+            <option value="Hijo/a">Hijo/a</option>
+            <option value="Madre/Padre">Madre/Padre</option>
+            <option value="Hermano/a">Hermano/a</option>
+            <option value="Otro">Otro</option>
+          </select>
+          <span class="field-error" *ngIf="familiarForm.get('parentesco')?.invalid && familiarForm.get('parentesco')?.touched">Parentesco requerido.</span>
+        </div>
+
+        <div class="form-group">
+          <label for="f-edad-fam">Edad *</label>
+          <input id="f-edad-fam" type="number" class="form-input" formControlName="edad_familiar" placeholder="Ej: 30" min="0" />
+          <span class="field-error" *ngIf="familiarForm.get('edad_familiar')?.invalid && familiarForm.get('edad_familiar')?.touched">Edad inválida.</span>
+        </div>
+
+        <!-- Campos para Cargo Mayor (Edad > 18) -->
+        <ng-container *ngIf="familiarForm.get('edad_familiar')?.value > 18">
+          <div class="form-group">
+            <label for="f-estudios">Nivel de estudios *</label>
+            <select id="f-estudios" class="form-input" formControlName="estudios">
+              <option value="">Seleccione...</option>
+              <option value="Primaria">Primaria</option>
+              <option value="Bachiller">Bachiller</option>
+              <option value="Técnico">Técnico</option>
+              <option value="Universitario">Universitario</option>
+              <option value="Postgrado">Postgrado</option>
+            </select>
+            <span class="field-error" *ngIf="familiarForm.get('estudios')?.invalid && familiarForm.get('estudios')?.touched">Estudios requeridos para mayores de 18.</span>
+          </div>
+        </ng-container>
+
+        <!-- Campos para Cargo Menor (Edad <= 18) -->
+        <ng-container *ngIf="familiarForm.get('edad_familiar')?.value !== null && familiarForm.get('edad_familiar')?.value !== '' && familiarForm.get('edad_familiar')?.value >= 0 && familiarForm.get('edad_familiar')?.value <= 18">
+          <div class="form-group">
+            <label for="f-vacunacion">Datos de vacunación *</label>
+            <input id="f-vacunacion" type="text" class="form-input" formControlName="vacunacion" placeholder="Ej: COVID-19, Fiebre Amarilla" />
+            <span class="field-error" *ngIf="familiarForm.get('vacunacion')?.invalid && familiarForm.get('vacunacion')?.touched">Dato requerido.</span>
+          </div>
+          <div class="form-group">
+            <label for="f-educacion">Educación inicial *</label>
+            <input id="f-educacion" type="text" class="form-input" formControlName="educacion_inicial" placeholder="Ej: Preescolar Simoncito" />
+            <span class="field-error" *ngIf="familiarForm.get('educacion_inicial')?.invalid && familiarForm.get('educacion_inicial')?.touched">Dato requerido.</span>
+          </div>
+        </ng-container>
+      </form>
+
+      <p class="form-error-msg" *ngIf="formError()">{{ formError() }}</p>
+      <p class="form-success-msg" *ngIf="formSuccess()">{{ formSuccess() }}</p>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" id="btn-cancelar-familiar" (click)="closeModal()">Cancelar</button>
+      <button class="btn-primary" id="btn-guardar-familiar" (click)="saveFamiliar()" [disabled]="familiarForm.invalid || isSaving()">
+        {{ isSaving() ? 'Procesando...' : 'Registrar familiar' }}
+      </button>
     </div>
   </div>
 </div>

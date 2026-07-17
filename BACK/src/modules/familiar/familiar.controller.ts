@@ -1,34 +1,29 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Post, Get, Body, Req, UseGuards, HttpException, HttpStatus } from '@nestjs/common';
 import { FamiliarService } from './familiar.service';
 import { CreateFamiliarDto } from './dto/create-familiar.dto';
-import { UpdateFamiliarDto } from './dto/update-familiar.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('familiar')
 export class FamiliarController {
   constructor(private readonly familiarService: FamiliarService) {}
 
-  @Post()
-  create(@Body() createFamiliarDto: CreateFamiliarDto) {
-    return this.familiarService.create(createFamiliarDto);
+  @Post('registrar')
+  @UseGuards(AuthGuard('jwt'))
+  async registrarFamiliar(@Req() req, @Body() dto: CreateFamiliarDto) {
+    const user = req.user;
+    if (user.rol !== 'Profesor' && user.rol !== 'Administrativo') {
+      throw new HttpException('Solo el Personal UCAB puede registrar familiares', HttpStatus.FORBIDDEN);
+    }
+    return this.familiarService.registrarFamiliar(user.id, dto);
   }
 
-  @Get()
-  findAll() {
-    return this.familiarService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.familiarService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateFamiliarDto: UpdateFamiliarDto) {
-    return this.familiarService.update(+id, updateFamiliarDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.familiarService.remove(+id);
+  @Get('mis-familiares')
+  @UseGuards(AuthGuard('jwt'))
+  async getMisFamiliares(@Req() req) {
+    const user = req.user;
+    if (user.rol !== 'Profesor' && user.rol !== 'Administrativo') {
+      throw new HttpException('Solo el Personal UCAB tiene beneficiarios', HttpStatus.FORBIDDEN);
+    }
+    return this.familiarService.getMisFamiliares(user.id);
   }
 }

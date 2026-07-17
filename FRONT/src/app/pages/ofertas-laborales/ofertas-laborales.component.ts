@@ -1,62 +1,65 @@
 import {
-  Component, OnInit, OnDestroy, inject, signal, computed
+  Component, OnInit, OnDestroy, inject, signal, computed, HostListener
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
 import {
-  EdificacionesService, Edificacion, CreateEdificacionDto, EdificacionStats
-} from '../../services/edificaciones.service';
+  OfertasLaboralesService, OfertaLaboral, OfertasStats, Postulacion
+} from '../../services/ofertas-laborales.service';
 import { AuthService } from '../../services/auth.service';
 
-type ModalMode = 'view' | 'create' | 'edit' | 'delete' | 'toggleEstado' | null;
+type ModalMode = 'consultar' | 'postular' | null;
 
 interface NavItem { id: string; label: string; route: string; icon: string; }
 
 @Component({
-  selector: 'app-edificaciones',
+  selector: 'app-ofertas-laborales',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, ReactiveFormsModule],
-  templateUrl: './edificaciones.component.html',
-  styleUrl: './edificaciones.component.scss',
+  imports: [CommonModule, RouterModule, FormsModule],
+  templateUrl: './ofertas-laborales.component.html',
+  styleUrl: './ofertas-laborales.component.scss',
 })
-export class EdificacionesComponent implements OnInit, OnDestroy {
-  private readonly edificacionesService = inject(EdificacionesService);
+export class OfertasLaboralesComponent implements OnInit, OnDestroy {
+  private readonly ofertasService = inject(OfertasLaboralesService);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
-  private readonly fb = inject(FormBuilder);
   private readonly destroy$ = new Subject<void>();
   private readonly searchSubject = new Subject<string>();
 
-  /* ── State ─────────────────────────────────────────────── */
+  /* ── UI State ───────────────────────────────────────────── */
   sidebarCollapsed = signal(false);
   isLoading = signal(true);
   isSaving = signal(false);
   modalMode = signal<ModalMode>(null);
-  selectedEdificacion = signal<Edificacion | null>(null);
+  selectedOferta = signal<OfertaLaboral | null>(null);
+  openMenuId = signal<string | null>(null);
+  currentRoute = signal('ofertas-laborales');
 
   /* ── Data ──────────────────────────────────────────────── */
-  edificaciones = signal<Edificacion[]>([]);
+  ofertas = signal<OfertaLaboral[]>([]);
   total = signal(0);
   totalPages = signal(0);
   currentPage = signal(1);
   pageSize = signal(10);
+  stats = signal<OfertasStats | null>(null);
+  postulaciones = signal<Postulacion[]>([]);
+
+  /* ── Filters ────────────────────────────────────────────── */
   searchQuery = signal('');
-  filterSede = signal('todas');
-  sedes = signal<string[]>([]);
-  stats = signal<EdificacionStats>({ totalSedes: 0, totalEdificaciones: 0, activas: 0, inactivas: 0 });
-  currentRoute = signal('edificaciones');
+  filterEstatus = signal('');
 
   /* ── User ──────────────────────────────────────────────── */
   userName = signal('Usuario');
   userEmail = signal('');
   userInitials = signal('US');
-  canEdit = signal(false);
   userRol = signal('');
 
-  /* ── Form ──────────────────────────────────────────────── */
-  edificacionForm!: FormGroup;
+  isAdmin = computed(() => this.userRol() === 'Admin');
+  isEstudiante = computed(() => this.userRol() === 'Estudiante');
+
+  /* ── Feedback ──────────────────────────────────────────── */
   formError = signal('');
   formSuccess = signal('');
 
@@ -104,30 +107,22 @@ export class EdificacionesComponent implements OnInit, OnDestroy {
   showingFrom = computed(() => (this.currentPage() - 1) * this.pageSize() + 1);
   showingTo = computed(() => Math.min(this.currentPage() * this.pageSize(), this.total()));
 
-  activasPct = computed(() => {
-    const t = this.stats().totalEdificaciones;
-    return t > 0 ? Math.round((this.stats().activas / t) * 100) : 0;
-  });
+  hasActiveFilters = computed(() => !!this.filterEstatus());
 
-  inactivasPct = computed(() => {
-    const t = this.stats().totalEdificaciones;
-    return t > 0 ? Math.round((this.stats().inactivas / t) * 100) : 0;
-  });
+  /** Clave compuesta de ofertas a las que el estudiante autenticado ya se postuló. */
+  postuladoIds = computed(() => new Set(this.postulaciones().map((p) => `${p.nombre_entidad}::${p.cargo}`)));
 
   /* ── Lifecycle ──────────────────────────────────────────── */
   ngOnInit(): void {
     this.loadUserFromStorage();
-    this.buildForm();
-    this.loadStats();
-    this.loadSedes();
-    this.loadEdificaciones();
+    this.loadOfertas();
 
     this.searchSubject
       .pipe(debounceTime(400), distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe((q) => {
         this.searchQuery.set(q);
         this.currentPage.set(1);
-        this.loadEdificaciones();
+        this.loadOfertas();
       });
   }
 
@@ -136,48 +131,38 @@ export class EdificacionesComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  /* ── Load user ──────────────────────────────────────────── */
+  @HostListener('document:click')
+  onDocumentClick(): void { this.openMenuId.set(null); }
+
+  /* ── User ──────────────────────────────────────────────── */
   private loadUserFromStorage(): void {
     const stored = sessionStorage.getItem('user');
-    if (stored) {
-      try {
-        const u = JSON.parse(stored);
-        this.userName.set(u.nombre ?? 'Usuario');
-        this.userEmail.set(u.email ?? '');
-        const initials = (u.nombre ?? 'U')
-          .split(' ').slice(0, 2).map((p: string) => p[0]).join('').toUpperCase();
-        this.userInitials.set(initials);
+    if (!stored) return;
+    try {
+      const u = JSON.parse(stored);
+      this.userName.set(u.nombre ?? 'Usuario');
+      this.userEmail.set(u.email ?? '');
+      this.userRol.set(u.rol ?? '');
+      const initials = (u.nombre ?? 'U')
+        .split(' ').slice(0, 2).map((p: string) => p[0]).join('').toUpperCase();
+      this.userInitials.set(initials);
 
-        this.userRol.set(u.rol ?? '');
-        const rol = (u.rol ?? '').toLowerCase();
-        const readonlyRoles = ['estudiante', 'preparador', 'profesor', 'egresado', 'miembro', 'administrativo'];
-        this.canEdit.set(!readonlyRoles.includes(rol));
-      } catch { /* empty */ }
-    }
-  }
-
-  /* ── Form ──────────────────────────────────────────────── */
-  private buildForm(): void {
-    this.edificacionForm = this.fb.group({
-      codigo: ['', Validators.required],
-      nombre: ['', Validators.required],
-      sede: ['', Validators.required],
-      direccion_interna: ['', Validators.required],
-      estado: ['activa', Validators.required],
-    });
+      if (this.userRol() === 'Admin') this.loadStats();
+      if (this.userRol() === 'Estudiante') this.loadMisPostulaciones();
+    } catch { /* empty */ }
   }
 
   /* ── Data Loading ───────────────────────────────────────── */
-  loadEdificaciones(): void {
+  loadOfertas(): void {
     this.isLoading.set(true);
-    this.edificacionesService.getAll({
+    this.ofertasService.getAll({
       search: this.searchQuery() || undefined,
-      sede: this.filterSede() !== 'todas' ? this.filterSede() : undefined,
+      estatus: this.filterEstatus() || undefined,
       page: this.currentPage(),
       limit: this.pageSize(),
     }).subscribe({
       next: (res) => {
-        this.edificaciones.set(res.data || []);
+        this.ofertas.set(res.data || []);
         this.total.set(res.total || 0);
         this.totalPages.set(res.totalPages || 0);
         this.isLoading.set(false);
@@ -187,25 +172,32 @@ export class EdificacionesComponent implements OnInit, OnDestroy {
   }
 
   loadStats(): void {
-    this.edificacionesService.getStats().subscribe({
+    this.ofertasService.getStats().subscribe({
       next: (s) => this.stats.set(s),
+      error: () => this.stats.set(null),
+    });
+  }
+
+  loadMisPostulaciones(): void {
+    this.ofertasService.misPostulaciones().subscribe({
+      next: (p) => this.postulaciones.set(p),
       error: () => { },
     });
   }
 
-  loadSedes(): void {
-    this.edificacionesService.getSedes().subscribe({
-      next: (s) => this.sedes.set(s),
-      error: () => { },
-    });
-  }
-
-  /* ── Search & Filters ───────────────────────────────────── */
+  /* ── Filters ────────────────────────────────────────────── */
   onSearch(value: string): void { this.searchSubject.next(value); }
 
   onFilterChange(): void {
     this.currentPage.set(1);
-    this.loadEdificaciones();
+    this.loadOfertas();
+  }
+
+  clearFilters(): void {
+    this.filterEstatus.set('');
+    this.searchQuery.set('');
+    this.currentPage.set(1);
+    this.loadOfertas();
   }
 
   /* ── Pagination ─────────────────────────────────────────── */
@@ -213,7 +205,7 @@ export class EdificacionesComponent implements OnInit, OnDestroy {
     if (typeof page !== 'number') return;
     if (page < 1 || page > this.totalPages()) return;
     this.currentPage.set(page);
-    this.loadEdificaciones();
+    this.loadOfertas();
   }
 
   prevPage(): void { this.goToPage(this.currentPage() - 1); }
@@ -221,118 +213,63 @@ export class EdificacionesComponent implements OnInit, OnDestroy {
   firstPage(): void { this.goToPage(1); }
   lastPage(): void { this.goToPage(this.totalPages()); }
 
-  onPageSizeChange(size: string): void {
-    this.pageSize.set(Number(size));
-    this.currentPage.set(1);
-    this.loadEdificaciones();
+  /* ── Kebab Menu ─────────────────────────────────────────── */
+  toggleMenu(event: MouseEvent, id: string): void {
+    event.stopPropagation();
+    this.openMenuId.update((current) => (current === id ? null : id));
   }
 
   /* ── Modals ─────────────────────────────────────────────── */
-  openCreate(): void {
-    this.edificacionForm.reset({ estado: 'activa' });
+  openConsultar(o: OfertaLaboral): void {
+    this.selectedOferta.set(o);
+    this.openMenuId.set(null);
+    this.modalMode.set('consultar');
+  }
+
+  openPostular(o: OfertaLaboral): void {
+    this.selectedOferta.set(o);
     this.formError.set('');
     this.formSuccess.set('');
-    this.selectedEdificacion.set(null);
-    this.modalMode.set('create');
-  }
-
-  openView(e: Edificacion): void {
-    this.selectedEdificacion.set(e);
-    this.modalMode.set('view');
-  }
-
-  openEdit(e: Edificacion): void {
-    this.selectedEdificacion.set(e);
-    this.formError.set('');
-    this.formSuccess.set('');
-    this.edificacionForm.patchValue({
-      codigo: e.codigo,
-      nombre: e.nombre,
-      sede: e.sede,
-      direccion_interna: e.direccion_interna,
-      estado: e.estado,
-    });
-    this.modalMode.set('edit');
-  }
-
-  openDelete(e: Edificacion): void {
-    this.selectedEdificacion.set(e);
-    this.modalMode.set('delete');
-  }
-
-  openToggleEstado(e: Edificacion): void {
-    this.selectedEdificacion.set(e);
-    this.modalMode.set('toggleEstado');
+    this.openMenuId.set(null);
+    this.modalMode.set('postular');
   }
 
   closeModal(): void {
     this.modalMode.set(null);
-    this.selectedEdificacion.set(null);
+    this.selectedOferta.set(null);
     this.formError.set('');
     this.formSuccess.set('');
   }
 
-  /* ── CRUD Actions ───────────────────────────────────────── */
-  saveEdificacion(): void {
-    if (this.edificacionForm.invalid) {
-      this.edificacionForm.markAllAsTouched();
-      return;
-    }
+  /* ── Postulación ────────────────────────────────────────── */
+  confirmPostular(): void {
+    const o = this.selectedOferta();
+    if (!o) return;
     this.isSaving.set(true);
     this.formError.set('');
-
-    const dto: CreateEdificacionDto = this.edificacionForm.value;
-    const isEdit = this.modalMode() === 'edit';
-    const obs = isEdit
-      ? this.edificacionesService.update(this.selectedEdificacion()!.id, dto)
-      : this.edificacionesService.create(dto);
-
-    obs.subscribe({
-      next: () => {
+    this.ofertasService.aplicar(o.nombre_entidad, o.cargo).subscribe({
+      next: (res) => {
         this.isSaving.set(false);
-        this.formSuccess.set(isEdit ? '¡Edificación actualizada!' : '¡Edificación registrada!');
-        setTimeout(() => {
-          this.closeModal();
-          this.loadEdificaciones();
-          this.loadStats();
-        }, 1200);
+        this.formSuccess.set(res.mensaje || '¡Postulación enviada con éxito!');
+        this.loadMisPostulaciones();
+        this.loadOfertas();
+        setTimeout(() => this.closeModal(), 1600);
       },
       error: (err) => {
         this.isSaving.set(false);
-        this.formError.set(err?.error?.message ?? 'Ocurrió un error al guardar.');
+        this.formError.set(this.mensajeDeError(err, 'No se pudo enviar la postulación.'));
       },
     });
   }
 
-  confirmDelete(): void {
-    const e = this.selectedEdificacion();
-    if (!e) return;
-    this.isSaving.set(true);
-    this.edificacionesService.delete(e.id).subscribe({
-      next: () => {
-        this.isSaving.set(false);
-        this.closeModal();
-        this.loadEdificaciones();
-        this.loadStats();
-      },
-      error: () => this.isSaving.set(false),
-    });
+  yaPostulado(o: OfertaLaboral): boolean {
+    return this.postuladoIds().has(`${o.nombre_entidad}::${o.cargo}`);
   }
 
-  confirmToggleEstado(): void {
-    const e = this.selectedEdificacion();
-    if (!e) return;
-    const nuevoEstado: 'activa' | 'desactivada' = e.estado === 'activa' ? 'desactivada' : 'activa';
-    this.isSaving.set(true);
-    this.edificacionesService.updateEstado(e.id, nuevoEstado).subscribe({
-      next: () => {
-        this.isSaving.set(false);
-        this.closeModal();
-        this.loadEdificaciones();
-        this.loadStats();
-      },
-      error: () => this.isSaving.set(false),
-    });
+  private mensajeDeError(err: any, porDefecto: string): string {
+    const e = err?.error;
+    if (Array.isArray(e?.message)) return e.message.join('. ');
+    return e?.error ?? e?.message ?? porDefecto;
   }
 
   /* ── Sidebar & Nav ──────────────────────────────────────── */
@@ -354,16 +291,17 @@ export class EdificacionesComponent implements OnInit, OnDestroy {
   }
 
   /* ── Helpers ────────────────────────────────────────────── */
-  getEstadoBadgeClass(estado: string): string {
-    return estado === 'activa' ? 'badge-activa' : 'badge-desactivada';
+  getEstatusBadgeClass(estatus: string): string {
+    return estatus === 'disponible' ? 'badge-disponible' : 'badge-finalizada';
   }
 
-  getEstadoLabel(estado: string): string {
-    return estado === 'activa' ? 'Activa' : 'Desactivada';
+  formatFecha(fecha: string): string {
+    if (!fecha) return '—';
+    return new Date(fecha).toLocaleDateString('es-VE', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
-  trackById(_index: number, e: Edificacion): number { return e.id; }
-  isNumber(val: any): boolean { return typeof val === 'number'; }
+  trackById(_i: number, o: OfertaLaboral): string { return `${o.nombre_entidad}::${o.cargo}`; }
+  isNumber(val: unknown): boolean { return typeof val === 'number'; }
 }
 
 

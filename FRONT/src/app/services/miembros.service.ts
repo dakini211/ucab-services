@@ -22,6 +22,17 @@ export interface MiembrosResponse {
   totalPages: number;
 }
 
+export interface FamiliarDetalle {
+  cedula: number;
+  nombre_familiar: string;
+  parentesco: string;
+  edad_familiar: number;
+  fecha_de_inicio: string;
+  tipo: 'Mayor' | 'Menor';
+  cargo_mayor?: { estudios: string } | null;
+  cargo_menor?: { vacunacion: string | null; educacion_inicial: string | null } | null;
+}
+
 export interface CreateMiembroDto {
   cedula_identidad: number;
   primer_nombre: string;
@@ -75,5 +86,29 @@ export class MiembrosService {
 
   delete(id: number): Observable<Miembro> {
     return this.http.delete<Miembro>(`${this.API}/miembro/${id}`);
+  }
+
+  registrarFamiliar(
+    cedula: number, 
+    nombre: string, 
+    parentesco: string, 
+    edad: number,
+    estudios?: string,
+    vacunacion?: string,
+    educacion_inicial?: string
+  ): Observable<any> {
+    return this.http.post<any>(`${this.API}/familiar/registrar`, {
+      cedula,
+      nombre_familiar: nombre,
+      parentesco,
+      edad_familiar: edad,
+      estudios,
+      vacunacion,
+      educacion_inicial
+    });
+  }
+
+  getMisFamiliares(): Observable<FamiliarDetalle[]> {
+    return this.http.get<FamiliarDetalle[]>(`${this.API}/familiar/mis-familiares`);
   }
 }

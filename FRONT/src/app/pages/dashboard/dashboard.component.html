@@ -28,7 +28,7 @@
     <!-- Navigation -->
     <nav class="sidebar-nav">
       <ul role="list">
-        @for (item of navItems; track item.id) {
+        @for (item of visibleNavItems(); track item.id) {
           <li>
             <button
               class="nav-item"
@@ -174,20 +174,6 @@
           </button>
         </article>
 
-        <!-- Card: Solicitudes -->
-        <article class="stat-card" id="stat-solicitudes">
-          <div class="stat-icon stat-icon--blue" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-              <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-            </svg>
-          </div>
-          <p class="stat-number">{{ formatNumber(stats().solicitudesActivas) }}</p>
-          <p class="stat-label">Solicitudes activas</p>
-          <button class="stat-link" (click)="navigateTo('/tramites')" id="link-solicitudes">
-            Ver solicitudes
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </button>
-        </article>
 
         <!-- Card: Pagos -->
         <article class="stat-card" id="stat-pagos">
