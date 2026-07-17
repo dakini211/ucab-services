@@ -149,51 +149,53 @@ SELECT SETVAL('seq_numero_control', 2);
 -- ===== FACTURA DE CARLOS: abono parcial y luego liquidacion total =====
 
 -- Abono 1: Zelle por 50.00 -> saldo 42.00, estatus pasa a 'parcial'
+-- ===== FACTURA DE CARLOS: abono parcial y luego liquidacion total =====
+
+-- Abono 1: Zelle por 50.00
 CALL sp_registrar_pago(
-    p_numero_de_control => 'FAC-2026-000001',
-    p_monto             => 50.00,
-    p_tipo              => 'zelle',
-    p_fecha_operacion   => '2026-03-01 11:20:00',
-    p_correo            => 'carlos.ramirez.pagos@gmail.com',
-    p_nombre            => 'Carlos Andres Ramirez Torres',
-    p_confirmacion      => 'ZEL-8842197365'
+    p_numero_de_control => 'FAC-2026-000001'::VARCHAR,
+    p_monto             => 50.00::NUMERIC,
+    p_tipo              => 'zelle'::VARCHAR,
+    p_fecha_operacion   => '2026-03-01 11:20:00'::TIMESTAMP,
+    p_correo            => 'carlos.ramirez.pagos@gmail.com'::VARCHAR,
+    p_nombre            => 'Carlos Andres Ramirez Torres'::VARCHAR,
+    p_confirmacion      => 'ZEL-8842197365'::VARCHAR
 );
 
--- Abono 2: Pago Movil por 42.00 -> saldo 0.00, estatus pasa a 'pagada'
+-- Abono 2: Pago Movil por 42.00
 CALL sp_registrar_pago(
-    p_numero_de_control => 'FAC-2026-000001',
-    p_monto             => 42.00,
-    p_tipo              => 'pago_movil',
-    p_fecha_operacion   => '2026-03-04 16:45:00',
-    p_telefono_emisor   => '0414-1234567',
-    p_banco             => 'Banco Mercantil',
-    p_referencia        => 'PM-000998877'
+    p_numero_de_control => 'FAC-2026-000001'::VARCHAR,
+    p_monto             => 42.00::NUMERIC,
+    p_tipo              => 'pago_movil'::VARCHAR,
+    p_fecha_operacion   => '2026-03-04 16:45:00'::TIMESTAMP,
+    p_telefono_emisor   => '0414-1234567'::VARCHAR,
+    p_banco             => 'Banco Mercantil'::VARCHAR,
+    p_referencia        => 'PM-000998877'::VARCHAR
 );
 
 
 -- ===== FACTURA DE MARIA: un solo abono, queda saldo pendiente =====
 
--- Abono unico: Tarjeta por 60.00 -> saldo 53.68, estatus 'parcial'
+-- Abono unico: Tarjeta por 60.00
 CALL sp_registrar_pago(
-    p_numero_de_control => 'FAC-2026-000002',
-    p_monto             => 60.00,
-    p_tipo              => 'tarjeta',
-    p_fecha_operacion   => '2026-04-02 09:15:00',
-    p_nro_tarjeta       => '4539112233445566',
-    p_vencimiento       => '08/28',
-    p_compania          => 'Visa',
-    p_red               => 'Nacional'
+    p_numero_de_control => 'FAC-2026-000002'::VARCHAR,
+    p_monto             => 60.00::NUMERIC,
+    p_tipo              => 'tarjeta'::VARCHAR,
+    p_fecha_operacion   => '2026-04-02 09:15:00'::TIMESTAMP,
+    p_nro_tarjeta       => '4539112233445566'::VARCHAR,
+    p_vencimiento       => '08/28'::VARCHAR,
+    p_compania          => 'Visa'::VARCHAR,
+    p_red               => 'Nacional'::VARCHAR
 );
 
--- Abono 2: Pago con Billetera TAI por 53.68 -> saldo 0.00, estatus 'pagada'
--- El SP descuenta de Billetera_digital, crea registro en Metodo_Pago y en TAI (registrando el remanente)
+-- Abono 2: Pago con Billetera TAI por 53.68
 CALL sp_registrar_pago(
-    p_numero_de_control => 'FAC-2026-000002',
-    p_monto             => 53.68,
-    p_tipo              => 'tai',
-    p_fecha_operacion   => '2026-04-03 12:00:00',
-    p_uid               => 'TAI-28002002-NFC',
-    p_pos               => 'POS-CAJA-01'
+    p_numero_de_control => 'FAC-2026-000002'::VARCHAR,
+    p_monto             => 53.68::NUMERIC,
+    p_tipo              => 'tai'::VARCHAR,
+    p_fecha_operacion   => '2026-04-03 12:00:00'::TIMESTAMP,
+    p_uid               => 'TAI-28002002-NFC'::VARCHAR,
+    p_pos               => 'POS-CAJA-01'::VARCHAR
 );
 
 
@@ -276,3 +278,4 @@ VALUES
 INSERT INTO Historial_Sesiones (id_miembro, lugar_conexion, direccion_ip, fecha_inicio, hora_inicio, hora_fin)
 VALUES 
 ((SELECT id_miembro FROM Miembro WHERE cedula_identidad = 12009009), 'Campus Caracas - Dirección General', '192.168.3.100', '2025-04-02', '08:30:00', '16:00:00');
+
