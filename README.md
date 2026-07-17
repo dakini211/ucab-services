@@ -182,28 +182,9 @@ DELETE FROM Factura WHERE numero_de_control = 'FAC-2026-000001';
 -- ERROR: permiso denegado para la tabla factura
 RESET ROLE;
 ```
-
 ---
 
-## 7. Guion de demostración
-
-1. **Congelado de precios** — folio `FOL-202602-00001`: el bootcamp cargó a
-   `50.00`, la tarifa vigente al 10/02/2026, aunque hoy vale `65.00`.
-   ```sql
-   SELECT ic.concepto, ic.precio_unitario AS congelado,
-          fn_tarifa_vigente(ic.id_servicio, CURRENT_TIMESTAMP) AS hoy
-   FROM Items_Consumo ic WHERE ic.nro_de_folio = 'FOL-202602-00001';
-   ```
-2. **Abonos parciales** — factura `FAC-2026-000002`, saldo `53.68`. Registrar un
-   abono desde Finanzas y ver el estatus pasar a `pagada` solo.
-3. **Folio congelado** — intentar cargar un ítem a un folio facturado: el trigger
-   lo rechaza y el mensaje llega hasta la interfaz.
-4. **Postulación** — un miembro suspendido (Luis) no puede postularse.
-5. **Seguridad** — el `SET ROLE ucab_finanzas` de arriba.
-
----
-
-## 8. Estructura del repositorio
+## 7. Estructura del repositorio
 
 ```
 BACK/          API NestJS
