@@ -22,10 +22,9 @@ Sistema transaccional (OLTP) que integra los campus de Montalbán y Guayana.
 createdb -U postgres services_ucab
 ```
 
-### 1.2 Ejecutar los scripts EN ESTE ORDEN
+### 1.2 Ejecutar los scripts en este orden
 
-El orden no es opcional. Los datos de prueba dependen de que los triggers ya
-existan: si se cargan antes, los precios no se congelan y los ítems fallan.
+Es importante mantener el orden de ejecución. Los datos de prueba dependen de que los triggers y procedimientos ya existan en la base de datos para funcionar correctamente.
 
 ```bash
 psql -U postgres -d services_ucab -f DROP.sql                    # 1. limpieza
@@ -39,9 +38,9 @@ psql -U postgres -d services_ucab -f insert_faltantes.sql        # 8. datos de e
 psql -U postgres -d services_ucab -f seguridad.sql               # 9. roles, cuentas y privilegios
 ```
 
-### 1.3 Verificar que no quede ninguna tabla vacía
+### 1.3 Verificar datos insertados
 
-Obligatorio antes de entregar: sin datos en cada entidad no se revisa el proyecto.
+Es recomendable verificar que todas las entidades tengan registros cargados correctamente.
 
 ```sql
 ANALYZE;
@@ -52,7 +51,7 @@ WHERE schemaname = 'public'
 ORDER BY n_live_tup ASC, relname;
 ```
 
-Si alguna tabla aparece con 0 filas, hay que cargarla antes de la entrega.
+Si alguna tabla no tiene registros, puedes verificar los scripts de inserción.
 
 ### 1.4 Estado esperado tras la carga
 
@@ -79,7 +78,6 @@ Crear `BACK/.env`:
 
 ```env
 DATABASE_URL="postgresql://svc_app:cambiar_esto_app@localhost:5432/services_ucab?schema=public"
-JWT_SECRET="una_clave_larga_y_aleatoria_para_produccion"
 ```
 
 > **Nota de seguridad:** el usuario es `svc_app`, no `postgres`. Lo crea
@@ -128,9 +126,8 @@ Las contraseñas están en `INSERT.sql`, tabla `Historial_Contrasena`.
 
 ## 5. Arquitectura: dónde vive la lógica
 
-**La lógica de negocio vive en PostgreSQL, no en NestJS.** El backend no calcula
-totales, no resta saldos y no decide estatus: solo invoca procedimientos y
-traduce los errores del gestor a HTTP.
+**La lógica de negocio reside principalmente en PostgreSQL.** El backend invoca los procedimientos, 
+y delega al gestor el cálculo de totales, saldos y estatus de las facturas.
 
 Consecuencia práctica: si alguien inserta un pago con `psql`, por fuera de la
 aplicación, el saldo de la factura se actualiza igual.
@@ -165,8 +162,8 @@ Hay **dos capas**, y hacen falta las dos:
 | Aplicación | JWT + guards de NestJS | Qué ve cada rol en la interfaz |
 | **Gestor** | `sql/seguridad.sql` | Qué puede hacer cada cuenta **aunque se conecte por psql** |
 
-La segunda es la que exige el enunciado. Los roles del JWT se saltan
-conectándose directo a la base; los del gestor no.
+Ambas capas son importantes. La seguridad a nivel del gestor garantiza la integridad incluso
+si el acceso a la base de datos se realiza de forma directa (por ejemplo, vía psql).
 
 | Rol | Puede |
 |---|---|
