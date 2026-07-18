@@ -81,7 +81,7 @@ DATABASE_URL="postgresql://svc_app:cambiar_esto_app@localhost:5432/services_ucab
 ```
 
 > **Nota de seguridad:** el usuario es `svc_app`, no `postgres`. Lo crea
-> `seguridad.sql`. Cambia la contraseña ahí antes de la entrega.
+> `seguridad.sql`. contrasena:123456.
 > Si `seguridad.sql` no se ha ejecutado, usa `postgres` temporalmente.
 
 Generar el cliente de Prisma y levantar:
